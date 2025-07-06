@@ -16,6 +16,7 @@ from xnote.core import xtables, xconfig
 from xnote.service import TagTypeEnum, TagInfoDO
 from xutils.db.dbutil_helper import new_from_dict
 from xutils.base import BaseEnum, EnumItem
+from xnote.service.tag_service import SystemTagEnum
 from xutils import quote
 
 """消息模型相关的内容
@@ -115,7 +116,7 @@ class MsgTagInfo(TagInfoDO):
 
     @property
     def content(self):
-        return self.tag_code
+        return SystemTagEnum.get_name_by_code(self.tag_code)
     
     @property
     def is_marked(self):
@@ -124,6 +125,15 @@ class MsgTagInfo(TagInfoDO):
     @property
     def tag(self):
         return "key"
+    
+    @property
+    def is_standard(self):
+        tag_code = self.tag_code
+        return tag_code.startswith("#") and tag_code.endswith("#")
+    
+    @property
+    def is_sys_tag(self):
+        return SystemTagEnum.is_sys_tag(self.tag_code)
     
     def set_is_marked(self, value=False):
         if value:
@@ -150,8 +160,12 @@ class MsgTagInfo(TagInfoDO):
     
     @property
     def url(self):
+        if SystemTagEnum.is_sys_tag(self.tag_code):
+            return f"/message/tag/list?tag=log.tags&sys_tag={self.tag_code}"
+        
         if self.customized_url != "":
             return self.customized_url
+        
         if self.search_tag != "":
             return f"/message?tag={self.search_tag}&key={quote(self.tag_code)}"
         return f"/message?tag=search&key={quote(self.tag_code)}"

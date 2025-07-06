@@ -33,12 +33,13 @@ from xutils.text_parser import TokenType
 from xutils.text_parser import TextParser
 from handlers.message.message_model import MessageFolder, MessageTag, is_task_tag
 from xnote.core import xconfig
+from xnote.plugin import TextLink
 from xutils.text_parser import TextParser
 from xutils.text_parser import set_img_file_ext
 from xutils.text_parser import TextToken
 
 from . import dao as msg_dao
-from .message_model import MessageDO
+from .message_model import MessageDO, MsgTagInfo
 from .message_model import MessageTagEnum
 
 MSG_DAO = xutils.DAO("message")
@@ -65,6 +66,11 @@ def build_search_url(keyword):
     key = quote(keyword)
     return u"/message?category=message&key=%s" % key
 
+def build_tag_html(tag_info: MessageTag, search_tag="log"):
+    if tag_info.is_sys_tag:
+        return TextLink(text=tag_info.content, href=tag_info.url).render()
+    else:
+        return build_search_html(tag_info.content, search_tag)
 
 def build_search_html(content, search_tag="log"):
     fmt = u'<a href="{server_home}/message?tag=search&p={tag}&key={key}">{key_text}</a>'
@@ -642,9 +648,9 @@ def touch_key_by_content(user_name, tag, content):
         msg_dao.MsgTagInfoDao.update(item)
     return item
 
-def format_tag_list(tag_list: typing.List[MessageTag], search_tag="log"):
-    for item in tag_list:
-        item.html = build_search_html(item.tag_code, search_tag=search_tag)
+def format_tag_list(tag_list: typing.List[MsgTagInfo], search_tag="log"):
+    for item in tag_list:            
+        item.html = build_tag_html(item, search_tag=search_tag)
     return tag_list
 
 xutils.register_func("message.list_hot_tags", list_hot_tags)
