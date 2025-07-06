@@ -34,9 +34,6 @@ from .system_sync_indexer import build_index_by_fpath
 RETRY_INTERVAL = 60
 MAX_KEY_SIZE = 511
 
-dbutil.register_table("fs_sync_index_copy", "文件索引拷贝")
-dbutil.register_table("fs_sync_index_failed", "文件索引拷贝失败")
-
 def print_debug_info(*args):
     new_args = [dateutil.format_time(), "[system_sync_http]"]
     new_args += args
@@ -55,9 +52,6 @@ class HttpClient:
         self.node_id = xconfig.get_global_config("system.node_id", "unknown_node_id")
         self.port = xconfig.get_global_config("system.port")
         self.fs_sync_failed_msg = ""
-
-    def get_table(self):
-        return dbutil.get_hash_table("fs_sync_index_copy")
 
     def check_failed(self):
         if self.host is None:

@@ -21,12 +21,13 @@ from xutils import webutil
 from xutils import textutil
 
 from xnote.plugin.table_plugin import BaseTablePlugin
-from xnote.plugin import sidebar
+from xnote.plugin import sidebar, LinkConfig
 
 class CacheHandler(BaseTablePlugin):
     title = "缓存信息"
     require_admin = True
     show_aside = True
+    parent_link = LinkConfig.app_index
 
     NAV_HTML = """
 <div class="card">
@@ -36,7 +37,7 @@ class CacheHandler(BaseTablePlugin):
     </div>
 </div>
 
-<div class="card btn-line-height">
+<div class="card card-info">
     <span>缓存总数: {{cache_count}}</span>
     <span>缓存大小: {{cache_size}}</span>
 </div>

@@ -13,7 +13,7 @@
 
 import xutils
 from xutils import dbutil
-from . import xtables
+from xnote.core import xtables
 
 @xutils.log_init_deco("xtables_kv")
 def init():
@@ -52,10 +52,13 @@ def init_system_table():
     dbutil.register_table("dict_relevant", "相关词词库", type="hash", is_deleted=True)
     dbutil.register_table("migrate_failed", "迁移失败记录")
     dbutil.register_table("z", "老版本的zset实现", is_deleted = True)
+    dbutil.register_table("fs_sync_index_copy", "文件索引拷贝", is_deleted=True)
+    dbutil.register_table("fs_sync_index_failed", "文件索引拷贝失败", is_deleted=True)
+
 
 def init_deleted_table():
     # 统计数据
-    db = dbutil.register_table("plugin_visit_log", "插件访问日志", user_attr="user", check_user = True)
+    db = dbutil.register_table("plugin_visit_log", "插件访问日志", user_attr="user", check_user = True, is_deleted=True)
     db.drop_index("url", comment = "页面URL")
     db.rebuild_index("v2")
     db.delete_table()
@@ -80,12 +83,12 @@ def init_deleted_table():
     db.delete_table()
 
     # 文件相关，废弃，新的使用sql-db
-    db = dbutil.register_table("fs_index", "文件索引")
+    db = dbutil.register_table("fs_index", "文件索引", is_deleted=True)
     db.drop_index("ftype", comment = "类型索引")
     db.delete_table()
     
     # 插件访问日志,新的SQL表参考 page_visit_log
-    db = dbutil.register_table("plugin_visit", "插件访问日志")
+    db = dbutil.register_table("plugin_visit", "插件访问日志", is_deleted=True)
     db.drop_index("k_url", columns=["user", "url"])
     db.rebuild_index("v2")
     db.delete_table()

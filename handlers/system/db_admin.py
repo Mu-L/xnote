@@ -15,6 +15,7 @@ from xutils.sqldb import TableProxy, TempTableProxy
 from xnote.plugin import DataTable
 from xnote.plugin import sidebar
 from xnote.plugin.table_plugin import BaseTablePlugin
+from xnote.plugin import LinkConfig
 
 def get_display_value(value):
     if value is None:
@@ -98,11 +99,16 @@ class DbScanHandler:
             scanned = limit
             has_next = True
 
-        return dict(code="success", data=result, has_next=has_next, next_cursor=next_cursor, scanned=scanned)
+        web_result = webutil.SuccessResult(data=result)
+        web_result.has_next = has_next
+        web_result.next_cursor = next_cursor
+        web_result.scanned = scanned
+        return web_result
     
     def do_list_meta(self):
         p2 = xutils.get_argument_str("p2")
         kw = Storage()
+        kw.parent_link = LinkConfig.app_index
         kw.table_dict = dbutil.get_table_dict_copy()
         kw.get_display_value = get_display_value
         kw.table_names = dbutil.get_table_names()
@@ -191,12 +197,13 @@ class DbScanHandler:
         kw.table_names = dbutil.get_table_names()
         kw.q_user_name = q_user_name
         kw.is_reverse = (reverse == "true")
+        kw.parent_link = LinkConfig.app_index
 
         self.handle_admin_stat_list(kw)
         return self.render_html(kw)
 
     def render_html(self, kw):
-        p = xutils.get_argument("p", "")
+        p = xutils.get_argument_str("p", "")
         if p == "meta":
             return xtemplate.render("system/page/db/db_meta.html", **kw)
         return xtemplate.render("system/page/db/db_admin.html", **kw)
@@ -208,7 +215,7 @@ class DbScanHandler:
             return not table_info.is_deleted
 
     def handle_admin_stat_list(self, kw):
-        p = xutils.get_argument("p", "")
+        p = xutils.get_argument_str("p", "")
         show_delete = xutils.get_argument_bool("show_delete", False)
 
         if p != "meta":
@@ -291,6 +298,7 @@ class SqlDBHandler:
             db_info_list.append(info)
         kw = Storage()
         kw.db_info_list = db_info_list
+        kw.parent_link = LinkConfig.app_index
         return xtemplate.render("system/page/db/sqldb_list.html", **kw)
 
 class SqlResult:
@@ -315,7 +323,7 @@ class SqlDBDetailHandler:
         result = SqlResult()
         db = xtables.MySqliteDB(db=dbpath)
 
-        offset = webutil.get_offset_by_page(page=page, page_size=page_size)
+        offset = webutil.get_page_offset(page=page, page_size=page_size)
         result.rows = list(db.select(name, offset=offset, limit=page_size))
         result.count = db.select(name, what="count(1) AS amount").first().amount
         return result
@@ -360,6 +368,7 @@ class SqlDBDetailHandler:
     
 
         kw = Storage()
+        kw.parent_link = LinkConfig.app_index
         kw.db_rows = result.rows
         kw.pk_name = result.pk_name
         kw.page = page

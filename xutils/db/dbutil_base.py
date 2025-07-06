@@ -306,7 +306,7 @@ class TableInfo:
 
     _info_dict = dict() # type: dict[str, TableInfo]
 
-    def __init__(self, name, description, category):
+    def __init__(self, name: str, description: str, category: str):
         self.name = name
         self.description = description
         self.category = category
@@ -381,6 +381,9 @@ class TableInfo:
 
     def rebuild_index(self, version="v1"):
         from . import dbutil_table
+        if self.is_deleted:
+            logging.info("skip rebuild, table is deleted, table_name: %s", self.name)
+            return
         db = dbutil_table.LdbTable(self.name)
         db.rebuild_index(version)
     
@@ -445,7 +448,7 @@ def register_deleted_table(table_name, description, **kw):
     kw["is_deleted"] = True
     return register_table(table_name=table_name, description=description, **kw)
 
-def register_table(table_name, description, is_deleted=False, **kw):  
+def register_table(table_name:str, description:str, is_deleted=False, **kw):  
     # type: (...)->TableInfo
     """注册表定义
     :param {str} table_name: 表名称

@@ -7,14 +7,10 @@
 @FilePath     : /xnote/handlers/system/component/db_nav.html
 @Description  : 描述
 --> #}
-<div class="card">
-    <div class="card-title">
-        <span>数据库工具</span>
+{% init title = "数据库工具" %}
 
-        <div class="float-right">
-            {% include common/button/back_button.html %}
-        </div>
-    </div>
+<div class="card">
+    {% include common/title/base_title.html %}
 </div>
 <div class="card">
     <div class="x-tab-box" data-tab-key="p" data-tab-default="query">

@@ -231,16 +231,9 @@ class Follower(NodeManagerBase):
     def count_sync_done(self):
         return count_fs_index()
 
-    def count_sync_failed(self):
-        return dbutil.count_table("fs_sync_index_failed")
-
     def reset_sync(self):
         ClusterConfigDao.reset_sync()
         self.fs_sync_done_time = -1
-
-        db = dbutil.get_hash_table("fs_sync_index_copy")
-        for key, value in db.iter(limit=-1):
-            db.delete(key)
 
     def reset_fs_offset(self):
         ClusterConfigDao.put_fs_sync_last_id(0)

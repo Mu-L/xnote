@@ -223,7 +223,7 @@ class LogMiddleware:
         else:
             return self.invoke_app(environ, start_response)
 
-    def log(self, status, environ, cost_time):
+    def log(self, status, environ:dict, cost_time: float):
         outfile = environ.get('wsgi.errors', web.debug)
         req = environ.get('PATH_INFO', '_')
         query_string = environ.get("QUERY_STRING", '')
@@ -276,20 +276,20 @@ class WebException(Exception):
 
 
 class WebPageInfo:
-    
     def __init__(self, page=1, total=0, page_size=20):
         self.page = page
         self.total = total
-        self.page_max = int(math.ceil(total/page_size))
-        if self.page_max == 0:
-            self.page_max = 1
+        self.offset = get_page_offset(page=page, page_size=page_size)
+        self.page_max = get_page_max_by_total(total=total, page_size=page_size)
 
-def get_offset_by_page(page=1, page_size=20):
+def get_page_offset(page=1, page_size=20):
+    """计算分页的开始偏移量"""
     if page < 1:
         return 0
     return (page-1) * page_size
 
 def get_page_max_by_total(total=0, page_size=20):
+    """计算最大分页"""
     if page_size <= 0:
         return 1
     return int(math.ceil(total/page_size))

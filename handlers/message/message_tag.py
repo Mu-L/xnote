@@ -235,7 +235,7 @@ class ListAjaxHandler:
         filter_key = xutils.get_argument_str("filter_key")
         page_size = 20
         user_id = xauth.current_user_id()
-        offset = webutil.get_offset_by_page(page, page_size)
+        offset = webutil.get_page_offset(page, page_size)
         tag_list, total = msg_dao.MsgTagInfoDao.get_page(user_id=user_id, offset=offset, 
                                                          limit=page_size, order=orderby)
         message_utils.format_tag_list(tag_list)

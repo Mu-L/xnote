@@ -232,7 +232,6 @@ class SyncHandler:
 
         kw.whitelist = LEADER.get_ip_whitelist()
         kw.sync_process = FOLLOWER.get_sync_process()
-        kw.sync_failed_count = FOLLOWER.count_sync_failed()
         kw.follower_binlog_seq = FOLLOWER.db_syncer.get_binlog_last_seq()
         kw.follower_db_sync_state = FOLLOWER.db_syncer.get_db_sync_state()
         kw.follower_db_last_key = FOLLOWER.db_syncer.get_db_last_key()

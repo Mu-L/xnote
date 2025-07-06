@@ -7,75 +7,11 @@ import logging
 
 from xnote.core import xmanager
 from xnote.core.xtemplate import BasePlugin
+from xnote.plugin import sidebar
+from xnote.plugin.table_plugin import BaseTablePlugin
 from xutils import dateutil
-from xutils import dbutil
-
-HTML = """
-<!-- Html -->
-<style>
-.th-time {
-    with: 30%;
-}
-.th-content {
-    width: 60%;
-}
-.th-op {
-    width: 10%;
-}
-.value-detail {
-    position: absolute;
-    width:100%;
-    top: 0px;
-    bottom: 30px;
-    overflow-y: auto;
-}
-</style>
-
-{% include system/component/system_log_tab.html %}
-
-<div class="card">
-    {% if len(records) == 0 %}
-        {% include common/text/empty_text.html %}
-    {% else %}
-        <table class="table">
-            <tr>
-                <th class="th-time">时间</th>
-                <th class="th-content">内容</th>
-                <th class="th-op">操作</th>
-            </tr>
-        {% for r in records %}
-            <tr>
-                <td>{{r.create_time}}</td>
-                <td>{{r.content}}</td>
-                <td><button data-id="{{r._id}}" onclick="xnoteOpenClipDetail(this)" class="btn btn-default">查看</button></td>
-            </tr>
-        {% end %}
-        </table>
-    {% end %}
-</div>
-
-<div class="card">
-    {% include common/pagination.html %}
-</div>
-
-<script>
-function xnoteOpenClipDetail(target) {
-    var id = $(target).attr("data-id");
-    var params = {};
-    params.id = id;
-
-    $.get("?op=detail", params, function (resp) {
-        var value = resp.data;
-        var content = "";
-        if (value) {
-            content = value.content;
-        }
-        var text = $("<textarea>").text(content).addClass("value-detail");
-        xnote.showDialog("数据详情", text.prop("outerHTML"), ["确定"]);
-    });
-};
-</script>
-"""
+from xutils import dbutil, BaseDataRecord
+from xutils import textutil
 
 ASIDE_HTML = """
 {% include system/component/admin_nav.html %}
@@ -84,7 +20,7 @@ ASIDE_HTML = """
 
 dbutil.register_table("clip_log", "剪切板历史")
 
-class ClipLogDO(xutils.Storage):
+class ClipLogDO(BaseDataRecord):
 
     def __init__(self):
         self.create_time = ""
@@ -131,7 +67,8 @@ class ClipLogDao:
 
     @classmethod
     def list_recent(cls, offset=0, limit=100):
-        return cls.db.list(reverse=True, limit=limit)
+        result = cls.db.list(reverse=True, limit=limit)
+        return ClipLogDO.from_dict_list(result)
     
     @classmethod
     def get_by_id(cls, id=""):
@@ -144,25 +81,29 @@ class ClipLogDao:
 
 ClipLogDao.init()
 
-class Main(BasePlugin):
+class Main(BaseTablePlugin):
 
     title = "剪切板记录"
     # 提示内容
     description = ""
     # 访问权限
-    required_role = "admin"
+    require_admin = True
     # 插件分类 {note, dir, system, network}
     category = "system"
 
     editable = False
     show_aside = True
     
+    NAV_HTML = """
+{% include system/component/system_log_tab.html %}
+"""
 
-    def handle(self, input):
+    def get_aside_html(self):
+        return sidebar.get_admin_sidebar_html()
+
+    def handle_page(self):
         # 输入框的行数
         watch_clipboard()
-        self.rows = 0
-        self.btn_text = '添加'
         op = xutils.get_argument_str("op")
         page = xutils.get_argument_int("page", 1)
         page_size = 20
@@ -170,15 +111,26 @@ class Main(BasePlugin):
 
         if op == "detail":
             return self.handle_detail()
+        
+        records = ClipLogDao.list_recent(offset=offset, limit=page_size)
+        
+        table = self.create_table()
+        table.add_head("时间", "create_time")
+        table.add_head("内容", "content_short", detail_field="content")
+
+        for item in records:
+            item.content_short = textutil.get_short_text(item.content, 200)
+            table.add_row(item)
+
 
         kw = xutils.Storage()
+        kw.table = table
         kw.page = page
         kw.page_size = page_size
         kw.page_total = ClipLogDao.count()
-        kw.records = ClipLogDao.list_recent(offset=offset, limit=page_size)
         kw.page_url = "?log_type=clip&page="
-        self.writehtml(HTML, **kw)
-        self.write_aside(ASIDE_HTML)
+        
+        return self.response_page(**kw)
 
     def handle_detail(self):
         id = xutils.get_argument_str("id")

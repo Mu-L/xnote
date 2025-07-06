@@ -181,6 +181,7 @@ class InfoHandler:
             PythonLibInfo("wsgidav", "wsgidav"),
             PythonLibInfo("psutil", "psutil"),
             PythonLibInfo("leveldb", "leveldb"),
+            PythonLibInfo("pyperclip", "pyperclip"),
         ]
         return xtemplate.render(
             "system/page/system_info_list.html",

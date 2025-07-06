@@ -23,6 +23,7 @@ from xutils import dateutil
 from xutils.db.driver_sqlite import SqliteKV
 from xnote.core import xtables
 from xnote.service import JobService, SysJob, JobStatusEnum, DatabaseLockService
+from xnote.plugin import LinkConfig
 
 config = xconfig
 
@@ -409,14 +410,16 @@ class BackupHandler:
     @xauth.login_required("admin")
     def GET(self):
         """触发备份事件"""
-        p = xutils.get_argument("p", "")
+        p = xutils.get_argument_str("p", "")
 
         if p == "db_backup_home":
-            return xtemplate.render("system/page/db/db_backup.html", 
-                total = DBBackup.total(),
-                run_time = DBBackup.run_time(),
-                rest_time = DBBackup.rest_time(),
-                progress = DBBackup.progress())
+            kw = Storage()
+            kw.total = DBBackup.total()
+            kw.run_time = DBBackup.run_time()
+            kw.rest_time = DBBackup.rest_time()
+            kw.progress = DBBackup.progress()
+            kw.parent_link = LinkConfig.app_index
+            return xtemplate.render("system/page/db/db_backup.html", **kw)
 
         if p == "db":
             return chk_db_backup()
