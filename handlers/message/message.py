@@ -584,9 +584,6 @@ class MessagePageHandler:
         if tag in ("date", "log.date"):
             return self.do_view_by_date(date)
 
-        if tag == "key" and op == "select":
-            return self.do_select_key()
-
         if tag == "api.tag_list":
             return self.get_tag_list()
 
@@ -601,16 +598,6 @@ class MessagePageHandler:
         
         return LogPageHandler().do_get()
 
-    def do_select_key(self):
-        user_name = xauth.current_name()
-        offset = 0
-        msg_list, amount = dao.list_by_tag(
-            user_name, "key", offset, MAX_LIST_LIMIT)
-
-        return xtemplate.render("message/page/message_tag_select.html",
-                                msg_list=msg_list,
-                                show_nav=False)
-    
     def get_tag_list(self):
         return message_tag.get_tag_list()
 

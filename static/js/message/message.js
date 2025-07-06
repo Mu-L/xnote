@@ -151,18 +151,10 @@ MessageView.edit = function (target) {
 
 // 展示选择标签对话框
 MessageView.showTopicDialog = function (target) {
-    xnote.http.get("/api/message/tag/list?pagesize=100&page=1&key=&tag=key", function (resp) {
-        if (!resp.success) {
-            xnote.alert(resp.message);
-        } else {
-            // 选择标签
-            var html = $("#msgTagListTpl").render({
-                itemList: resp.data
-            });
-            var dialogId = xnote.openDialog("选择标签", html);
-            MessageView.closeTopicDiloag = function () {
-                xnote.closeDialog(dialogId);
-            }
+    xnote.http.get("/message/tag/search_dialog?pagesize=100&page=1&key=&tag=key", function (html) {
+        var dialogId = xnote.openDialog("选择标签", html);
+        MessageView.closeTopicDiloag = function () {
+            xnote.closeDialog(dialogId);
         }
     });
 };

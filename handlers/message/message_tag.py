@@ -160,6 +160,14 @@ class AddTagHandler:
     def GET(self):
         return self.POST()
 
+def filter_tag_list(tag_list: typing.List[MsgTagInfo], only_standard=False):
+    result : typing.List[MsgTagInfo] = []
+    for item in tag_list:
+        if only_standard and not message_utils.is_standard_tag(item.tag_code):
+            continue
+        result.append(item)
+    return result
+
 class ListTagAjaxHandler:
 
     @xauth.login_required()
@@ -167,7 +175,18 @@ class ListTagAjaxHandler:
         user_id = xauth.current_user_id()
         limit = xutils.get_argument_int("pagesize", 1000)
         tag_info_list = msg_dao.MsgTagInfoDao.list(user_id=user_id, offset=0, limit=limit)
+        tag_info_list = filter_tag_list(tag_info_list, only_standard=True)
         return webutil.SuccessResult(tag_info_list)
+
+class SearchDialogHandler:
+
+    @xauth.login_required()
+    def GET(self):
+        user_id = xauth.current_user_id()
+        limit = xutils.get_argument_int("pagesize", 1000)
+        tag_info_list = msg_dao.MsgTagInfoDao.list(user_id=user_id, offset=0, limit=limit)
+        tag_info_list = filter_tag_list(tag_info_list, only_standard=True)
+        return xtemplate.render("message/page/message_tag_search_dialog.html", tag_list = tag_info_list)
 
 class ListTagPage:
 
@@ -281,5 +300,6 @@ xurls = (
     r"/message/tag/delete", DeleteTagAjaxHandler,
     r"/message/tag/list", ListTagPage,
     r"/message/tag/list_ajax", ListAjaxHandler,
+    r"/message/tag/search_dialog", SearchDialogHandler,
     r"/api/message/tag/list", ListTagAjaxHandler,
 )

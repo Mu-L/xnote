@@ -174,6 +174,7 @@ class TestMain(BaseTestCase):
 
         del_msg_by_id(msg_id)
 
+
     def test_message_stat(self):
         result = json_request_return_dict("/message/stat")
         self.assertTrue(result.get("cron_count") != None)
@@ -284,6 +285,9 @@ class TestMain(BaseTestCase):
 
     def test_message_search_page(self):
         self.check_OK("/message?tag=search&key=123")
+
+    def test_message_tag_search(self):
+        self.check_OK("/message/tag/search_dialog")
 
     def test_message_keyword_mark(self):
         user_name = xauth.current_name_str()
