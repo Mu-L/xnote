@@ -1,3 +1,4 @@
+import typing
 
 class BaseComponent:
     """UI组件的基类"""
@@ -12,6 +13,9 @@ class BaseContainer(BaseComponent):
 
     def add(self, item: BaseComponent):
         self.children.append(item)
+
+    def set_children(self, children: typing.List[BaseComponent]):
+        self.children = children
 
     def is_empty(self):
         return len(self.children) == 0

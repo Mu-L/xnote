@@ -29,6 +29,7 @@ from handlers.plugin.dao import (
 from handlers.plugin.service import CategoryService
 from handlers.plugin import plugin_util
 from xnote.plugin import load_plugin_file, PluginContext, LinkConfig
+from xnote.plugin import TagSpan, BaseContainer
 from handlers.plugin.plugin_config import INNER_TOOLS
 
 """xnote插件模块，由于插件的权限较大，开发权限只开放给管理员，普通用户可以使用
@@ -311,32 +312,23 @@ def on_search_plugins(ctx: SearchContext):
         ctx.tools.append(result)
         return
 
-    user_name = ctx.user_name
-    result_list = []
-    temp_result = []
+    tag_list = []
 
     for plugin in search_plugins(ctx.key):
-        result = SearchResult()
-        result.category = "plugin"
-        result.icon = "fa-cube"
-        result.name = get_plugin_title_name(plugin)
-        result.url = u(plugin.url)
-        result.edit_url = plugin.edit_link
-        temp_result.append(result)
+        plugin_name = get_plugin_title_name(plugin)
+        tag_list.append(TagSpan(text=plugin_name, href=plugin.url))
 
-    result_count = len(temp_result)
-    if ctx.category != "plugin" and len(temp_result) > 0:
+    result_count = len(tag_list)
+    if ctx.category != "plugin" and len(tag_list) > 0:
         more = SearchResult()
         more.name = u("搜索到[%s]个插件") % result_count
         more.icon = "fa-th-large"
         more.url = "/plugin_list?category=plugin&key=" + ctx.key
         more.show_more_link = True
-        result_list.append(more)
-
-    if xconfig.get_user_config(user_name, "search_plugin_detail_show") == "true":
-        result_list += temp_result[:3]
-
-    ctx.tools += result_list
+        container = BaseContainer()
+        container.set_children(tag_list[:5])
+        more.html = container.render()
+        ctx.tools.append(more)
 
 
 def is_plugin_matched(p: PluginContext, words):

@@ -20,7 +20,7 @@ def search(ctx: SearchContext):
     if name in sys.modules:
         prefix = T("Python Document")
         item = SearchResult()
-        item.name = f"【{prefix}】{name}"
+        item.name = f"[{prefix}] {name}"
         item.url = f"/system/document?name={name}"
         item.content = ""
         item.icon = "fa fa-file-text-o"

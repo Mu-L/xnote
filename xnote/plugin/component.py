@@ -128,6 +128,21 @@ class TextSpan(BaseComponent):
         text = escape_html(self.text)
         return f"""<span class="{self.css_class}">{text}</span>"""
 
+class TagSpan(BaseComponent):
+    def __init__(self, text="", href="", css_class="", badge_info=""):
+        self.text = text
+        self.href = href
+        self.css_class = css_class
+        self.badge_info = badge_info
+
+    def render(self):
+        text = escape_html(self.text)
+        return f"""
+<span class="tag-span {self.css_class}">
+    <a class="tag-link" href="{self.href}">{text}</a>
+    {self.badge_info}
+</span>
+        """
 
 class LinkConfig:
     app_index = TextLink(text="应用", href="/system/index")
