@@ -39,7 +39,7 @@
             {% end %}
 
             <a class="btn btn-default" data-id="{{item.id}}" onclick="xnote.action.message.createComment(this)">备注</a>
-            <a class="todo-delete-btn btn btn-default" data-id="{{item.id}}" data-content="{{item.content}}" onclick="xnote.action.message.deleteMessage(this)">删除</a>
+            <a class="todo-delete-btn btn btn-default" data-id="{{item.int_id}}" data-content="{{item.content}}" onclick="xnote.action.message.deleteMessage(this)">删除</a>
         </div>
         {% if item.comments != None and len(item.comments) > 0 %}
         <div class="todo-comment">

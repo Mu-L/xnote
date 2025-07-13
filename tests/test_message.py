@@ -35,15 +35,15 @@ from handlers.message import dao as msg_dao
 from handlers.message import message_model
 from handlers.message import message_tag
 
-MSG_DB = dbutil.get_table("msg_v2")
+MSG_DB = dbutil.get_table("msg_v3")
 
 
 def get_script_path(name):
     return os.path.join(xconfig.SCRIPTS_DIR, name)
 
 
-def del_msg_by_id(id):
-    json_request("/message/delete", method="POST", data=dict(id=id))
+def del_msg_by_id(int_id: int):
+    json_request("/message/delete", method="POST", data=dict(id=int_id))
 
 def del_msg_tag(tag_id=0):
     json_request("/message/tag/delete", method="POST", data=dict(tag_id=tag_id))
@@ -99,7 +99,7 @@ class TestMain(BaseTestCase):
         self.check_OK(f"/message/edit_dialog?id={quoted_id}")
 
         json_request("/message/delete", method="POST",
-                     data=dict(id=data.id))
+                     data=dict(id=data.int_id))
         
         self.check_404(f"/message/edit_dialog?id={quoted_id}")
         
@@ -143,7 +143,7 @@ class TestMain(BaseTestCase):
         self.assertEqual(1, len(done_list))
 
         for msg in done_list:
-            del_msg_by_id(msg['id'])
+            del_msg_by_id(int(msg["_id"]))
 
     def count_message_key(self):
         response = json_request("/api/message/tag/list")
@@ -168,11 +168,11 @@ class TestMain(BaseTestCase):
         self.assertEqual("success", response.get("code"))
         data = response.get("data")
         assert isinstance(data, dict)
-        msg_id = data['id']
+        int_id = int(data["_id"])
 
         assert self.count_message_key() == 1
 
-        del_msg_by_id(msg_id)
+        del_msg_by_id(int_id)
 
 
     def test_message_stat(self):

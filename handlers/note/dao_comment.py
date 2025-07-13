@@ -166,7 +166,7 @@ def search_comment(user_name, *, keywords=[], offset=0,
             content = comment.content.lower()
             if textutil.contains_all(content, keywords):
                 page_builder.add_record(comment)
-                if len(page_builder.records) >= limit:
+                if page_builder.reached_limit:
                     break
 
     return page_builder.records

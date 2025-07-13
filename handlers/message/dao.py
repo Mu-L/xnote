@@ -6,13 +6,15 @@ import xutils
 import re
 import logging
 import typing
+import types
+
 from xnote.core import xconfig, xmanager, xtables, xauth
 
 from xutils import dbutil, cacheutil, textutil, Storage, functions
 from xutils import dateutil
 from xnote.core.xtemplate import T
 from xnote.service.search_service import SearchHistoryDO, SearchHistoryType, SearchHistoryService
-from xutils.db.dbutil_helper import new_from_dict
+from xutils.db.dbutil_helper import new_from_dict, PageBuilder, batch_iter
 from xnote.service import MsgTagBindService as _MsgTagBindService
 from xnote.service import TagTypeEnum
 from .message_model import is_task_tag
@@ -27,7 +29,7 @@ from .message_model import MessageTagEnum, MessageSecondTypeEnum
 from xnote.service import TagInfoDO
 
 
-_msg_db = dbutil.get_table("msg_v2")
+_msg_db = dbutil.get_table("msg_v3")
 _msg_stat_cache = cacheutil.PrefixedCache("msgStat:")
 _msg_history_db = dbutil.get_table_v2("msg_history")
 
@@ -175,7 +177,7 @@ def search_message(user_id: int, key: str, offset=0, limit=20, *, search_tags=No
     
     words = get_words_from_key(key)
 
-    def search_func_default(key, value):
+    def search_func_default(key, value:MessageDO):
         if value.content is None:
             return False
         if no_tag is True and has_tag_fast(value.content):
@@ -198,13 +200,13 @@ def search_message(user_id: int, key: str, offset=0, limit=20, *, search_tags=No
     if count_only:
         chatlist = []
     else:
-        chatlist = _msg_db.list(filter_func=search_func, offset=offset,
-                                limit=limit, reverse=True, user_name=str(user_id))
+        chatlist = MessageDao.list_with_filter(filter_func=search_func, offset=offset,
+                                limit=limit, user_id = user_id, order="ctime desc")
         # 按照创建时间倒排 (按日期补充的随手记的key不是按时间顺序的)
     
     chatlist = MessageDO.from_dict_list(chatlist)
     chatlist.sort(key = lambda x:x.change_time, reverse=True)
-    amount = _msg_db.count(filter_func=search_func, user_name=str(user_id))
+    amount = MessageDao.count_with_filter(filter_func=search_func, user_id=user_id)
     return chatlist, amount
 
 
@@ -217,12 +219,12 @@ def search_message_by_user_tag(user_id=0, key="", offset=0, limit=20, second_typ
     return MessageDao.batch_get_by_ids(user_id, msg_ids), count
 
 
-def check_before_delete(id):
+def check_before_delete(id: str):
     if not id.startswith(VALID_MESSAGE_PREFIX_TUPLE):
         raise Exception("[delete] invalid message id:%s" % id)
 
 
-def delete_message_by_id(id):
+def delete_message_by_id(id: str):
     # type: (str) -> None
     check_before_delete(id)
 
@@ -251,17 +253,25 @@ def kv_count_message(user: str, status):
 def count_message(user, status):
     return kv_count_message(user, status)
 
-def get_message_by_key(full_key, user_name=""):
+def get_message_by_key(full_key:str, user_name=""):
     if full_key == None:
         return None
     if not full_key.startswith(_msg_db.prefix):
         return None
+    int_id = int(_msg_db._get_id_from_key(full_key))
+    index = MsgIndexDao.get_by_id(int_id)
+    if index == None:
+        return None
+    
     value = _msg_db.get_by_key(full_key)
     if value != None:
         value = MessageDO.from_dict(value)
         value.id = full_key
+        value.update_index(index)
         if user_name != "" and user_name != value.user:
             return None
+    else:
+        value = MessageDO.from_index(index)
     return value
 
 get_message_by_id = get_message_by_key
@@ -648,7 +658,7 @@ class MsgIndexDao:
     def iter_batch(cls, user_id=0, batch_size=20):
         where = ""
         if user_id != 0:
-            where = "user_id=$user_id"
+            where = " AND user_id=$user_id"
         for batch in cls.db.iter_batch(batch_size=batch_size, where=where, vars=dict(user_id=user_id)):
             yield MsgIndex.from_dict_list(batch)
 
@@ -778,6 +788,23 @@ class MessageDao:
     """message的主数据接口,使用KV存储"""
 
     @staticmethod
+    def get_by_int_id(int_id: int, user_id=0):
+        index = MsgIndexDao.get_by_id(int_id)
+        if index == None:
+            return None
+        
+        value = _msg_db.get_by_id(int_id)
+        if value != None:
+            value = MessageDO.from_dict(value)
+            value.id = f"msg_v3:{int_id}"
+            value.update_index(index)
+            if user_id != 0 and user_id != value.user_id:
+                return None
+        else:
+            value = MessageDO.from_index(index)
+        return value
+
+    @staticmethod
     def get_by_id(full_key):
         return get_message_by_key(full_key)
     
@@ -789,7 +816,7 @@ class MessageDao:
     def batch_get_by_ids(user_id=0, ids=[]):
         key_list = []
         for item in ids:
-            key_list.append(_msg_db._build_key(str(user_id), str(item)))
+            key_list.append(_msg_db._build_key(str(item)))
         return MessageDao.batch_get_by_keys(key_list)
         
     @staticmethod
@@ -838,6 +865,19 @@ class MessageDao:
     def delete_by_key(full_key):
         return delete_message_by_id(full_key)
 
+    @classmethod
+    def delete_by_int_id(cls, int_id=0):
+        old = cls.get_by_int_id(int_id)
+
+        if old == None:
+            return
+        _msg_db.delete_by_id(int_id)
+        MsgIndexDao.delete_by_id(int_id)
+
+        xmanager.fire("message.remove", Storage(id=int_id))
+        execute_after_delete(old)
+
+
     @staticmethod
     def add_search_history(user, search_key, cost_time=0):
         return add_search_history(user, search_key, cost_time)
@@ -864,13 +904,16 @@ class MessageDao:
         for index in index_list:
             id_list.append(str(index.id))
 
-        dict_result = _msg_db.batch_get_by_id(id_list, user_name=str(user_id))
+        dict_result = _msg_db.batch_get_by_id(id_list)
         result = []
         for index in index_list:
             msg = dict_result.get(str(index.id))
             if msg != None:
                 new_msg = MessageDO.from_dict(msg)
                 new_msg.change_time = index.change_time
+                result.append(new_msg)
+            else:
+                new_msg = MessageDO.from_index(index)
                 result.append(new_msg)
         return result
     
@@ -879,9 +922,35 @@ class MessageDao:
         for index_batch in MsgIndexDao.iter_batch():
             keys = []
             for index in index_batch:
-                keys.append(_msg_db._build_key(str(index.user_id), str(index.id)))
+                keys.append(_msg_db._build_key(str(index.id)))
             
             yield from cls.batch_get_by_keys(keys)
+
+    @classmethod
+    def list_with_filter(cls, offset=0, limit=20, user_id=0, filter_func=None, order="ctime desc"):
+        assert isinstance(filter_func, types.FunctionType)
+        page = PageBuilder(offset=offset, limit=limit)
+        index_list = MsgIndexDao.list(user_id=user_id, limit=10000, order=order)
+        for item_batch in batch_iter(index_list, batch_size=20):
+            msg_list = MessageDao.batch_get_by_index_list(item_batch)
+            for msg_item in msg_list:
+                if filter_func(msg_item._key, msg_item):
+                    page.add_record(msg_item)
+                    if page.reached_limit:
+                        return page.records
+        return page.records
+    
+    @classmethod
+    def count_with_filter(cls, user_id=0, filter_func=None):
+        assert isinstance(filter_func, types.FunctionType)
+        amount = 0
+        index_list = MsgIndexDao.list(user_id=user_id, limit=10000)
+        for item_batch in batch_iter(index_list, batch_size=20):
+            msg_list = MessageDao.batch_get_by_index_list(item_batch)
+            for msg_item in msg_list:
+                if filter_func(msg_item._key, msg_item):
+                    amount += 1
+        return amount
 
 xutils.register_func("message.create", create_message)
 xutils.register_func("message.update", update_message)

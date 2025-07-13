@@ -26,6 +26,10 @@ class PageBuilder:
         if self.total >= self.offset and len(self.records) < self.limit:
             self.records.append(record)
         self.total += 1
+    
+    @property
+    def reached_limit(self):
+        return len(self.records) >= self.limit
 
 def batch_iter(data=[], batch_size=20):
     """把一个大的列表拆分成多个批次"""

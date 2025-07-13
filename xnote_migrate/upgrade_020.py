@@ -24,6 +24,7 @@ from handlers.note.dao_tag import NoteTagBindDao, NoteTagInfoDao
 def do_upgrade():
     # since v2.9.8
     base.execute_upgrade("20250523_fix_file_info", fix_file_info_replacement)
+    base.execute_upgrade("20250713_msg_v3", upgrade_msg_v3)
 
 
 class FileInfo(BaseDataRecord):
@@ -45,3 +46,12 @@ def fix_file_info_replacement():
         if "$data" in file_info.fpath:
             new_fpath = file_info.fpath.replace("$data", "${data}")
             db.update(where=dict(id=file_info.id), fpath = new_fpath)
+
+
+def upgrade_msg_v3():
+    old_db = dbutil.get_table("msg_v2")
+    new_db = dbutil.get_table("msg_v3")
+    for item in old_db.iter(limit=-1):
+        new_id = old_db._get_id_from_obj(item)
+        new_db.put_by_id(new_id, item)
+        

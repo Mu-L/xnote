@@ -172,7 +172,9 @@ def init_note_tables():
 
 def init_message_tables():
     dbutil.register_deleted_table("message", "短文本", check_user=True, user_attr="user")
-    dbutil.register_table("msg_v2", "短文本", check_user=True, user_attr="user_id", encode_user_func=str)
+    dbutil.register_table("msg_v2", "短文本", check_user=True, 
+                          user_attr="user_id", encode_user_func=str, is_deleted=True)
+    dbutil.register_table("msg_v3", "短文本")
     dbutil.register_table("msg_key", "备忘关键字/标签", check_user=True, user_attr="user").delete_table()
     
     dbutil.register_deleted_table("msg_backup", "随手记备份", check_user=True, user_attr="user")

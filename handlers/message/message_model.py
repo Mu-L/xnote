@@ -24,7 +24,7 @@ from xutils import quote
 记事/日记：默认按照创建时间排序
 """
 
-VALID_MESSAGE_PREFIX_TUPLE = ("message:", "msg_key:", "msg_task:", "msg_v2:")
+VALID_MESSAGE_PREFIX_TUPLE = ("message:", "msg_key:", "msg_task:", "msg_v3:")
 VALID_TAG_SET = set(["task", "done", "log", "key"])
 # 带日期创建的最大重试次数
 CREATE_MAX_RETRY = 20
@@ -345,6 +345,24 @@ class MessageDO(BaseMsgDO):
             return self.change_time
         else:
             return self.ctime
+        
+    def update_index(self, index: MsgIndex):
+        self.tag = index.tag
+        self.change_time = index.change_time
+        self.user_id = index.user_id
+        self.ctime = index.ctime
+        self.mtime = index.mtime
+        
+    @classmethod
+    def from_index(cls, index: MsgIndex):
+        result = MessageDO()
+        key = f"msg_v3:{index.id}"
+        result.id = key
+        result._id = str(index.id)
+        result._key = key
+        result.content = "[数据已丢失]"
+        result.update_index(index)
+        return result
     
 class MessageHistory:
     def __init__(self):

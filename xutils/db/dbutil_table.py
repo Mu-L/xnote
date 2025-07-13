@@ -111,18 +111,18 @@ class LdbTable:
     def _build_key_no_prefix(self, *argv):
         return ":".join(filter(None, argv))
 
-    def _get_key_from_obj(self, obj):
+    def _get_key_from_obj(self, obj:dict) -> str:
         validate_dict(obj, "obj is not dict")
-        return obj.get(self.key_name)
+        return obj[self.key_name]
 
     def _get_id_from_obj(self, obj):
         key = self._get_key_from_obj(obj)
         return key.rsplit(":", 1)[-1]
 
-    def _get_id_from_key(self, key):
+    def _get_id_from_key(self, key:str):
         return decode_str(key.rsplit(":", 1)[-1])
 
-    def _get_user_from_key(self, key):
+    def _get_user_from_key(self, key:str):
         parts = key.split(":")
         assert len(parts) == 3, parts
         return parts[1]
@@ -774,10 +774,12 @@ def prefix_iter_batch(prefix,  # type: str
 
     def do_iter():
         batch_list = []
-        for key, value in iterator:
-            if not key.startswith(prefix_bytes):
+        for key_bytes, value in iterator: # type: ignore
+            key_bytes: bytes
+            value: bytes
+            if not key_bytes.startswith(prefix_bytes):
                 break
-            key = key.decode("utf-8")
+            key = key_bytes.decode("utf-8")
             obj = convert_bytes_to_object(value)
             if map_func == None:
                 yield key, obj
@@ -827,7 +829,7 @@ class ErrorLog(Storage):
 class TableIndexRepair:
     """表索引修复工具，不是标准功能，所以抽象到一个新的类里面"""
 
-    def __init__(self, db: LdbTable, error_db):
+    def __init__(self, db: LdbTable, error_db: LdbTable):
         self.db = db
         self.repair_error_db = error_db
         self.table_name = ""

@@ -402,14 +402,14 @@ class TouchAjaxHandler:
 class DeleteAjaxHandler:
 
     def delete_msg(self, msg: msg_dao.MessageDO):
-        if msg.user != xauth.current_name():
+        if msg.user_id != xauth.current_user_id():
             return webutil.FailedResult(code="fail", message="no permission")
 
         # 先保存历史
         MessageDao.add_history(msg)
 
         # 删除并刷新统计信息
-        MessageDao.delete_by_key(msg.id)
+        MessageDao.delete_by_int_id(msg.int_id)
         if msg.tag == "done" and msg.ref != None:
             MessageDao.delete_by_key(msg.ref)
             
@@ -427,12 +427,12 @@ class DeleteAjaxHandler:
 
     @xauth.login_required()
     def POST(self):
-        id = xutils.get_argument_str("id")
-        if id == "":
+        int_id = xutils.get_argument_int("id")
+        if int_id == 0:
             return failure(message="id为空")
 
         try:
-            msg = MessageDao.get_by_id(id)
+            msg = MessageDao.get_by_int_id(int_id)
             if msg != None:
                 return self.delete_msg(msg)
             return webutil.FailedResult(message="数据不存在")
