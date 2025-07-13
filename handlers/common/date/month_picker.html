@@ -19,9 +19,12 @@
     select.year {
         width: 100px;
     }
+    select.month {
+        width: 60px;
+    }
 </style>
 
-<div class="card btn-line-height">
+<div class="card">
     <div class="date-box">
         <a class="prev-month-link btn btn-default">上个月</a>
         <select class="year" name="year" value="{{year}}">
@@ -29,7 +32,7 @@
                 <option value="{{j}}">{{j}}年</option>
             {% end %}
         </select>
-        <select name="month" value="{{month}}">
+        <select class="month" name="month" value="{{month}}">
             {% for i in range(0,13) %}
                 {% if i == 0 %}
                     {% if show_full_year %}

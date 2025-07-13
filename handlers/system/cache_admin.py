@@ -37,9 +37,11 @@ class CacheHandler(BaseTablePlugin):
     </div>
 </div>
 
-<div class="card card-info">
-    <span>缓存总数: {{cache_count}}</span>
-    <span>缓存大小: {{cache_size}}</span>
+<div class="card">
+    <div class="card-text">
+        <span>缓存总数: {{cache_count}}</span>
+        <span>缓存大小: {{cache_size}}</span>
+    </div>
 </div>
 """
 

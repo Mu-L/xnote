@@ -8,12 +8,23 @@ from xutils.base import BaseDataRecord
 
 class PageVisitLogDO(BaseDataRecord):
     def __init__(self, **kw):
+        self.id = 0
         self.user_id = 0
         self.url = ""
         self.args = ""
         self.visit_cnt = 0
         self.visit_time = dateutil.format_datetime()
         self.update(kw)
+
+    def format_url(self, url=""):
+        return url[:100]
+
+    def to_save_dict(self):
+        result = dict(**self)
+        result.pop("id", None)
+        result["url"] = self.format_url()
+        return result
+    
 
 def get_current_platform():
     return xtemplate.get_device_platform()

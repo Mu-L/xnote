@@ -21,12 +21,12 @@ class PageVisitDao:
     
     @classmethod
     def format_url(cls, url=""):
-        return url[:256]
+        return url[:100]
     
     @classmethod
     def create(cls, log: PageVisitLogDO):
-        log.url = cls.format_url(log.url)
-        return cls.db.insert(**log)
+        save_dict = log.to_save_dict()
+        return cls.db.insert(**save_dict)
     
     @classmethod
     def find_one(cls, user_id=0, url=""):
@@ -45,14 +45,14 @@ class PageVisitDao:
     
     @classmethod
     def update(cls, log: PageVisitLogDO):
-        log.url = cls.format_url(log.url)
-        return cls.db.update(where=dict(id=log.id), **log)
+        save_dict = log.to_save_dict()
+        return cls.db.update(where=dict(id=log.id), **save_dict)
     
     @classmethod
     def delete_by_id(cls, log_id):
         return cls.db.delete(where=dict(id=log_id))
     
-def list_visit_logs(user_name, offset = 0, limit = 1000):
+def list_visit_logs(user_name:str, offset = 0, limit = 1000):
     user_id = xauth.UserDao.get_id_by_name(user_name)
     return PageVisitDao.list_logs(user_id=user_id, offset=offset, limit=limit, order="visit_time desc")
 

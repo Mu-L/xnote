@@ -30,6 +30,7 @@ from handlers.plugin.service import CategoryService
 from handlers.plugin import plugin_util
 from xnote.plugin import load_plugin_file, PluginContext, LinkConfig
 from xnote.plugin import TagSpan, BaseContainer
+from xnote.plugin import iter_plugins
 from handlers.plugin.plugin_config import INNER_TOOLS
 
 """xnote插件模块，由于插件的权限较大，开发权限只开放给管理员，普通用户可以使用
@@ -159,9 +160,8 @@ def find_plugins(category, orderby=None):
     if category == "None":
         category = "other"
 
-    for fname in xconfig.PLUGINS_DICT:
-        p = xconfig.PLUGINS_DICT[fname] # type: PluginContext
-        if p and category in p.category_list:
+    for p in iter_plugins():
+        if category in p.category_list:
             if can_visit_by_role(p, current_role):
                 plugins.append(p)
     return sorted_plugins(user_name, plugins, orderby)
