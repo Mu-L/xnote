@@ -12,6 +12,7 @@ from xnote.core import xconfig, xmanager, xtables, xauth
 
 from xutils import dbutil, cacheutil, textutil, Storage, functions
 from xutils import dateutil
+from xutils.functions import safe_list
 from xnote.core.xtemplate import T
 from xnote.service.search_service import SearchHistoryDO, SearchHistoryType, SearchHistoryService
 from xutils.db.dbutil_helper import new_from_dict, PageBuilder, batch_iter
@@ -32,8 +33,8 @@ from xnote.service import TagInfoDO
 _msg_db = dbutil.get_table("msg_v3")
 _msg_stat_cache = cacheutil.PrefixedCache("msgStat:")
 _msg_history_db = dbutil.get_table_v2("msg_history")
-
 _debug = False
+_search_batch_size = 200
 
 def build_task_index(kw):
     pass
@@ -201,12 +202,12 @@ def search_message(user_id: int, key: str, offset=0, limit=20, *, search_tags=No
         chatlist = []
     else:
         chatlist = MessageDao.list_with_filter(filter_func=search_func, offset=offset,
-                                limit=limit, user_id = user_id, order="ctime desc")
+                                limit=limit, user_id = user_id, tag_list=safe_list(search_tags), order="ctime desc")
         # 按照创建时间倒排 (按日期补充的随手记的key不是按时间顺序的)
     
     chatlist = MessageDO.from_dict_list(chatlist)
     chatlist.sort(key = lambda x:x.change_time, reverse=True)
-    amount = MessageDao.count_with_filter(filter_func=search_func, user_id=user_id)
+    amount = MessageDao.count_with_filter(filter_func=search_func, user_id=user_id, tag_list=safe_list(search_tags))
     return chatlist, amount
 
 
@@ -601,7 +602,7 @@ class MsgIndexDao:
         return cls.db.count(where=where, vars=vars)
     
     @classmethod
-    def list(cls, user_id=0, tag="", date_prefix="", date_start="", date_end="", offset=0, limit=10, order="change_time desc"):
+    def list(cls, user_id=0, tag="", tag_list=[], date_prefix="", date_start="", date_end="", offset=0, limit=10, order="change_time desc"):
         where = "1=1"
         if user_id != 0:
             where += " AND user_id=$user_id"
@@ -613,8 +614,10 @@ class MsgIndexDao:
             where += " AND date >= $date_start"
         if date_end != "":
             where += " AND date < $date_end"
+        if len(tag_list) > 0:
+            where += " AND tag in $tag_list"
 
-        vars = dict(user_id=user_id, tag=tag, date_prefix=date_prefix+"%", date_start=date_start, date_end=date_end)
+        vars = dict(user_id=user_id, tag=tag, date_prefix=date_prefix+"%", date_start=date_start, date_end=date_end, tag_list=tag_list)
         result = cls.db.select(where=where, vars=vars,offset=offset,limit=limit,order=order)
         return MsgIndex.from_dict_list(result)
     
@@ -751,7 +754,7 @@ class MsgTagInfoDao:
             record.user_id = user_id
             record.tag_code = content
             new_id = cls.db.insert(**record.to_save_dict())
-            record.tag_id = int(new_id)
+            record.tag_id = int(new_id) # type: ignore
             return record
 
     @classmethod
@@ -927,11 +930,11 @@ class MessageDao:
             yield from cls.batch_get_by_keys(keys)
 
     @classmethod
-    def list_with_filter(cls, offset=0, limit=20, user_id=0, filter_func=None, order="ctime desc"):
+    def list_with_filter(cls, offset=0, limit=20, user_id=0, filter_func=None, tag_list=[], order="ctime desc"):
         assert isinstance(filter_func, types.FunctionType)
         page = PageBuilder(offset=offset, limit=limit)
-        index_list = MsgIndexDao.list(user_id=user_id, limit=10000, order=order)
-        for item_batch in batch_iter(index_list, batch_size=20):
+        index_list = MsgIndexDao.list(user_id=user_id, limit=10000, order=order, tag_list=tag_list)
+        for item_batch in batch_iter(index_list, batch_size=_search_batch_size):
             msg_list = MessageDao.batch_get_by_index_list(item_batch)
             for msg_item in msg_list:
                 if filter_func(msg_item._key, msg_item):
@@ -941,11 +944,11 @@ class MessageDao:
         return page.records
     
     @classmethod
-    def count_with_filter(cls, user_id=0, filter_func=None):
+    def count_with_filter(cls, user_id=0, filter_func=None, tag_list=[]):
         assert isinstance(filter_func, types.FunctionType)
         amount = 0
-        index_list = MsgIndexDao.list(user_id=user_id, limit=10000)
-        for item_batch in batch_iter(index_list, batch_size=20):
+        index_list = MsgIndexDao.list(user_id=user_id, limit=10000, tag_list=tag_list)
+        for item_batch in batch_iter(index_list, batch_size=_search_batch_size):
             msg_list = MessageDao.batch_get_by_index_list(item_batch)
             for msg_item in msg_list:
                 if filter_func(msg_item._key, msg_item):

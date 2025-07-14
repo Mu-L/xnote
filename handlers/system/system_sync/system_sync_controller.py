@@ -37,6 +37,8 @@ from . import system_sync_indexer
 from .dao import SystemSyncTokenDao
 from .models import SystemSyncToken
 from handlers.system.system_sync.dao import ClusterConfigDao
+from xnote.core.xtemplate import T
+from xnote.plugin import LinkConfig
 
 class SyncConfig:
     
@@ -218,6 +220,8 @@ class SyncHandler:
         except:
             xutils.print_exc()
 
+        kw.title = T("集群管理")
+        kw.parent_link = LinkConfig.app_index
         kw.node_role = get_system_role()
         kw.is_leader = SyncConfig.is_leader()
         kw.leader_host = ClusterConfigDao.get_leader_host()
@@ -373,7 +377,7 @@ class FollowerHandler(SyncHandler):
 
     @xauth.login_required("admin")
     def GET(self):
-        p = xutils.get_argument("p", "")
+        p = xutils.get_argument_str("p", "")
         if p == "get_leader_stat":
             return FOLLOWER.get_leader_info()
         

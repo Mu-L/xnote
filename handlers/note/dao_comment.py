@@ -160,7 +160,7 @@ def search_comment(user_name, *, keywords=[], offset=0,
     
     idx_list = comment_service.list(what="id", user_id=user_id, target_id=target_id, limit=10000)
     page_builder = PageBuilder(offset=offset,limit=limit)
-    for sub_idx_list in batch_iter(idx_list, batch_size=20):
+    for sub_idx_list in batch_iter(idx_list, batch_size=100):
         comments = list_comments_by_idx_list(sub_idx_list)
         for comment in comments:
             content = comment.content.lower()
