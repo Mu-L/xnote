@@ -22,7 +22,7 @@ class PageVisitLogDO(BaseDataRecord):
     def to_save_dict(self):
         result = dict(**self)
         result.pop("id", None)
-        result["url"] = self.format_url()
+        result["url"] = self.format_url(self.url)
         return result
     
 

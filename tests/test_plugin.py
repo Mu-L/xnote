@@ -7,6 +7,7 @@
 from . import test_base
 from .test_base import json_request_return_dict
 from xnote.core import xauth
+from handlers.plugin.dao import add_visit_log, delete_visit_log
 
 app          = test_base.init()
 json_request = test_base.json_request
@@ -23,3 +24,8 @@ class TestMain(BaseTestCase):
 
     def test_contribution_calendar(self):
         self.check_OK("/test/example/calendar?name=calendar")
+
+    def test_plugin_visit(self):
+        delete_visit_log(user_name="admin", url="/test")
+        assert add_visit_log(user_name="admin", url="/test") == 1
+        assert add_visit_log(user_name="admin", url="/test") == 2

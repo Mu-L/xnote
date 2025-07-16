@@ -20,11 +20,12 @@ class PageVisitDao:
     db = xtables.get_table_by_name("page_visit_log")
     
     @classmethod
-    def format_url(cls, url=""):
+    def format_url(cls, url: str):
         return url[:100]
     
     @classmethod
     def create(cls, log: PageVisitLogDO):
+        assert len(log.url) > 0
         save_dict = log.to_save_dict()
         return cls.db.insert(**save_dict)
     
@@ -74,7 +75,7 @@ def add_visit_log(user_name="", url="", name = "", args = ""):
         exist_log.visit_cnt += 1
         exist_log.visit_time = dateutil.format_datetime()
         PageVisitDao.update(exist_log)
-        return
+        return exist_log.visit_cnt
 
     log = PageVisitLogDO()
     log.user_id = user_id
@@ -83,5 +84,6 @@ def add_visit_log(user_name="", url="", name = "", args = ""):
     log.visit_time = dateutil.format_datetime()
     log.visit_cnt = 1
     PageVisitDao.create(log)
+    return log.visit_cnt
 
 xnote_hooks.add_visit_log = add_visit_log
