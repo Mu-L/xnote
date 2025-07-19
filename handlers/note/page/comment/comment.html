@@ -157,6 +157,22 @@
         xnote.on("comment.refresh", refreshComments);
         xnote.on("comment.closeEditDialog", function () {
             layer.close(editIndex);
-        })
-    })
+        });
+    });
+
+// 置顶评论
+xnote.note.pinComment = function(target, pinLevel) {
+    var id = $(target).attr("data-id");
+    var params = {
+        comment_id: id,
+        pin_level: pinLevel
+    };
+    xnote.http.post("/note/comment/update_pin_level", params, function (resp) {
+        if (resp.success) {
+            location.reload();
+        } else {
+            xnote.alert(resp.message);
+        }
+    });
+}
 </script>

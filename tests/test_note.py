@@ -32,6 +32,7 @@ from handlers.note.models import NoteIndexDO
 
 from xutils import Storage
 from xutils import textutil
+from tests.test_base_note import delete_note_for_test, create_note_for_test, get_default_group_id
 
 app          = test_base.init()
 json_request = test_base.json_request
@@ -44,49 +45,8 @@ NOTE_DAO = xutils.DAO("note")
 
 from handlers.note.dao_api import NoteDao
 
-def get_default_group_id():
-    name = "default_group_id"
-    note = get_by_name(xauth.current_name_str(), name)
-    if note != None:
-        return note.id
-    return create_note_for_test("group", name)
-
-def create_note_for_test(type="", name="", *, content = "", tags="", parent_id=0) -> int:
-    assert type != None, "type cannot be None"
-    assert name != None, "name cannot be None"
-    assert isinstance(tags, str), "tags must be str"
-
-    data = dict(name = name, type = type, content = content, tags=tags)
-
-    if type != "group" and parent_id == 0:
-        data["parent_id"] = str(get_default_group_id())
-
-    if parent_id != 0:
-        data["parent_id"] = str(parent_id)
-
-    note_result = json_request_return_dict("/note/add", 
-        method = "POST",
-        data = data)
-    
-    resp_data = note_result.get("data")
-    assert isinstance(resp_data, dict)
-    note_id = resp_data.get("id")
-    print("新笔记id:", note_id)
-    assert isinstance(note_id, int)
-    return note_id
-
-def delete_note_for_test(name=""):
-    # 调用2次彻底删除
-    user_id = xauth.current_user_id()
-    note_index = note_dao.NoteIndexDao.get_by_name(creator_id=user_id, name=name)
-    if note_index != None:
-        dao_delete.delete_note_physically(note_index.creator, note_index.id)
-
 def get_note_info(id):
     return get_by_id(id)
-
-def delete_comment_for_test(id):
-    json_request("/note/comment/delete", method = "POST", data = dict(comment_id = id))
 
 def assert_json_request_success(test_case, url):
     result = json_request_return_dict(url)
@@ -492,82 +452,6 @@ class TestMain(BaseTestCase):
 
         # clean up
         json_request("/note/remove?id=" + str(id))
-
-    def test_note_comment(self):
-        delete_note_for_test(name="comment-test")
-        note_id = create_note_for_test(type="md", name="comment-test")
-        # clean comments
-        data = json_request_return_list(f"/note/comments?note_id={note_id}")
-        for comment in data:
-            delete_comment_for_test(comment['id'])
-
-        # 创建一个评论
-        request = dict(note_id = str(note_id), content = "hello")
-        json_request("/note/comment/save", method="POST", data = request)
-
-        # 查询评论
-        data = json_request_return_list(f"/note/comments?note_id={note_id}")
-        self.assertEqual(1, len(data))
-        self.assertEqual("hello", data[0]['content'])
-
-        comment_id = data[0]["id"]
-
-        # 获取编辑对话框
-        self.check_OK("/note/comment?comment_id=%s&p=edit" % comment_id)
-
-        # 更新评论
-        data = json_request_return_dict("/note/comment?comment_id=%s&p=update&content=%s" % (comment_id, "#TOPIC# hello"))
-        self.assertEqual("success", data["code"])
-
-        # 查询用户维度评论列表
-        data = json_request_return_list("/note/comment/list?list_type=user")
-        self.assertEqual(1, len(data))
-
-        # 我的所有评论
-        self.check_OK("/note/comment/mine")
-
-        # 搜索评论
-        from handlers.note.comment import search_comment_detail, search_comment_summary
-        ctx = SearchContext(key = "hell")
-        ctx.user_name = xauth.current_name_str()
-        ctx.words = ["hello"]
-        summary_ctx = copy.deepcopy(ctx)
-
-        search_comment_detail(ctx)
-        self.assertEqual(1, len(ctx.messages))
-
-        search_comment_summary(summary_ctx)
-        
-        print("搜索评论汇总结果:", summary_ctx)
-
-        self.assertEqual(1, len(summary_ctx.messages))
-
-
-        # 删除评论
-        result = json_request_return_dict("/note/comment/delete", method = "POST", 
-            data = dict(comment_id = comment_id))
-        self.assertEqual("success", result["code"])
-
-        data = json_request_return_list("/note/comment/list?list_type=user")
-        self.assertEqual(0, len(data))
-
-
-    def test_note_comment_not_login(self):
-        delete_note_for_test(name="comment-test")
-        note_id = create_note_for_test(type="md", name="comment-test")
-        note_index = NoteIndexDao.get_by_id(note_id)
-        assert note_index != None
-
-        try:
-            logout_test_user()
-            self.check_303(f"/note/comments?note_id={note_id}")
-            # 改成public
-            note_index.is_public = True
-            NoteIndexDO.update(note_index)
-            self.check_OK(f"/note/comments?note_id={note_id}")
-        finally:
-            login_test_user()
-
 
     def test_note_management(self):
         self.check_OK("/note/management?parent_id=0")

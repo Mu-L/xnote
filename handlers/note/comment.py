@@ -107,13 +107,14 @@ def on_search_comments(ctx: SearchContext):
     if ctx.category == "comment":
         search_comment_detail(ctx)
 
-def convert_to_html(comments, show_note = False, page = 1, page_max = 1, show_edit = False):
+def convert_to_html(comments, show_note = False, page = 1, page_max = 1, show_edit = False, note_user_id=0):
     return xtemplate.render("note/page/comment/comment_list_ajax.html", 
         show_comment_edit = show_edit,
         page = page,
         page_max = page_max,
         comments = comments, 
-        show_note = show_note)
+        show_note = show_note,
+        note_user_id=note_user_id)
 
 class CommentListAjaxHandler:
 
@@ -130,13 +131,14 @@ class CommentListAjaxHandler:
         user_info = xauth.current_user()
         user_name = ""
         user_id = 0
+        note_user_id = 0
         
         # can visit comment without login
         if user_info != None:
             user_name = user_info.name
             user_id = user_info.user_id
 
-        offset = max(0, page-1) * xconfig.PAGE_SIZE
+        offset = max(0, page-1) * page_size
 
         if list_type == "user":
             if user_id == 0:
@@ -156,6 +158,7 @@ class CommentListAjaxHandler:
             NoteService.check_auth(note_index, user_id=user_id)
             comments  = dao_comment.list_comments(note_id, offset = offset, limit = page_size, user_name=user_name)
             count = dao_comment.count_comment_by_note(note_id)
+            note_user_id = note_index.creator_id
         
         page_max = get_page_max(count)
 
@@ -164,7 +167,7 @@ class CommentListAjaxHandler:
 
         if resp_type == "html":
             return convert_to_html(comments, show_note, 
-                page = page, page_max = page_max, show_edit = show_edit)
+                page = page, page_max = page_max, show_edit = show_edit, note_user_id=note_user_id)
         else:
             return comments
     
@@ -277,6 +280,25 @@ class CommentAjaxHandler:
 
     def POST(self):
         return self.GET()
+    
+class UpdatePinLevelHandler:
+
+    @xauth.login_required()
+    def POST(self):
+        comment_id = xutils.get_argument_int("comment_id")
+        pin_level = xutils.get_argument_int("pin_level")
+        user_id = xauth.current_user_id()
+        comment_index = dao_comment.CommentDao.get_index_by_id(comment_id=comment_id)
+        if comment_index is None:
+            return webutil.FailedResult("404", message="评论不存在")
+        note_index = NoteIndexDao.get_by_id(note_id=comment_index.target_id)
+        if note_index is None:
+            return webutil.FailedResult("404", message="笔记不存在")
+        if note_index.creator_id != user_id:
+            return webutil.FailedResult("401", message="没有操作权限")
+        comment_index.pin_level = pin_level
+        dao_comment.CommentDao.update_index(comment_index)
+        return webutil.SuccessResult()
 
 xutils.register_func("note.search_comment_detail", search_comment_detail)
 
@@ -287,4 +309,5 @@ xurls = (
     r"/note/comment/save", SaveCommentAjaxHandler,
     r"/note/comment/delete", DeleteCommentAjaxHandler,
     r"/note/comment/mine", MyCommentsHandler,
+    r"/note/comment/update_pin_level", UpdatePinLevelHandler,
 )

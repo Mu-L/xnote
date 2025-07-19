@@ -598,9 +598,10 @@ def init_comment_index_table():
         manager.add_column("ctime", "datetime", DEFAULT_DATETIME)
         # 修改时间
         manager.add_column("mtime", "datetime", DEFAULT_DATETIME)
-        manager.add_column("type", "varchar(16)", 0)
+        manager.add_column("type", "varchar(16)", default_value="", comment="评论类型")
         manager.add_column("user_id", "bigint", 0, comment="用户ID")
         manager.add_column("target_id", "bigint", 0, comment="关联的对象ID")
+        manager.add_column("pin_level", "tinyint", default_value=0, comment="置顶级别,0-普通,1-置顶")
         
         manager.add_index(["user_id", "ctime"])
         manager.add_index("target_id")

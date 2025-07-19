@@ -33,11 +33,19 @@ class CommentDO(BaseDataRecord):
         self.content = ""
         self.ctime = now
         self.mtime = now
+        self.pin_level = 0
         self.update(kw)
+
+    def update_index(self, index: CommentIndexDO):
+        self.id = index.id
+        self.user_id = index.user_id
+        self.pin_level = index.pin_level
 
     @property
     def date(self):
         return dateutil.format_date(self.ctime)
+
+CommentRecord = CommentDO
 
 class CommentDao:
 
@@ -83,6 +91,13 @@ class CommentDao:
             xmanager.fire("comment.delete", comment)
         comment_service.delete_by_id(int(comment_id))
 
+    @classmethod
+    def get_index_by_id(cls, comment_id=0, user_id=0):
+        return comment_service.get_by_id(comment_id=comment_id, user_id=user_id)
+    
+    @classmethod
+    def update_index(cls, index: CommentIndexDO):
+        return comment_service.update(index)
 
 def list_comments_by_idx_list(idx_list: typing.List[CommentIndexDO], user_name=""):
     """通过索引查询评论
@@ -97,20 +112,18 @@ def list_comments_by_idx_list(idx_list: typing.List[CommentIndexDO], user_name="
         item = comment_dict.get(id_str)
         if item != None:
             item_do = CommentDO.from_dict(item)
-            item_do.id = index.id
-            item_do.user_id = index.user_id
+            item_do.update_index(index)
             result.append(item_do)
         else:
             item = CommentDO()
-            item.id = index.id
-            item.user = user_name
-            item.user_id = index.user_id
             item.content = "[数据被删除]"
+            item.update_index(index)
             result.append(item)
     return result
 
 def list_comments(note_id=0, offset=0, limit=100, user_name=""):
-    index_list = comment_service.list(target_id=note_id, offset=offset,limit=limit)
+    assert note_id > 0
+    index_list = comment_service.list(target_id=note_id, offset=offset,limit=limit, order="pin_level desc, ctime desc")
     return list_comments_by_idx_list(index_list, user_name=user_name)
 
 def list_comments_by_user(user_id=0, date="", offset=0, limit=0):

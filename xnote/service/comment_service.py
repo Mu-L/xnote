@@ -20,6 +20,7 @@ class CommentIndexDO(BaseDataRecord):
         self.type = ""
         self.user_id = 0
         self.target_id = 0
+        self.pin_level = 0
 
 Comment = CommentIndexDO
 
@@ -59,6 +60,13 @@ class CommentService:
         where, vars = self.build_where(user_id=user_id, target_id=target_id,date=date,type=type)
         result = self.db.select(where=where, vars=vars, offset=offset,limit=limit,order=order)
         return CommentIndexDO.from_dict_list(result)
+    
+    def get_by_id(self, comment_id=0, user_id=0):
+        where_dict = dict(id = comment_id)
+        if user_id > 0:
+            where_dict["user_id"] = user_id
+        result = self.db.select_first(where=where_dict)
+        return CommentIndexDO.from_dict_or_None(result)
 
     def count(self, user_id=0, target_id=0, date=None,type=""):
         where, vars = self.build_where(user_id=user_id, target_id=target_id,date=date,type=type)
@@ -69,3 +77,7 @@ class CommentService:
     
     def update_ctime(self, id=0, ctime=""):
         return self.db.update(where=dict(id=id), ctime=ctime)
+    
+    def update(self, index: CommentIndexDO):
+        save_dict = index.to_save_dict()
+        return self.db.update(where=dict(id=index.id), **save_dict)

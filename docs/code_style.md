@@ -55,6 +55,8 @@ my_package # 带下划线的包名
     - NoteListHandler 笔记列表处理器
     - TaskManager 任务管理器
     - NoteTaskManager 笔记任务管理器
+    - NoteDao 笔记的数据操作对象
+    - NoteRecord 笔记的数据库记录（建议用Record替代DO,因为DO和Dao容易混淆）
 - 分层命名规则：
     - 视图层（handlers）: 具体的功能，有状态，包括API和页面，处理业务逻辑
     - 核心层（core）: 基于功能抽象出来的通用能力，适用于WEB应用，有状态，只处理功能逻辑，不感知业务逻辑
