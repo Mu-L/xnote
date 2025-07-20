@@ -9,3 +9,6 @@ def get_fs_sidebar_html():
 
 def get_admin_sidebar_html():
     return xtemplate.render("system/component/admin_nav.html")
+
+def get_settings_sidebar_html():
+    return xtemplate.render("settings/page/settings_sidebar.html")

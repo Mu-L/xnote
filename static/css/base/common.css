@@ -110,77 +110,6 @@ h3.marked-heading {
     width: 100px;
 }
 
-.btn-link, .button-link {
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.btn-link:hover, .button-link:hover {
-    background: #ccc;
-}
-
-.link, .black-link, .link2 {
-    margin-right: 5px;
-    cursor: pointer;
-}
-
-.link {
-    /*color: #37a; */
-    color: #08c;
-}
-
-.black-link {
-    color: black;
-}
-
-.link2 {
-    color: black;
-}
-
-.link2:hover {
-    color: gray;
-}
-
-.path-link, .default-path-link {
-    line-height: 28px;
-    color: #000;
-    margin-right: 0;
-}
-
-.path-link:hover, .default-path-link:hover {
-    color: #888;
-}
-
-.default-path-link {
-    color: #08c;
-}
-
-.danger-link {
-    color: red;
-}
-
-.selected-link {
-    /*border-bottom: 2px solid red;*/
-    color: red;
-}
-
-/* 高对比度link */
-.contract-link {
-    display: block;
-    color: #08c;
-    line-height: 20px;
-    float: left;
-    margin: 3px;
-    padding: 3px;
-    text-decoration: none;
-}
-
-.contract-link:hover {
-    color: white;
-    background-color: #08c;
-    text-decoration: none;
-}
-
 /* 菜单的链接样式 */
 .nav-item>a, .menu-link {
     color: white;
@@ -200,36 +129,6 @@ h3.marked-heading {
     border-right: none;
 }
 
-/** 列表样式 **/
-.list-item, .list-link {
-    width: 100%;
-    padding: 10px 5px;
-    margin-top: 0px;
-    margin-bottom: 0px;
-    float: left;
-    line-height: 25px;
-    border-bottom: 1px solid #eee;
-}
-
-.list-link {
-    cursor: pointer;
-}
-
-.list-item:last-of-type, .list-link:last-of-type {
-    border-bottom: none;
-}
-
-.list-item:hover, .list-link:hover {
-    background-color: #eee;
-}
-
-.list-link i, .list-item i {
-    color: black;
-}
-
-.list-item-badge {
-    color: #888;
-}
 
 /** 以下为具体场景下的样式 **/
 .menu-selected {

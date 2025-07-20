@@ -86,6 +86,8 @@ def build_app_css():
         # 通用的css
         builder.append("./static/css/base/reset.css")
         builder.append("./static/css/base/common.css")
+        builder.append("./static/css/base/common-link.css")
+        builder.append("./static/css/base/common-list.css")
         builder.append("./static/css/base/common-mobile.css")
         builder.append("./static/css/base/common-icon.css")
         builder.append("./static/css/base/common-tag.css")

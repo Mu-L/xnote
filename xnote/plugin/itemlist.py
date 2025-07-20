@@ -3,6 +3,7 @@ import typing
 from .base import BaseComponent, BaseContainer
 from xnote.core import xtemplate
 from .component import ConfirmButton, TextTag, escape_html
+from xnote.core import xconfig
 
 class ListItem(BaseComponent):
     # 是否展示右箭头
@@ -16,9 +17,9 @@ class ListItem(BaseComponent):
 
     _code = xtemplate.compile_template("""
 {% if item.is_link_outside %}
-    <a class="list-link" href="{{ item.href }}">
+    <a class="list-item {{item.css_class}}" href="{{ item.href }}">
 {% else %}
-    <div class="list-item">
+    <div class="list-item {{item.css_class}}">
 {% end %}
 
 {% if item.icon_class %}
@@ -47,10 +48,11 @@ class ListItem(BaseComponent):
 {% end %}
 """)
 
-    def __init__(self, text="", href="", icon_class="", badge_info="", show_chevron_right = False) -> None:
+    def __init__(self, text="", href="#", icon_class="", badge_info="", show_chevron_right = False, css_class="") -> None:
         self.text = text
+        self.css_class = css_class
         self.icon_class = icon_class
-        self.href = href
+        self.href = xconfig.WebConfig.resolve_path(href)
         self.badge_info = badge_info
         self.show_chevron_right = show_chevron_right
         self.tags = []

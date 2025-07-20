@@ -32,6 +32,9 @@ class TestUser(BaseTestCase):
     def test_user_session(self):
         self.check_OK("/user/session")
 
+    def test_user_info(self):
+        self.check_OK("/user/info")
+
     def test_refresh_session(self):
         session_info = xauth.login_user_by_name("admin", "127.0.0.1")
         new_session = xauth.refresh_user_session(session_info=session_info)

@@ -10,6 +10,7 @@ from xnote.core import xauth
 from xnote.core import xtemplate
 from xnote.core import xmanager
 from xnote.core.xtemplate import T
+from xnote.core.xtemplate import BasePlugin
 from xnote.core import xconfig
 
 from xutils import textutil
@@ -23,6 +24,8 @@ from xnote.plugin.table_plugin import BaseTablePlugin
 from xnote.plugin import DataTable, TableActionType, InfoTable, InfoItem
 from xnote.plugin import DataForm, LinkConfig
 from xnote.plugin.form import FormRowType
+from xnote.plugin.itemlist import ItemList, ListItem, ConfirmButton
+from xnote.plugin import sidebar
 
 OP_LOG_TABLE = xauth.UserOpLogDao
 
@@ -211,12 +214,38 @@ class RemoveHandler:
         return self.POST()
 
 
-class UserInfoHandler:
+class UserInfoHandler(BasePlugin):
+    require_login = True
+    require_admin = False
+    show_aside = True
+    title = "账号设置"
+    rows = 0
 
-    @xauth.login_required()
-    def GET(self):
+    HTML = """
+{% include settings/page/settings_tab.html %}
+
+<div class="card">
+{% render item_list %}
+</div>
+"""
+
+    def get_aside_html(self):
+        return sidebar.get_settings_sidebar_html()
+    
+    def handle(self, input=""):
         user = xauth.current_user()
-        return xtemplate.render("user/page/userinfo.html", user=user)
+        assert user != None
+
+        item_list = ItemList()
+        item_list.add_item(ListItem(text="用户名", css_class="list-item-black", href="#", badge_info=user.name))
+        item_list.add_item(ListItem(text="修改密码", css_class="list-item-black", href="/user/change_password", show_chevron_right=True))
+        item_list.add_item(ListItem(text="用户日志", css_class="list-item-black", href="/user/op_log", show_chevron_right=True))
+
+        logout = ListItem(text="登出账号", css_class="list-item-black", show_chevron_right=True)
+        logout.action_btn = ConfirmButton("登出", url="/logout?_format=json", message="确认登出吗?")
+        item_list.add_item(logout)
+
+        self.writehtml(self.HTML, item_list = item_list)
 
 class UserInfoAjaxHandler:
     def getDesensitizedUserInfo(self):
@@ -256,7 +285,7 @@ class ChangePasswordHandler:
 
     @xauth.login_required()
     def POST(self):
-        user_name = xauth.current_name()
+        user_name = xauth.current_name_str()
         old_password = xutils.get_argument_str("old_password", "")
         new_password = xutils.get_argument_str("new_password", "")
         confirmed_password = xutils.get_argument_str("confirmed_password")
