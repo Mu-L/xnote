@@ -1,6 +1,8 @@
 # encoding=utf-8
 # Created by xupingmao on 2024/09/15
 import xutils
+import copy
+
 from datetime import date
 from xutils import Storage
 from xnote.core import xauth
@@ -11,7 +13,9 @@ from xnote.plugin.table_plugin import BaseTablePlugin, BasePlugin
 from xnote.plugin import DataTable, TableActionType, TabBox
 from xnote.plugin.table import InfoTable, InfoItem, ActionBar
 from xnote.plugin.calendar import ContributionCalendar
+from xnote.plugin.itemlist import ItemList, ListItem, ConfirmButton, TextTag
 from xutils import textutil
+from xutils import webutil
 
 
 def get_example_tab():
@@ -23,6 +27,7 @@ def get_example_tab():
     tab.add_tab("Dialog示例", value="dialog", href=f"/test/example?name=dialog")
     tab.add_tab("Dropdown示例", value="dropdown", href=f"/test/example?name=dropdown")
     tab.add_tab("Table示例", value="table", href=f"/test/example/table?name=table")
+    tab.add_tab("ItemList示例", value="list", href=f"/test/example/list?name=list")
     tab.add_tab("日历组件", value="calendar", href="/test/example/calendar?name=calendar")
     tab.add_tab("Hammer示例", value="hammer", href=f"/test/example?name=hammer")
     return tab
@@ -226,8 +231,62 @@ class CalendarExampleHandler(BasePlugin):
         kw.calendar = calendar
         self.writehtml(self.HTML, **kw)
 
+class ListExampleHandler(BasePlugin):
+    title = "ItemList示例"
+    rows = 0
+    body_html = """
+{% include test/component/example_nav_tab.html %}
+
+<div class="card">
+    <span class="card-title">ItemList: 外层链接</span>
+    {% render item_list %}
+</div>
+
+<div class="card">
+    <span class="card-title">ItemList: 内层链接</span>
+    {% render item_list2 %}
+</div>
+"""
+    def handle(self, input=""):
+        item_list = ItemList()
+        item_list2 = ItemList()
+
+        action = xutils.get_argument_str("action")
+        if action == "delete":
+            return self.handle_delete()
+
+        for index in range(5):
+            text = f"物品-{index+1}"
+            item = ListItem(text=text, href=f"javascript:xnote.alert({index+1})", badge_info=f"徽标{index+1}")
+            item.show_chevron_right = True
+            if index % 2 == 0:
+                item.icon_class = "fa fa-file-text-o"
+            else:
+                item.icon_class = "fa fa-list"
+                item.tags.append(TextTag(text="标签", css_class="lightblue"))
+                item.tags.append(TextTag(text="标签2", css_class="orange"))
+            item.action_btn = ConfirmButton(text="删除", url="?action=delete", message=f"确认删除[{text}]吗", css_class="btn danger")
+            
+            item_list.add_item(item)
+
+            item2 = copy.deepcopy(item)
+            item2.is_link_outside = False
+            item2.show_chevron_right = False
+            item_list2.add_item(item2)
+
+        kw = Storage()
+        kw.item_list = item_list
+        kw.item_list2 = item_list2
+        kw.example_tab = get_example_tab()
+
+        self.writehtml(html=self.body_html, **kw)
+
+    def handle_delete(self):
+        return webutil.FailedResult(code="500", message="mock删除失败")
+
 xurls = (
     r"/test/example", ExampleHandler,
     r"/test/example/table", TableExampleHandler,
+    r"/test/example/list", ListExampleHandler,
     r"/test/example/calendar", CalendarExampleHandler,
 )

@@ -83,7 +83,7 @@ class ConfirmButton(BaseComponent):
         url = self.url
         method = self.method
         reload_url = self.reload_url
-        return f"""<button class="btn btn-default {css_class}" onclick="xnote.table.handleConfirmAction(this)" 
+        return f"""<button class="btn btn-default {css_class}" onclick="xnote.table.handleConfirmAction(this, event)" 
         data-url="{url}" data-msg="{message}" data-method="{method}" data-reload-url="{reload_url}">{text}</button>
         """
 
@@ -143,6 +143,17 @@ class TagSpan(BaseComponent):
     {self.badge_info}
 </span>
         """
+
+class TextTag(BaseComponent):
+    def __init__(self, text="", css_class=""):
+        self.text = text
+        self.css_class = css_class
+    
+    def render(self):
+        text = escape_html(self.text)
+        return f"""
+<span class="tag {self.css_class}">{text}</span>
+"""
 
 class LinkConfig:
     app_index = TextLink(text="应用", href="/system/index")

@@ -209,6 +209,9 @@ h3.marked-heading {
     float: left;
     line-height: 25px;
     border-bottom: 1px solid #eee;
+}
+
+.list-link {
     cursor: pointer;
 }
 

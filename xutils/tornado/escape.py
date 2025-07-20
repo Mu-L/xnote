@@ -28,22 +28,9 @@ import sys
 import typing
 
 from .util import unicode_type, basestring_type, u
-
-try:
-    from urllib.parse import parse_qs as _parse_qs  # py3
-except ImportError:
-    from urlparse import parse_qs as _parse_qs  # Python 2.6+
-
-try:
-    import htmlentitydefs  # py2
-except ImportError:
-    import html.entities as htmlentitydefs  # py3
-
-try:
-    import urllib.parse as urllib_parse  # py3
-except ImportError:
-    import urllib as urllib_parse  # py2
-
+from urllib.parse import parse_qs as _parse_qs  # py3
+import html.entities as htmlentitydefs  # py3
+import urllib.parse as urllib_parse  # py3
 import json
 
 try:
@@ -230,10 +217,7 @@ _unicode = to_unicode
 
 # When dealing with the standard library across python 2 and 3 it is
 # sometimes useful to have a direct conversion to the native string type
-if str is unicode_type:
-    native_str = to_unicode
-else:
-    native_str = utf8
+native_str = to_unicode
 
 _BASESTRING_TYPES = (basestring_type, type(None))
 

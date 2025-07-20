@@ -18,17 +18,11 @@ import sys
 import zlib
 
 
-try:
-    xrange  # py2
-except NameError:
-    xrange = range  # py3
+xrange = range  # py3
 
 # inspect.getargspec() raises DeprecationWarnings in Python 3.5.
 # The two functions have compatible interfaces for the parts we need.
-try:
-    from inspect import getfullargspec as getargspec  # py3
-except ImportError:
-    from inspect import getargspec  # py2
+from inspect import getfullargspec as getargspec  # py3
 
 
 class ObjectDict(dict):
@@ -56,7 +50,7 @@ class GzipDecompressor(object):
         # This works on cpython and pypy, but not jython.
         self.decompressobj = zlib.decompressobj(16 + zlib.MAX_WBITS)
 
-    def decompress(self, value, max_length=None):
+    def decompress(self, value, max_length=0):
         """Decompress a chunk, returning newly-available data.
 
         Some data may be buffered for later processing; `flush` must
@@ -89,21 +83,13 @@ class GzipDecompressor(object):
 # unicode_literals" have other problems (see PEP 414).  u() can be applied
 # to ascii strings that include \u escapes (but they must not contain
 # literal non-ascii characters).
-if not isinstance(b'', type('')):
-    def u(s):
-        return s
-    unicode_type = str
-    basestring_type = str
-else:
-    def u(s):
-        return s.decode('unicode_escape')
-    # These names don't exist in py3, so use noqa comments to disable
-    # warnings in flake8.
-    unicode_type = unicode  # noqa
-    basestring_type = basestring  # noqa
+def u(s):
+    return s
+unicode_type = str
+basestring_type = str
 
 
-def import_object(name):
+def import_object(name: str):
     """Imports an object by name.
 
     import_object('x') is equivalent to 'import x'.
@@ -121,9 +107,6 @@ def import_object(name):
         ...
     ImportError: No module named missing_module
     """
-    if isinstance(name, unicode_type) and str is not unicode_type:
-        # On python 2 a byte string is required.
-        name = name.encode('utf-8')
     if name.count('.') == 0:
         return __import__(name, None, None)
 

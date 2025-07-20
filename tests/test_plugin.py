@@ -25,6 +25,9 @@ class TestMain(BaseTestCase):
     def test_contribution_calendar(self):
         self.check_OK("/test/example/calendar?name=calendar")
 
+    def test_list(self):
+        self.check_OK("/test/example/list?name=list")
+
     def test_plugin_visit(self):
         delete_visit_log(user_name="admin", url="/test")
         assert add_visit_log(user_name="admin", url="/test") == 1

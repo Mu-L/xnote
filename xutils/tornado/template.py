@@ -263,7 +263,7 @@ class Template(object):
     # note that the constructor's signature is not extracted with
     # autodoc because _UNSET looks like garbage.  When changing
     # this signature update website/sphinx/template.rst too.
-    def __init__(self, template_string, name="<string>", loader=None,
+    def __init__(self, template_string:str, name="<string>", loader=None,
                  compress_whitespace=_UNSET, autoescape=_UNSET,
                  whitespace=None):
         """Construct a Template.
@@ -285,7 +285,7 @@ class Template(object):
         .. versionchanged:: 4.3
            Added ``whitespace`` parameter; deprecated ``compress_whitespace``.
         """
-        self.name = escape.native_str(name)
+        self.name = escape.native_str(name) # type: str
 
         if compress_whitespace is not _UNSET:
             # Convert deprecated compress_whitespace (bool) to whitespace (str).
@@ -331,7 +331,7 @@ class Template(object):
             app_log.error("%s code:\n%s", self.name, formatted_code)
             raise
 
-    def generate(self, **kwargs):
+    def generate(self, **kwargs) -> bytes:
         """Generate this template with the given arguments."""
         namespace = {
             "escape": escape.xhtml_escape,
