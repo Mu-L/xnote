@@ -196,6 +196,15 @@ def utf8(value):
 
 _TO_UNICODE_TYPES = (unicode_type, type(None))
 
+@typing.overload
+def to_unicode(value: None) -> None:
+    ...
+@typing.overload
+def to_unicode(value: str) -> str:
+    ...
+@typing.overload
+def to_unicode(value: bytes) -> str:
+    ...
 
 def to_unicode(value) -> typing.Optional[str]:
     """Converts a string argument to a unicode string.

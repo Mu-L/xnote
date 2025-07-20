@@ -97,7 +97,7 @@ xnote.createUploaderEx = function(req) {
 
 
     if (fileSelector == undefined) {
-        fileSelector = '#filePicker';
+        fileSelector = '#baseFilePicker';
     }
 
     var upload_service;
@@ -290,7 +290,7 @@ xnote.requestUploadByOption = function (option) {
 // @param {string} filePrefix 保存的文件名前缀
 // @param {function} successFn 成功的回调函数
 // @param {function} errorFn 失败的回调函数
-window.xnote.requestUploadByClip = function (e, filePrefix, successFn, errorFn) {
+xnote.requestUploadByClip = function (e, filePrefix, successFn, errorFn) {
     console.log(e);
     var clipboardData = e.clipboardData || e.originalEvent 
         && e.originalEvent.clipboardData || {};

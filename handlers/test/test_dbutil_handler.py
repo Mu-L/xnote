@@ -4,9 +4,10 @@
 # @modified 2022/03/20 23:28:21
 # @filename test_dbutil_handler.py
 
-from xnote.core import xauth
 import xutils
 import random
+
+from xnote.core import xauth
 from xutils import Storage
 from xutils import dbutil
 
@@ -58,8 +59,8 @@ class RepairHandler:
 
     @xauth.login_required("admin")
     def GET(self):
-        table_name = xutils.get_argument("table_name", "")
-        user_name  = xutils.get_argument("user_name",  "")
+        table_name = xutils.get_argument_str("table_name", "")
+        user_name  = xutils.get_argument_str("user_name",  "")
         db = dbutil.get_table(table_name, user_name = user_name)
         db.repair_index()
         return "done"

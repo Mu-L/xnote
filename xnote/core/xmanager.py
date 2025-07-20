@@ -847,7 +847,12 @@ def quick_sleep(seconds):
     """可以快速从睡眠中重启"""
     start_time = time.time()
     while True:
-        time.sleep(0.1)
+        try:
+            time.sleep(0.1)
+        except:
+            # 可能引发Windows的竞争异常
+            # Windows fatal exception: access violation
+            pass
         wait_time = time.time() - start_time
         if wait_time > seconds:
             return

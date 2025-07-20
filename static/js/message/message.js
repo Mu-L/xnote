@@ -208,13 +208,13 @@ MessageView.createMessageOnTag = function(target) {
 MessageView.upload = function () {
     // 上传文件
     console.log("select file button click");
-    $("#filePicker").click();
+    $("#baseFilePicker").click();
 };
 
 
 MessageView.touchTopic = function(topic) {
     var params = {"key": topic};
-    $.post("/message/touch", params, function (resp) {
+    xnote.http.post("/message/touch", params, function (resp) {
         console.log(resp);
     }).fail(function (error) {
         console.error(error);
@@ -456,8 +456,9 @@ $(function () {
 
 $(function() {
     // 上传文件
+    // baseFilePicker定义在 base.html 文件里面
     xnote.createUploaderEx({
-        fileSelector: "#filePicker",
+        fileSelector: "#baseFilePicker",
         chunked: false,
         successFn: function (resp) {
             console.log("文件上传成功", resp);
@@ -468,6 +469,7 @@ $(function() {
         fileName: "auto"
     });
 
+    // 剪切板粘贴上传
     $("body").on("paste", ".edit-box,.input-box", function (e) {
         var filePrefix = "";
         xnote.requestUploadByClip(e, filePrefix, function (resp) {

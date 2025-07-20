@@ -19,7 +19,7 @@
             <span class="float-right">
                 {% raw model.get_option_html() %}
 
-                {% if _is_admin and model.show_edit and model.editable %}
+                {% if _is_admin and model.show_edit and model.editable and fpath %}
                     <a class="btn" href="{{_server_home}}/code/edit?path={{fpath}}">编辑</a>
                 {% end %}
                 <a class="btn btn-default" href="javascript:history.back();">返回</a>
