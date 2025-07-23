@@ -128,7 +128,7 @@ def fix_py2_code(code):
     # SyntaxError: encoding declaration in Unicode string
     return re.sub(r'^#[^\r\n]+', '', code)
 
-def exec_script(name, new_window=True, record_stdout = True, vars = None):
+def exec_script(name: str, new_window=True, record_stdout = True, vars = None):
     """执行script目录下的脚本"""
     from xnote.core import xconfig
     import xutils

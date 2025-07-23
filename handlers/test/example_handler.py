@@ -16,6 +16,7 @@ from xnote.plugin.calendar import ContributionCalendar
 from xnote.plugin.itemlist import ItemList, ListItem, ConfirmButton, TextTag
 from xutils import textutil
 from xutils import webutil
+from xutils.number_utils import Int32Counter
 
 
 def get_example_tab():
@@ -38,15 +39,17 @@ class TableExampleHandler(BaseTablePlugin):
 
     show_aside = False
 
+    heading_count = Int32Counter()
+
     PAGE_HTML = """
 {% include test/component/example_nav_tab.html %}
 
 <div class="card">
-    {% raw tab.render() %}
+    {% render tab %}
 </div>
 
 <div class="card">
-    {% raw info_table.render() %}
+    {% render info_table %}
 </div>
 
 <div class="card">
@@ -85,7 +88,7 @@ class TableExampleHandler(BaseTablePlugin):
 </div>
 
 <div class="card">
-    {% raw empty_table.render() %}
+    {% render empty_table %}
 </div>
 """
 
@@ -126,6 +129,34 @@ class TableExampleHandler(BaseTablePlugin):
         kw.info_table = self.get_info_table()
 
         return self.response_page(**kw)
+    
+    def handle_edit(self):
+        self.heading_count.add(1)
+        show_heading = self.heading_count.value % 2 == 0
+
+        form = self.create_form()
+
+        if show_heading:
+            form.add_heading("基础信息")
+
+        form.add_row("id", "id", css_class="hide")
+        form.add_row("只读属性", "readonly_attr", value="test", readonly=True)
+        
+        row = form.add_row("类型", "type", type=self.FormRowType.select)
+        row.add_option("类型1", "1")
+        row.add_option("类型2", "2")
+        
+        form.add_row("标题", "title")
+        form.add_row("日期", "date", type=self.FormRowType.date)
+        form.add_row("内容", "content", type=self.FormRowType.textarea)
+
+        if show_heading:
+            form.add_heading("高级信息")
+            form.add_row("备注信息")
+            
+        kw = Storage()
+        kw.form = form
+        return self.response_form(**kw)
     
     def get_tab_component(self):
         tab = TabBox(tab_key="tab", tab_default="2", css_class="btn-style", title="后端tab组件")

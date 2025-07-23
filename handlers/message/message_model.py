@@ -9,8 +9,7 @@ import typing
 
 from xutils import Storage
 from xutils import dateutil
-from xutils import numutil
-from xutils.functions import del_dict_key
+from xutils.functions import del_dict_key, delete_None_values
 from xnote.core.xtemplate import T
 from xnote.core import xtables, xconfig
 from xnote.service import TagTypeEnum, TagInfoDO
@@ -300,14 +299,8 @@ class MessageDO(BaseMsgDO):
         del_dict_key(self, "full_keywords")
         del_dict_key(self, "system_tags")
 
-        if self.status == None:
-            self.pop("status", None)
-        if self.amount == None:
-            self.pop("amount", None)
-        if self.ref == None:
-            self.pop("ref", None)
-        if self.keywords == None:
-            self.pop("keywords", None)
+        # remove None values
+        delete_None_values(self)
 
     def check_before_create(self):
         if self.id != "":

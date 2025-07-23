@@ -70,3 +70,14 @@
     height: 50px;
     padding: 10px;
 }
+
+
+.form-heading {
+    width: 100%;
+    background-color: #eee;
+    padding: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    line-height: normal;
+}

@@ -108,9 +108,11 @@ class BaseTablePlugin(BasePlugin):
 
     def handle_edit(self):
         form = self.create_form()
+        form.add_heading("基础信息")
+
         form.add_row("id", "id", css_class="hide")
         form.add_row("只读属性", "readonly_attr", value="test", readonly=True)
-
+        
         row = form.add_row("类型", "type", type=FormRowType.select)
         row.add_option("类型1", "1")
         row.add_option("类型2", "2")
@@ -118,6 +120,9 @@ class BaseTablePlugin(BasePlugin):
         form.add_row("标题", "title")
         form.add_row("日期", "date", type=FormRowType.date)
         form.add_row("内容", "content", type=FormRowType.textarea)
+
+        form.add_heading("高级信息")
+        form.add_row("备注信息")
         
         kw = Storage()
         kw.form = form

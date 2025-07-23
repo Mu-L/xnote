@@ -68,13 +68,17 @@ class DataForm:
         self.save_action = "save"
         self.model_name = "default"
         self.path = ""
-    
+        self.headings = []
+
+    def _create_row_id(self):
+        self.row_id += 1
+        return f"row_{self.id}_{self.row_id}"
+
     def add_row(self, title="", field="", placeholder="", value="", 
                 type="input", css_class="", readonly=False,
                 date_type = FormRowDateType.date):
-        self.row_id += 1
         row = FormRow()
-        row.id = f"row_{self.id}_{self.row_id}"
+        row.id = self._create_row_id()
         row.title = title
         row.field = field
         row.placeholder = placeholder
@@ -86,6 +90,16 @@ class DataForm:
         
         self.rows.append(row)
         return row
+
+    def add_heading(self, name=""):
+        """添加子标题"""
+        row = FormRow()
+        row.id = self._create_row_id()
+        row.title = name
+        row.css_class = "form-heading"
+        row.type = "heading"
+        self.rows.append(row)
+    
 
     def count_type(self, type=""):
         count = 0

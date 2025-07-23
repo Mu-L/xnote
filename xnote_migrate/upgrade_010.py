@@ -14,7 +14,7 @@ from . import base
 from handlers.note.dao import get_by_id
 from xutils import dbutil
 from xutils import BaseDataRecord
-from xutils.numutil import parse_int
+from xutils.number_utils import parse_int
 from xnote.service.tag_service import NoteTagBindService
 
 # TODO 创建测试用例覆盖

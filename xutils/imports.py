@@ -6,10 +6,10 @@
 from __future__ import print_function
 
 from . import six
-from .six.moves.configparser import ConfigParser
-from .six.moves.urllib.parse import quote, unquote
-from .six.moves.urllib.request import urlopen
-from .six import StringIO
+from configparser import ConfigParser
+from urllib.parse import quote, unquote
+from urllib.request import urlopen
+from io import StringIO
 
 import sys
 import os
@@ -47,31 +47,12 @@ except ImportError:
     bs4 = None
 
 PY2 = sys.version_info[0] == 2
+# Py3 and later
+from subprocess import getstatusoutput
+from queue import Queue, PriorityQueue
 
-if PY2:
-    from Queue import Queue, PriorityQueue
-    # from commands import getstatusoutput
-
-    def u(s, encoding="utf-8"):
-        if isinstance(s, str):
-            return s.decode(encoding)
-        elif isinstance(s, unicode):
-            return s
-        elif isinstance(s, Exception):
-            return u(s.message)
-        return str(s)
-
-    def listdir(dirname):
-        names = list(os.listdir(dirname))
-        encoding = sys.getfilesystemencoding()
-        return [newname.decode(encoding) for newname in names]
-else:
-    # Py3 and later
-    from subprocess import getstatusoutput
-    from queue import Queue, PriorityQueue
-
-    u = str
-    listdir = os.listdir
+u = str
+listdir = os.listdir
 
 
 def quote_unicode(url):

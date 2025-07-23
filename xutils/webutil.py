@@ -3,12 +3,13 @@
 # @since 2021/01/17 10:51:22
 # @modified 2021/11/07 12:53:19
 
-from http.server import BaseHTTPRequestHandler
 import profile
 import time
 import web
 import math
-from xutils.six import BytesIO
+
+from http.server import BaseHTTPRequestHandler
+from io import BytesIO
 from web import utils
 from xutils.config import UtilityConfig
 

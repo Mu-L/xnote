@@ -13,6 +13,7 @@ import xutils
 import base64
 import time
 import hashlib
+import typing
 
 import logging
 # 部分系统没有ctypes（比如SAE的云引擎）
@@ -136,7 +137,7 @@ def get_relative_path(path:str, parent:str):
     return relative_path
 
 
-def detect_encoding(fpath, raise_error=True):
+def detect_encoding(fpath: str):
     last_err = None
     for encoding in ENCODING_TUPLE:
         try:
@@ -147,7 +148,7 @@ def detect_encoding(fpath, raise_error=True):
                 return encoding
         except Exception as e:
             last_err = e
-    if raise_error:
+    if last_err:
         raise Exception("can not detect file encoding, path=[%s]" % fpath,
                         last_err)
     return None
@@ -163,7 +164,7 @@ def get_file_ext(fname):
         return ""
     return ext.lower()
 
-def format_size(size: int):
+def format_size(size: typing.Union[int, float]):
     """格式化大小
 
     >>> format_size(10240)
@@ -329,24 +330,15 @@ def data_path(fname):
 from xutils.base import makedirs
 
 def _try_readfile(path, mode="r", limit=-1, encoding='utf-8') -> str:
-    if PY2:
-        with open(path) as fp:
-            if limit > 0:
-                content = fp.read(limit)
-            else:
-                content = fp.read()
-            assert isinstance(content, bytes)
-            return content.decode(encoding)
-    else:
-        with open(path, mode=mode, encoding=encoding) as fp:
-            if limit > 0:
-                content = fp.read(limit)
-            else:
-                content = fp.read()
-            return content
+    with open(path, mode=mode, encoding=encoding) as fp:
+        if limit > 0:
+            content = fp.read(limit)
+        else:
+            content = fp.read()
+        return content
 
 
-def readfile(path: str, mode="r", limit=-1, raise_error=True):
+def readfile(path: str, mode="r", limit=-1):
     """读取文件，尝试多种编码，编码别名参考标准库`Lib/encodings/aliases.py`
     * utf-8 是一种边长编码，兼容ASCII
     * GBK 是一种双字节编码，全称《汉字内码扩展规范》，兼容GB2312
@@ -358,11 +350,11 @@ def readfile(path: str, mode="r", limit=-1, raise_error=True):
             return _try_readfile(path, mode, limit, encoding)
         except Exception as e:
             last_err = e
-    if raise_error:
-        raise Exception("can not read file %s" % path, last_err)
+    
+    raise Exception("can not read file %s" % path, last_err)
 
 
-def _try_readlines(fpath, limit=-1, encoding='utf-8'):
+def _try_readlines(fpath: str, limit=-1, encoding='utf-8'):
     with open(fpath, encoding=encoding) as fp:
         if limit <= 0:
             return fp.readlines()
@@ -373,7 +365,7 @@ def _try_readlines(fpath, limit=-1, encoding='utf-8'):
             return lines
 
 
-def readlines(fpath, limit=-1):
+def readlines(fpath: str, limit=-1):
     last_err = None
     for encoding in ENCODING_TUPLE:
         try:
@@ -381,8 +373,7 @@ def readlines(fpath, limit=-1):
         except Exception as e:
             last_err = e
 
-    if last_err != None:
-        raise Exception("readlines failed", last_err)
+    raise Exception("readlines failed", last_err)
 
 
 # readfile别名
@@ -390,16 +381,13 @@ read = readfile
 read_utf8 = readfile
 
 
-def writefile(path, content, mode="wb"):
+def writefile(path: str, content: typing.Union[str, bytes], mode="wb"):
     import codecs
     dirname = os.path.dirname(path)
     makedirs(dirname)
 
     with open(path, mode=mode) as fp:
-        if PY2 and isinstance(content, str):
-            # Python2 环境下, str和byte完全一样，不需要编码成utf8
-            buf = content
-        elif is_str(content):
+        if isinstance(content, str):
             buf = codecs.encode(content, "utf-8")
         else:
             buf = content

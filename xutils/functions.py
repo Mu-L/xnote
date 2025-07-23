@@ -35,8 +35,8 @@ class Counter:
 
 class ListProcessor:
 
-    def __init__(self, data):
-        self.list = data
+    def __init__(self, data: list):
+        self._data = data
 
     def select(self, columns):
         self.columns = columns
@@ -297,6 +297,20 @@ def del_dict_key(dict_obj: dict, key):
     """删除字典的key，如果key不存在也不抛异常"""
     assert isinstance(dict_obj, dict)
     dict_obj.pop(key, None)
+
+def delete_None_values(obj: dict):
+    """删除值为None的元素"""
+    if isinstance(obj, dict):
+        # 遍历过程中修改会报错,所以需要先遍历记录空值
+        keys = []
+        for key in obj:
+            value = obj.get(key)
+            if value is None:
+                keys.append(key)
+        for key in keys:
+            obj.pop(key, None)
+    else:
+        raise ValueError("expect obj to be dict")
 
 class TypedDict:
     """带类型的dict"""
