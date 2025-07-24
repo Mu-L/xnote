@@ -266,7 +266,7 @@ def init_user_session():
     table_name = "user_session"
     with create_default_table_manager(table_name, comment=comment) as manager:
         manager.add_column("user_name", "varchar(64)", "")
-        manager.add_column("user_id", "bigint", "")
+        manager.add_column("user_id", "bigint", default_value=0)
         manager.add_column("sid", "varchar(50)", "")
         manager.add_column("token", "varchar(50)", "")
         manager.add_column("mobile", "varchar(32)", "")

@@ -10,6 +10,10 @@ class ActionBar(BaseContainer):
 
     def is_empty(self):
         return len(self.right_box.children) == 0 and len(self.children) == 1
+    
+    @property
+    def visible(self):
+        return not self.is_empty()
 
     def _add(self, item: BaseComponent, float_right=False):
         if float_right:
@@ -28,3 +32,4 @@ class ActionBar(BaseContainer):
     def add_confirm_button(self, text="", url="", message="", css_class="", method="GET", reload_url="", float_right=False):
         btn = ConfirmButton(text=text, url=url, message=message, method=method, reload_url=reload_url, css_class=css_class)
         self._add(btn, float_right)
+

@@ -200,10 +200,9 @@ class TableExampleHandler(BaseTablePlugin):
         table.add_action("删除", link_field="delete_url", type=TableActionType.confirm, 
                          msg_field="delete_msg", css_class="btn danger")
         
-        action_bar = ActionBar()
+        action_bar = table.action_bar
         action_bar.add_span(text="表格3-空表格-action_bar_html")
         action_bar.add_edit_button(text="新建", url="?action=edit", float_right=True)
-        table.action_bar_html = action_bar.render()
         return table
     
     def get_info_table(self):

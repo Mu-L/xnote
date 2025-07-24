@@ -1,6 +1,11 @@
 {% init xnote_table_var = "table" %}
 {% set _xnote_table = globals()[xnote_table_var] %}
 
+
+{% if _xnote_table.action_bar.visible %}
+    {% render _xnote_table.action_bar %}
+{% end %}
+
 {% raw _xnote_table.action_bar_html %}
 
 <div class="overflow-table-container">

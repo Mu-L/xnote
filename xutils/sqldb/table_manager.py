@@ -51,7 +51,7 @@ class TableHelper:
         return f"{self.quote}{colname}{self.quote}"
     
     @classmethod
-    def _do_single_name(cls, colname: str):
+    def _remove_name_length(cls, colname: str):
         if "(" in colname:
             # like field_name(10)
             return colname.split("(")[0]
@@ -59,8 +59,8 @@ class TableHelper:
 
     def to_colname_only(self, colname):
         if isinstance(colname, list):
-            return [self._do_single_name(x) for x in colname]
-        return self._do_single_name(colname)
+            return [self._remove_name_length(x) for x in colname]
+        return self._remove_name_length(colname)
 
     def build_index_name(self, colname, is_unique=False, table_name=""):
         colname = self.to_colname_only(colname)
@@ -87,7 +87,17 @@ class TableHelper:
     @classmethod
     def get_type_name(cls, type_name: str):
         """获取字段的类型名称,不包含长度"""
-        return cls._do_single_name(type_name)
+        return cls._remove_name_length(type_name)
+    
+    @classmethod
+    def is_int_type(cls, coltype: str):
+        name = cls.get_type_name(coltype)
+        return name in ("bigint", "tinyint", "int")
+    
+    @classmethod
+    def is_varchar_type(cls, coltype: str):
+        name = cls.get_type_name(coltype)
+        return name == "varchar"
 
 class BaseTableManager:
     """检查数据库字段，如果不存在就自动创建"""
@@ -133,7 +143,7 @@ class BaseTableManager:
         demo.type = "text"
         return [demo]
 
-    def add_column(self, colname, coltype,
+    def add_column(self, colname:str, coltype: str,
                    default_value=None, not_null=True, **kw):
         """添加字段，如果已经存在则跳过，名称相同类型不同抛出异常"""
         sql = f"ALTER TABLE `{self.tablename}` ADD COLUMN `{colname}` {coltype}"
@@ -148,7 +158,8 @@ class BaseTableManager:
         if default_value != None:
             if isinstance(default_value, str):
                 default_value = self.escape(default_value)
-            sql += " DEFAULT %s" % default_value
+            sql += f" DEFAULT {default_value}"
+
         if not_null:
             sql += " NOT NULL"
         self.execute(sql)
@@ -440,7 +451,7 @@ class TableManagerFacade:
         # type: () -> dict[str, TableInfo]
         return cls.table_dict
 
-    def add_column(self, colname, coltype: str,
+    def add_column(self, colname: str, coltype: str,
                    default_value=None, not_null=True, comment="", 
                    old_names:typing.List[str]=[]):
         """Check and add column, do nothing if column exists.
@@ -455,13 +466,13 @@ class TableManagerFacade:
         for old_name in old_names:
             self.rename_column(old_name=old_name, new_name=colname)
 
-        coltype_lower = coltype.lower()
-
-        if "varchar" in coltype_lower:
+        if TableHelper.is_varchar_type(coltype):
             assert default_value != None, f"varchar column {colname} default value cant be NULL"
-        if coltype_lower in ("int", "tinyint", "bigint"):
-            assert default_value != None, f"{coltype} column {colname} default value cant be NULL"
         
+        if TableHelper.is_int_type(coltype):
+            assert default_value != None, f"{coltype} column {colname} default value cant be NULL"
+            assert isinstance(default_value, int)
+
         self.table_info.add_column(colname, coltype, default_value, not_null, comment=comment)
         self.manager.add_column(colname, coltype, default_value, not_null, comment=comment)
 
