@@ -202,15 +202,12 @@ import os.path
 import posixpath
 import re
 import threading
+import typing
 
 from . import escape
 from .log import app_log
 from .util import ObjectDict, exec_in, unicode_type
-
-try:
-    from cStringIO import StringIO  # py2
-except ImportError:
-    from io import StringIO  # py3
+from io import StringIO  # py3
 
 _DEFAULT_AUTOESCAPE = "xhtml_escape"
 _UNSET = object()
@@ -263,7 +260,7 @@ class Template(object):
     # note that the constructor's signature is not extracted with
     # autodoc because _UNSET looks like garbage.  When changing
     # this signature update website/sphinx/template.rst too.
-    def __init__(self, template_string:str, name="<string>", loader=None,
+    def __init__(self, template_string:str, name="<string>", loader: typing.Optional["BaseLoader"]=None,
                  compress_whitespace=_UNSET, autoescape=_UNSET,
                  whitespace=None):
         """Construct a Template.
@@ -787,9 +784,9 @@ class _TemplateReader(object):
         self.text = text
         self.whitespace = whitespace
         self.line = 1
-        self.pos = 0
+        self.pos = 0 # type:int
 
-    def find(self, needle, start=0, end=None):
+    def find(self, needle:str, start=0, end=None):
         assert start >= 0, start
         pos = self.pos
         start += pos

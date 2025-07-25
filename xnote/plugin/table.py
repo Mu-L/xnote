@@ -191,8 +191,12 @@ class DataTable:
         self.action_head = TableHead(self) # 操作表头
         self.default_head_style = DefaultHeadStyle()
         self.action_head.default_style = self.default_head_style
-        self.action_bar_html = ""
+
+        # 操作栏
         self.action_bar = ActionBar()
+        self.action_bar_html = "" # type: str|bytes
+        
+        # 分页html
         self.pagination_html = ""
     
     def add_head(self, title="", field = "", type="", link_field="", 

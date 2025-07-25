@@ -201,7 +201,7 @@ class TableExampleHandler(BaseTablePlugin):
                          msg_field="delete_msg", css_class="btn danger")
         
         action_bar = table.action_bar
-        action_bar.add_span(text="表格3-空表格-action_bar_html")
+        action_bar.add_span(text="表格3-action_bar")
         action_bar.add_edit_button(text="新建", url="?action=edit", float_right=True)
         return table
     

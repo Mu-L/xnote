@@ -74,8 +74,8 @@ class MyStdout(threading.local):
         raise Exception("deprecated!!!")
 
 def exec_python_code(
-        name, 
-        code, 
+        name: str, 
+        code: str, 
         record_stdout = True, 
         raise_err     = False, 
         do_gc         = True,

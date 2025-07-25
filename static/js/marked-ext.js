@@ -541,6 +541,7 @@
         return text.replace(regexp, function(match, content) {
             try {
                 content = atob(content);
+                content = decodeURIComponent(content);
                 console.debug("inline latex", content);
                 return katexRender(content);
             } catch (e) {
@@ -571,20 +572,30 @@
         $("#menuBox").html(menuHtml);
         return outtext;
     };
-
+    
+    /**
+     * @param {string} text 
+     * @returns {string}
+     */
     function preHandleText(text) {
         // 预处理：替换行内公式定界符
-        var replace_func = function(match, content) {
-            return LATEX_INLINE_START + btoa(content) + LATEX_INLINE_END;
+        try {
+            var replace_func = function(match, content) {
+                return LATEX_INLINE_START + btoa(encodeURIComponent(content)) + LATEX_INLINE_END;
+            }
+            text = text.replace(/\\\(([\s\S]*?)\\\)/g, replace_func);
+            text = text.replace(/\\\[([\s\S]*?)\\\]/g, replace_func);
+            return text;
+        } catch (e) {
+            console.error("preHandleText failed:", e);
+            return text;
         }
-        text = text.replace(/\\\(([\s\S]*?)\\\)/g, replace_func);
-        text = text.replace(/\\\[([\s\S]*?)\\\]/g, replace_func);
-        return text;
     }
 
     marked.parseAndRender = function (text, target, options) {
         // 预处理text文本
         text = preHandleText(text);
+        // console.log("text=", text);
         // 处理扩展选项
         extOptions = initExtOptions(options);
         extOptions.text = text;
