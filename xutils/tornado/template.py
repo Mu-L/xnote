@@ -260,7 +260,7 @@ class Template(object):
     # note that the constructor's signature is not extracted with
     # autodoc because _UNSET looks like garbage.  When changing
     # this signature update website/sphinx/template.rst too.
-    def __init__(self, template_string:str, name="<string>", loader: typing.Optional["BaseLoader"]=None,
+    def __init__(self, template_string:typing.Union[str, bytes], name="<string>", loader: typing.Optional["BaseLoader"]=None,
                  compress_whitespace=_UNSET, autoescape=_UNSET,
                  whitespace=None):
         """Construct a Template.
@@ -471,7 +471,7 @@ class DictLoader(BaseLoader):
         super(DictLoader, self).__init__(**kwargs)
         self.dict = dict
 
-    def resolve_path(self, name, parent_path=None):
+    def resolve_path(self, name: str, parent_path=None):
         if parent_path and not parent_path.startswith("<") and \
             not parent_path.startswith("/") and \
                 not name.startswith("/"):
@@ -485,7 +485,8 @@ class DictLoader(BaseLoader):
 
 class _Node(object):
     def each_child(self):
-        return ()
+        # type: () -> tuple[_Node]
+        return () # type: ignore
 
     def generate(self, writer):
         raise NotImplementedError()
@@ -496,12 +497,12 @@ class _Node(object):
 
 
 class _File(_Node):
-    def __init__(self, template, body):
+    def __init__(self, template: Template, body: "_ChunkList"):
         self.template = template
         self.body = body
         self.line = 0
 
-    def generate(self, writer):
+    def generate(self, writer: "_CodeWriter"):
         writer.write_line("def _tt_execute():", self.line)
         with writer.indent():
             writer.write_line("_tt_buffer = []", self.line)
@@ -515,6 +516,7 @@ class _File(_Node):
 
 class _ChunkList(_Node):
     def __init__(self, chunks):
+        # type: (list[_Node]) -> None
         self.chunks = chunks
 
     def generate(self, writer):
@@ -526,7 +528,7 @@ class _ChunkList(_Node):
 
 
 class _NamedBlock(_Node):
-    def __init__(self, name, body, template, line):
+    def __init__(self, name: str, body: "_ChunkList", template: "Template", line: int):
         self.name = name
         self.body = body
         self.template = template
@@ -535,7 +537,7 @@ class _NamedBlock(_Node):
     def each_child(self):
         return (self.body,)
 
-    def generate(self, writer):
+    def generate(self, writer: "_CodeWriter"):
         block = writer.named_blocks[self.name]
         with writer.include(block.template, self.line):
             block.body.generate(writer)
@@ -575,7 +577,7 @@ class _ApplyBlock(_Node):
     def each_child(self):
         return (self.body,)
 
-    def generate(self, writer):
+    def generate(self, writer: "_CodeWriter"):
         method_name = "_tt_apply%d" % writer.apply_counter
         writer.apply_counter += 1
         writer.write_line("def %s():" % method_name, self.line)
@@ -730,13 +732,13 @@ class ParseError(Exception):
 
 
 class _CodeWriter(object):
-    def __init__(self, file, named_blocks, loader: Loader, current_template):
+    def __init__(self, file, named_blocks, loader: Loader, current_template: Template):
         self.file = file
         self.named_blocks = named_blocks
         self.loader = loader
         self.current_template = current_template
         self.apply_counter = 0
-        self.include_stack = []
+        self.include_stack = [] # type: list[tuple[Template, int]]
         self._indent = 0
 
     def indent_size(self):
@@ -754,7 +756,7 @@ class _CodeWriter(object):
 
         return Indenter()
 
-    def include(self, template, line):
+    def include(self, template: Template, line):
         self.include_stack.append((self.current_template, line))
         self.current_template = template
 

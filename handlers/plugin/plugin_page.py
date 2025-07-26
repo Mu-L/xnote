@@ -32,6 +32,7 @@ from xnote.plugin import load_plugin_file, PluginContext, LinkConfig
 from xnote.plugin import TagSpan, BaseContainer
 from xnote.plugin import iter_plugins
 from handlers.plugin.plugin_config import INNER_TOOLS
+from xnote.plugin.itemlist import ItemList, ListItem, TextTag
 
 """xnote插件模块，由于插件的权限较大，开发权限只开放给管理员，普通用户可以使用
 
@@ -148,7 +149,8 @@ def can_visit_by_role(plugin: PluginContext, current_role: typing.Optional[str])
 
 
 @xutils.timeit(logfile=True, logargs=True, name="FindPlugins")
-def find_plugins(category, orderby=None):
+def find_plugins(category: str, orderby=None):
+    assert category != "all"
     current_role = xauth.get_current_role()
     user_name = xauth.current_name()
     plugins = []
@@ -221,6 +223,7 @@ class PluginSort:
 def sort_plugins(user_name, plugins: typing.List[PluginContext], orderby=None):
     sort_obj = PluginSort(user_name)
     if orderby is None or orderby == "":
+        # 默认排序
         sort_obj.sort_by_visit_cnt_desc(plugins)
     elif orderby == "recent":
         sort_obj.sort_by_recent(plugins)
@@ -378,6 +381,18 @@ def fill_plugins_badge_info(plugins, orderby):
             p.badge_info = dateutil.format_date(p.visit_time)
 
 
+def create_item_list(plugins: typing.List[PluginContext]):
+    result = ItemList()
+
+    for plugin in plugins:
+        item_info = ListItem(text = plugin.title, href= plugin.url + plugin.url_query, 
+                                icon_class=plugin.icon_class, badge_info=plugin.badge_info)
+        item_info.show_chevron_right = True
+        if plugin.is_external:
+            item_info.tags.append(TextTag("外部", css_class="lightblue"))
+        result.add_item(item_info)
+    return result
+
 class PluginListHandler:
 
     @logutil.timeit_deco(name="PluginListHandler")
@@ -421,7 +436,8 @@ class PluginListHandler:
 
         fill_plugins_badge_info(plugins, orderby)
 
-        context.plugins = self.filter_plugins(plugins)
+        plugins = self.filter_plugins(plugins)
+        context.plugins = plugins
         context.plugins_status = PluginState.status
 
         if category == "":
@@ -429,6 +445,7 @@ class PluginListHandler:
 
         template_file = get_template_by_version(version)
         context.parent_link = LinkConfig.app_index
+        context.plugin_list = create_item_list(plugins)
         return xtemplate.render(template_file, **context)
     
     def filter_plugins(self, plugins: typing.List[PluginContext]):
@@ -444,8 +461,7 @@ class PluginCategoryListHandler:
         total_count = 0
         count_dict = dict()
 
-        for k in xconfig.PLUGINS_DICT:
-            p = xconfig.PLUGINS_DICT[k] # type: PluginContext
+        for p in iter_plugins():
             if not can_visit_by_role(p, current_role):
                 continue
 
@@ -488,6 +504,7 @@ class PluginCategoryListHandler:
         kw.plugins = plugins
         kw.plugin_category = "index"
         kw.parent_link = LinkConfig.app_index
+        kw.plugin_list = create_item_list(plugins)
         return xtemplate.render(template_file, **kw)
 
 
@@ -567,7 +584,7 @@ class PluginLogHandler:
 
     @xauth.login_required()
     def GET(self):
-        user_name = xauth.current_name()
+        user_name = xauth.current_name_str()
         logs = list_visit_logs(user_name)
         return logs
 
