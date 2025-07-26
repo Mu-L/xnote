@@ -84,7 +84,7 @@ class TableProxy(SQLDBInterface):
             raise e
         finally:
             cost_time = time.time() - start_time
-            self.add_profile_log(cost_time, "insert")
+            self._add_profile_log(cost_time, "insert")
         
     def select(self, vars=None, what='*', where=None, order=None, group=None,
                limit=None, offset=None, _test=False):
@@ -95,7 +95,7 @@ class TableProxy(SQLDBInterface):
         where = self.fix_sql_keywords(where)
         result_set = self.db.select(self.tablename, vars=vars, what=what, where=where, order=order, group=group,
                               limit=limit, offset=offset, _test=_test)
-        records = list(result_set)
+        records = list(result_set) # type: ignore
         return records
     
     def select_first(self, *args, **kw):
@@ -107,7 +107,7 @@ class TableProxy(SQLDBInterface):
         return None
 
     def query(self, *args, **kw):
-        return list(self.db.query(*args, **kw))
+        return list(self.db.query(*args, **kw)) # type:ignore
     
     def raw_query(self, *args, **kw):
         return self.db.query(*args, **kw)
@@ -115,8 +115,8 @@ class TableProxy(SQLDBInterface):
     def count(self, where=None, sql=None, vars=None) -> int:
         where = self.fix_sql_keywords(where)
         if sql is None:
-            return self.select_first(what="COUNT(1) AS amount", where=where, vars=vars).amount
-        return self.db.query(sql, vars=vars).first().amount
+            return self.select_first(what="COUNT(1) AS amount", where=where, vars=vars).amount # type:ignore
+        return self.db.query(sql, vars=vars).first().amount # type: ignore
 
     def update(self, where, vars=None, _test=False, _skip_binlog=False, _skip_profile=False, **values):
         assert len(values) > 0
@@ -128,14 +128,14 @@ class TableProxy(SQLDBInterface):
         try:
             result = self.db.update(self.tablename, where, vars=vars, _test=_test, **values)
             if not _skip_binlog:
-                self.add_update_binlog(where=where, vars=vars, _test=_test)
+                self._add_update_binlog(where=where, vars=vars, _test=_test)
             return result
         except Exception as e:
             del self.db.ctx.db # 尝试重新连接
             raise e
         finally:
             cost_time = time.time() - start_time
-            self.add_profile_log(cost_time, "update", _skip_profile=_skip_profile)
+            self._add_profile_log(cost_time, "update", _skip_profile=_skip_profile)
 
     def delete(self,  where, using=None, vars=None, _test=False):
         self.check_write_state()
@@ -156,7 +156,7 @@ class TableProxy(SQLDBInterface):
             raise e
         finally:
             cost_time = time.time() - start_time
-            self.add_profile_log(cost_time, "delete")
+            self._add_profile_log(cost_time, "delete")
 
     def _delete_with_binlog(self, where, vars):
         pk_name = self.table_info.pk_name
@@ -170,7 +170,7 @@ class TableProxy(SQLDBInterface):
             new_where = f"`{pk_name}` in $pk_list"
             new_vars = dict(pk_list=pk_list)
             result = self.db.delete(self.tablename, where=new_where, vars=new_vars)
-            self.add_delete_binlog(pk_list)
+            self._add_delete_binlog(pk_list)
             return result
     
     def transaction(self):
@@ -213,7 +213,7 @@ class TableProxy(SQLDBInterface):
         result[pk_name] = record.get(pk_name)
         return result
 
-    def add_row_binlog(self, row):
+    def _add_row_binlog(self, row):
         if not self.enable_binlog:
             return
         if row == None:
@@ -241,9 +241,9 @@ class TableProxy(SQLDBInterface):
             pk_name: new_id
         }
         row = self.select_first(where=where)
-        self.add_row_binlog(row)
+        self._add_row_binlog(row)
 
-    def add_update_binlog(self, where=None, vars=None, _test=False):
+    def _add_update_binlog(self, where=None, vars=None, _test=False):
         if _test:
             return
         if not self.enable_binlog:
@@ -252,9 +252,9 @@ class TableProxy(SQLDBInterface):
             return
                 
         for row in self.select(where=where, vars=vars):
-            self.add_row_binlog(row)
+            self._add_row_binlog(row)
 
-    def add_delete_binlog(self, pk_list=[]):
+    def _add_delete_binlog(self, pk_list=[]):
         if not self.enable_binlog:
             return
 
@@ -268,10 +268,9 @@ class TableProxy(SQLDBInterface):
     def get_column_names(self):
         return self.table_info.column_names
 
-
     def replace(self, seqname=None, _test=False, **values):
         """XXX: 测试中
-        执行replace操作
+        执行replace into操作
         """
         assert len(values)>0
         tablename = self.table_name
@@ -280,9 +279,9 @@ class TableProxy(SQLDBInterface):
         
         sorted_values = sorted(values.items(), key=lambda t: t[0])
 
-        _keys = SQLQuery.join(map(lambda t: t[0], sorted_values), ", ")
+        _keys = SQLQuery.join(map(lambda t: t[0], sorted_values), ", ") # type: ignore
         _values = SQLQuery.join(
-            [sqlparam(v) for v in map(lambda t: t[1], sorted_values)], ", "
+            [sqlparam(v) for v in map(lambda t: t[1], sorted_values)], ", " # type: ignore
         )
         sql_query = (
             "REPLACE INTO %s " % tablename + q(_keys) + " VALUES " + q(_values)
@@ -297,7 +296,7 @@ class TableProxy(SQLDBInterface):
         log.type = "db_profile"
         return log
     
-    def add_profile_log(self, cost_time=0.0, op_type="", _skip_profile=False):
+    def _add_profile_log(self, cost_time=0.0, op_type="", _skip_profile=False):
         if _skip_profile:
             return
         if not self.log_profile:
@@ -311,6 +310,21 @@ class TableProxy(SQLDBInterface):
         profile_log.cost_time = cost_time
         profile_log.op_type = op_type
         self.profile_logger.log(profile_log)
+
+    def check_is_unique(self, update_pk = None, **where_kw):
+        """检查是否是唯一的
+        Arguments:
+        - update_pk: 更新场景的主键, 可选参数
+        - where_kw: 检查的键值对, 必选参数
+        """
+        assert len(where_kw) > 0, "where_kw can not be empty"
+        pk_name = self.table_info.pk_name
+        old = self.select_first(what = pk_name, where = where_kw)
+        if old is None:
+            return True
+        if update_pk != None:
+            return old.get(pk_name) == update_pk
+        return False
 
 
 class TempTableProxy(TableProxy):

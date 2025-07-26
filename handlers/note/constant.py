@@ -60,3 +60,5 @@ CREATE_BTN_TEXT_DICT = {
     "form"    : u"新建表单",
 }
 
+
+DELETED_PREFIX = "[deleted]"

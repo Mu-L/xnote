@@ -3,6 +3,7 @@
 # @since 2018/05/25 10:52:11
 # @modified 2022/04/11 23:05:34
 import time
+import typing
 from collections import deque
 from xutils.dateutil import format_time
 
@@ -357,7 +358,7 @@ def safe_list(item):
         return list(item)
     return []
 
-def iter_exists(func, iter_obj):
+def iter_exists(func: typing.Callable, iter_obj: typing.Iterable):
     """判断迭代器中是否存在
     >>> iter_exists(lambda x:x==1, [1,2,3])
     True

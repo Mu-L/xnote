@@ -75,7 +75,7 @@ def join_web_path(web_root: str, webpath: str):
     return os.path.join(web_root, webpath)
 
 
-def get_http_home(host):
+def get_http_home(host: str):
     """
     >>> get_http_home("www.xnote.com")
     'http://www.xnote.com'
@@ -87,12 +87,12 @@ def get_http_home(host):
         return "http://" + host
     return host
 
-def get_http_url(url):
+def get_http_url(url: str):
     if not url.startswith(("http://", "https://")):
         url = "http://" + url
     return url.split("#")[0]
 
-def is_http_url(url):
+def is_http_url(url: str):
     if not isinstance(url, str):
         return False
 
@@ -127,7 +127,7 @@ def get_local_ip_by_socket():
 
 class HttpResource:
 
-    def __init__(self, url):
+    def __init__(self, url: str):
         self.url = get_http_url(url)
         self.protocol = url.split("://")[0]
         self.domain, _ = splithost(url)

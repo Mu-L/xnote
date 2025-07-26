@@ -24,6 +24,8 @@ from .dao import (
 )
 
 from .dao_tag import NoteTagBindDao
+from .constant import DELETED_PREFIX
+from xutils import textutil
 
 def delete_note_physically(creator: str, note_id: int):
     assert creator != None, "creator can not be null"
@@ -50,8 +52,7 @@ def delete_note(id):
     note.is_deleted = 1
 
     # 防止冲突
-    if note.name.startswith("deleted-"):
-        note.name = "deleted-" + note.name
+    note.name = textutil.add_prefix(note.name, DELETED_PREFIX)
     
     put_note_to_db(id, note)
 

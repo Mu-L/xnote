@@ -11,6 +11,7 @@ from xutils.db.dbutil_helper import new_from_dict
 from xutils.base import EnumItem, BaseDataRecord
 from handlers.note.constant import NoteType
 from xnote.plugin import TextLink
+from xutils.functions import del_dict_key, delete_None_values
 
 NOTE_ICON_DICT = {
     "group": "fa-folder",
@@ -159,6 +160,7 @@ class NoteDO(NoteIndexDO):
         self.badge_info = ""
         self.create_date = ""
         self.update_date = ""
+        self.share_time: typing.Optional[str] = None
         self.update(kw)
 
     @classmethod
@@ -175,9 +177,7 @@ class NoteDO(NoteIndexDO):
     
     def before_save(self):
         remove_virtual_fields(self)
-
-def del_dict_key(dict: dict, key):
-    dict.pop(key, None)
+        delete_None_values(self)
 
 def remove_virtual_fields(note):
     del_dict_key(note, "url")

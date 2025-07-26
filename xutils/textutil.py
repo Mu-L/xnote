@@ -226,6 +226,30 @@ def remove_tail(text: str, tail: str):
         return text
     return text[:-len(tail)]
 
+def add_prefix(text: str, prefix: str):
+    """Add prefix to text
+
+        >>> add_prefix('hello', 'world')
+        'worldhello'
+        >>> add_prefix('worldhello', 'world')
+        'worldhello'
+    """
+    if text.startswith(prefix):
+        return text
+    return prefix + text
+
+def add_suffix(text: str, suffix: str):
+    """Add suffix to text
+
+        >>> add_suffix('hello', 'world')
+        'helloworld'
+        >>> add_suffix('helloworld', 'world')
+        'helloworld'
+    """
+    if text.endswith(suffix):
+        return text
+    return text + suffix
+
 def between(self, start, end):
     """Get the text between start end end
         >>> between("start words end", "start", "end")

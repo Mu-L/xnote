@@ -273,7 +273,7 @@ class RemoveAjaxHandler:
         if not xauth.is_admin() and file.creator != creator:
             return webutil.FailedResult(code="fail", message="没有删除权限")
 
-        if file.type == "group":
+        if file.is_group:
             children_count = note_dao.count_by_parent(creator, file.id)
             if children_count > 0:
                 return webutil.FailedResult(code="fail", message="分组不为空")
@@ -287,8 +287,8 @@ class RemoveAjaxHandler:
     def POST(self):
         return self.GET()
     
-    def after_delete(self, note):
-        if note.type == "group":
+    def after_delete(self, note: NoteDO):
+        if note.is_group:
             refresh_category_count(note.creator, note.category)
 
 

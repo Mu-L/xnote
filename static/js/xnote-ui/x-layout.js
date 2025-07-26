@@ -22,7 +22,11 @@ $.fn.showInScroll = function(offsetY) {
     }
 
     var parent = this.parent();
-    var topDiff = this.offset().top - parent.offset().top + offsetY;
+    var offset = this.offset();
+    if (offset === undefined) {
+        return;
+    }
+    var topDiff = offset.top - parent.offset().top + offsetY;
     parent.scrollTop(topDiff);
 };
 

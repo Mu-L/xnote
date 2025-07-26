@@ -56,7 +56,7 @@ class DbScanHandler:
     @xauth.login_required("admin")
     def do_search(self):
         prefix = xutils.get_argument_str("prefix", "")
-        cursor = xutils.get_argument("cursor", "")
+        cursor = xutils.get_argument_str("cursor", "")
         keyword = xutils.get_argument_str("keyword", "")
         reverse = xutils.get_argument_bool("reverse", False)
         q_user_name = xutils.get_argument_str("q_user_name", "")

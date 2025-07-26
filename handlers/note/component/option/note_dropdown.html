@@ -118,7 +118,7 @@ $(function () {
     // 恢复笔记
     $(".recover-option").click(function (e) {
         var noteId = $(e.target).attr("data-id");
-        xnote.api.note.recover(noteId, function() {
+        xnote.note.recover(noteId, function() {
             window.location.reload();
         });
     })

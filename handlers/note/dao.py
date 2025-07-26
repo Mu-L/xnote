@@ -704,7 +704,7 @@ def get_full_by_id(note_id: int) -> typing.Optional[NoteDO]:
     return result
 
 # @xutils.timeit(name="NoteDao.GetById:leveldb", logfile=True)
-def get_by_id(id, include_full=True, creator=None):
+def get_by_id(id, include_full=True, creator=None) -> typing.Optional[NoteDO]:
     if id == "" or id is None:
         return None
     id = str(id)
@@ -1152,8 +1152,9 @@ def get_by_name_or_alias(name="", creator_id=0):
     return note_info
 
 
-def check_by_name(creator, name):
-    note_by_name = get_by_name(creator, name)
+def check_by_name(creator_name: str, name: str):
+    creator_id = xauth.UserDao.get_id_by_name(creator_name)
+    note_by_name = NoteIndexDao.get_by_name(creator_id, name)
     if note_by_name != None:
         raise Exception("笔记【%s】已存在" % name)
 
@@ -1443,8 +1444,8 @@ def list_by_parent(creator="", parent_id=None, offset=0, limit=1000,
     parent_id_int = int(parent_id)
     parent_id = str(parent_id)
 
-    def filter_note_func(value: NoteDO):
-        if skip_group and value.type == "group":
+    def filter_note_func(value: NoteIndexDO):
+        if skip_group and value.is_group:
             return False
 
         if q_tags != None:
