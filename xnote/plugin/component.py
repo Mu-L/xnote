@@ -68,7 +68,7 @@ class ActionButton:
 
 class ConfirmButton(BaseComponent):
     """确认按钮"""
-    def __init__(self, text="", url="", message="", method="GET", reload_url="", css_class=""):
+    def __init__(self, text="", url="", message="确认执行吗?", method="GET", reload_url="", css_class=""):
         self.text = text
         self.url = url
         self.method = method
@@ -83,7 +83,7 @@ class ConfirmButton(BaseComponent):
         url = self.url
         method = self.method
         reload_url = self.reload_url
-        return f"""<button class="btn btn-default {css_class}" onclick="xnote.table.handleConfirmAction(this, event)" 
+        return f"""<button class="btn {css_class}" onclick="xnote.table.handleConfirmAction(this, event)" 
         data-url="{url}" data-msg="{message}" data-method="{method}" data-reload-url="{reload_url}">{text}</button>
         """
 

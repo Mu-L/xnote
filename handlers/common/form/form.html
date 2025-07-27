@@ -17,10 +17,10 @@
             <div class="form-row {{row.css_class}}">
                 <label>{{row.title}}</label>
                 {% if row.type == "input" %}
-                    <input type="text" name="{{row.field}}" placeholder="{{row.placeholder}}" value="{{row.value}}" {{row.get_readonly_attr()}}>
+                    <input type="text" name="{{row.field}}" placeholder="{{row.placeholder}}" value="{{row.value}}" {{row.readonly_attr}}>
                 {% end %}
                 {% if row.type == "textarea" %}
-                    <textarea name="{{row.field}}" placeholder="{{row.placeholder}}">{{row.value}}</textarea>
+                    <textarea name="{{row.field}}" placeholder="{{row.placeholder}}" {{row.readonly_attr}}>{{row.value}}</textarea>
                 {% end %}
                 {% if row.type == "select" %}
                     <select id="{{row.id}}" name="{{row.field}}" value="{{row.value}}">

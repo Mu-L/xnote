@@ -52,7 +52,8 @@ class FormRow:
         self.options.append(option)
         return self
 
-    def get_readonly_attr(self):
+    @property
+    def readonly_attr(self):
         if self.readonly:
             return "readonly"
         else:

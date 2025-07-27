@@ -164,14 +164,12 @@ class DictHandler(BaseTablePlugin):
 
         form = self.create_form()
         form.add_row("dict_id", "dict_id", value=str(dict_item.dict_id), css_class="hide")
-
-        row = form.add_row("词典类型", "dict_type", type=FormRowType.select, value=str(dict_type), readonly=True)
-
-        for item in DictTypeEnum.enums():
-            row.add_option(item.name, item.value)
-        
+        dict_type_name = DictTypeEnum.get_name_by_value(str(dict_type))
+        form.add_row("词典类型", "dict_type", type=FormRowType.input, value=dict_type_name, readonly=True)
         form.add_row("关键字", "key", value=dict_item.key, readonly=True)
         form.add_row("解释", "value", type=FormRowType.textarea, value=dict_item.value)
+        if dict_type == DictTypeEnum.relevant.int_value:
+            form.add_row("说明", type=FormRowType.textarea, value="多个单词使用空格或者换行分隔", readonly=True)
         
         kw = Storage()
         kw.form = form

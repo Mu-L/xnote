@@ -858,3 +858,22 @@ A example image
 
         self.check_OK(f"/note/view/{note_id1}")
         self.check_OK(f"/note/view/{note_id1}?tab=relation")
+
+    def test_latex(self):
+        content = """
+# 公式测试
+
+行内公式 \\( x^3 + x + 1 \\)
+
+\\(
+x^3 + x + 1 
+\\)
+
+\\[
+x^3 + x + 1
+\\]
+"""
+
+        delete_note_for_test(name="latex-test")
+        latex_note_id = create_note_for_test(type="md", name="latex-test", content=content)
+        self.check_OK(f"/note/view/{latex_note_id}")

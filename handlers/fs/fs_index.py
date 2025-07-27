@@ -134,17 +134,7 @@ class IndexHandler(BaseTablePlugin):
     title = "索引管理"
     require_admin = True
     show_aside = True
-
     NAV_HTML = ""
-
-    action_bar_html = """
-    {% init index_size = 0 %}
-    <div class="table-action-row">
-        <button class="btn" onclick="xnote.table.handleConfirmAction(this)"
-            data-url="?action=rebuild" data-msg="确定要重建索引吗?">重建索引</button>
-        <span>索引数量: {{index_size}}</span>
-    </div>
-    """
 
     def get_aside_html(self):
         return sidebar.get_fs_sidebar_html()
@@ -175,7 +165,9 @@ class IndexHandler(BaseTablePlugin):
 
             table.add_row(file_info)
                 
-        table.action_bar_html = xtemplate.render_text(self.action_bar_html, index_size=index_size)
+        table.action_bar.add_confirm_button(text="重建索引", css_class="btn", url="?action=rebuild", message="确认要重建索引吗?")
+        table.action_bar.add_span(f"索引数量: {index_size}")
+
         kw = Storage()
         kw.table = table
         kw.index_size = index_size
