@@ -198,7 +198,7 @@ class AddHandler:
 
     @xauth.login_required("admin")
     def POST(self):
-        name = xutils.get_argument("name")
+        name = xutils.get_argument_str("name")
         return xauth.create_user(name, textutil.random_string(6))
 
 
@@ -241,8 +241,8 @@ class UserInfoHandler(BasePlugin):
         item_list.add_item(ListItem(text="修改密码", css_class="list-item-black", href="/user/change_password", show_chevron_right=True))
         item_list.add_item(ListItem(text="用户日志", css_class="list-item-black", href="/user/op_log", show_chevron_right=True))
 
-        logout = ListItem(text="登出账号", css_class="list-item-black", show_chevron_right=True)
-        logout.action_btn = ConfirmButton("登出", url="/logout?_format=json", message="确认登出吗?")
+        logout = ListItem(text="登出账号", css_class="list-item-black", show_chevron_right=False)
+        logout.action_btn = ConfirmButton("登出", url="/logout?_format=json", message="确认登出吗?", css_class="danger")
         item_list.add_item(logout)
 
         self.writehtml(self.HTML, item_list = item_list)

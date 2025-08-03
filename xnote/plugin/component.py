@@ -59,10 +59,10 @@ class SubmitButton:
         pass
 
 
-class ActionButton:
-    """查询后的操作行为按钮，比如删除、刷新等"""
+class ActionButton(BaseComponent):
+    """查询后的操作行为按钮，不需要确认就能安全执行的, 比如刷新等"""
 
-    def __init__(self, text, action, context=None):
+    def __init__(self, text="", url=""):
         pass
 
 
@@ -108,14 +108,18 @@ class EditFormButton(BaseComponent):
 
 class TextLink(BaseComponent):
     """文本链接"""
-    def __init__(self, text="", href=""):
+    def __init__(self, text="", href="", css_class=""):
         self.text = text
         self.href = href
+        self.css_class = css_class
 
     def render(self):
         text = escape_html(self.text)
         href = self.href
-        return f"""<a href="{href}">{text}</a>"""
+        if self.css_class:
+            return f"""<a href="{href}" class="{self.css_class}">{text}</a>"""
+        else:
+            return f"""<a href="{href}">{text}</a>"""
 
 
 class TextSpan(BaseComponent):
@@ -151,9 +155,7 @@ class TextTag(BaseComponent):
     
     def render(self):
         text = escape_html(self.text)
-        return f"""
-<span class="tag {self.css_class}">{text}</span>
-"""
+        return f"""<span class="tag {self.css_class}">{text}</span>"""
 
 class LinkConfig:
     app_index = TextLink(text="应用", href="/system/index")
