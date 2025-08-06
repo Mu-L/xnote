@@ -27,6 +27,7 @@ class SystemTagEnum(BaseEnum):
     phone = EnumItem("电话", "$phone$")
 
     _enums = [todo, important, file, link, book, people, phone]
+    _note_enums = [todo, important]
 
     @staticmethod
     def is_sys_tag(tag_code=""):
@@ -38,11 +39,11 @@ class SystemTagEnum(BaseEnum):
             if item.value == tag_code:
                 return item.name
         return tag_code
-    
+
     @classmethod
-    def to_tag_list(cls):
+    def get_note_tags(cls):
         result = [] # type: list[TagInfoDO]
-        for item in cls._enums:
+        for item in cls._note_enums:
             result.append(TagInfoDO(tag_code=item.value, tag_name=item.name))
         return result
 

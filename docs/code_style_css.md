@@ -15,3 +15,4 @@
     - 页头: `header`
     - 页脚: `footer`
     - 容器: `container`, `box`
+    - 尺寸: `xs/sm/md/lg/xl` (extra small/small/medium/large/extra large)
