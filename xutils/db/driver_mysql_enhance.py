@@ -13,6 +13,8 @@ import pdb
 from xutils.db import encode
 from xutils.db.driver_mysql import MySQLKV
 
+warnings.warn("EnhancedMySQLKV is deprecated")
+
 class EnhancedMySQLKV(MySQLKV):
 
     def init(self):

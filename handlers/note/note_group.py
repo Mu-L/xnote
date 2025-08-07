@@ -128,7 +128,7 @@ class RecentGroup:
         self.is_deleted = 0
 
 
-def type_node_path(name, url):
+def type_node_path(name:str, url:str):
     parent = PathNode(TYPES_NAME, "/note/types")
     return [parent, GroupLink(T(name), url)]
 
@@ -732,7 +732,7 @@ class RecentHandler:
     def count_note(self, user_name, orderby):
         return dao_log.count_visit_log(user_name)
 
-    def list_notes(self, creator, offset, limit, orderby):
+    def list_notes(self, creator:str, offset, limit, orderby):
         if orderby == "all":
             return dao_log.list_recent_events(creator, offset, limit)
         elif orderby == "view":
@@ -745,7 +745,7 @@ class RecentHandler:
         # 最近更新的
         notes = dao_log.list_recent_edit(creator, offset, limit)
         for note in notes:
-            note.badge_info = dateutil.format_date(note.mtime, "/")
+            note.badge_info = dateutil.format_date(note.mtime)
         return notes
 
     def get_html_title(self, orderby):

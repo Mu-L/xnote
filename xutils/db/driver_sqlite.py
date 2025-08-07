@@ -25,7 +25,7 @@ class FreeLock:
         pass
 
 
-def db_execute(db, sql, *args):
+def db_execute(db: sqlite3.Connection, sql, *args):
     cursorobj = db.cursor()
     try:
         cursorobj.execute(sql, args)
@@ -39,20 +39,11 @@ def db_execute(db, sql, *args):
             kv_result.append(resultMap)
         db.commit()
         return kv_result
-    except Exception:
+    except Exception as e:
         db.rollback()
-        raise
+        raise e
     finally:
         cursorobj.close()
-
-
-class Holder(threading.local):
-    def __init__(self):
-        self.db: sqlite3.Connection = None
-
-    def __del__(self):
-        if self.db != None:
-            self.db.close()
 
 class SqliteKV(interfaces.DBInterface):
 
@@ -61,10 +52,8 @@ class SqliteKV(interfaces.DBInterface):
     sql_logger = interfaces.SqlLoggerInterface()
 
     def __init__(self, db_file, snapshot=None,
-                 block_cache_size=None,
-                 write_buffer_size=None,
                  config_dict={},
-                 debug=True):
+                 debug=True, **kw):
         """通过 sqlite 来实现leveldb的接口代理"""
         self.db_file = db_file
         self.db = web.db.SqliteDB(db = db_file)
@@ -109,7 +98,7 @@ class SqliteKV(interfaces.DBInterface):
         sql = "SELECT value FROM kv_store WHERE `key` = $key;"
         vars = dict(key=key)
         r_iter = self.db.query(sql, vars=vars)
-        result = list(r_iter)
+        result = list(r_iter) # type: ignore
         self.log_sql(sql, vars=vars, prefix="[Get]")
         if len(result) > 0:
             return result[0].value
@@ -129,7 +118,7 @@ class SqliteKV(interfaces.DBInterface):
             result = dict()
             sql = "SELECT `key`, value FROM kv_store WHERE `key` IN $key_list"
             result_iter = self.db.query(sql, vars=vars)
-            for item in result_iter:
+            for item in result_iter: # type: ignore
                 key = item.key
                 value = item.value
                 result[key] = value
@@ -143,7 +132,7 @@ class SqliteKV(interfaces.DBInterface):
     def _exists(self, key, cursor=None):
         sql = "SELECT `key` FROM kv_store WHERE `key` = $key;"
         vars = dict(key=key)
-        result = list(self.db.query(sql, vars=vars))
+        result = list(self.db.query(sql, vars=vars)) # type: ignore
         if self.debug:
             raw_sql = self.db.query(sql, vars=vars, _test=True)
             self.sql_logger.append(f"[_exists] {raw_sql}")
@@ -183,7 +172,7 @@ class SqliteKV(interfaces.DBInterface):
         return self.doDelete(key, sync)
 
     def doDelete(self, key, sync=False, cursor=None):
-        sql = "DELETE FROM kv_store WHERE key = $key;"
+        sql = "DELETE FROM kv_store WHERE `key` = $key;"
         vars = dict(key=key)
         
         if self.debug:
@@ -212,9 +201,9 @@ class SqliteKV(interfaces.DBInterface):
         sql_builder.append("WHERE `key` >= $key_from AND `key` <= $key_to")
 
         if reverse:
-            sql_builder.append("ORDER BY key DESC")
+            sql_builder.append("ORDER BY `key` DESC")
         else:
-            sql_builder.append("ORDER BY key ASC")
+            sql_builder.append("ORDER BY `key` ASC")
 
         sql_builder.append("LIMIT %s" % (limit+1))
         sql_builder.append(";")
@@ -230,7 +219,7 @@ class SqliteKV(interfaces.DBInterface):
 
             vars = dict(key_from=key_from, key_to=key_to)
             result_iter = self.db.query(sql, vars=vars)
-            result = list(result_iter)
+            result = list(result_iter) # type: ignore
 
             if self.debug:
                 raw_sql = self.db.query(sql, vars=vars, _test=True)
@@ -287,7 +276,7 @@ class SqliteKV(interfaces.DBInterface):
             vars["key_to"] = key_to
 
         if reverse:
-            sql_builder.append("ORDER BY key DESC")
+            sql_builder.append("ORDER BY `key` DESC")
 
         sql_builder.append(";")
 
@@ -297,8 +286,7 @@ class SqliteKV(interfaces.DBInterface):
             raw_sql = self.db.query(sql, vars=vars, _test=True)
             self.sql_logger.append(f"[RangeIterWithLock] {raw_sql}")
 
-        # return cur.execute(sql, tuple(params))
-        for item in self.db.query(sql, vars=vars):
+        for item in self.db.query(sql, vars=vars): # type: ignore
             # logging.debug("include_value(%s), item:%s", include_value, item)
             if include_value:
                 if item.value == None:
@@ -339,7 +327,7 @@ class SqliteKV(interfaces.DBInterface):
         vars = dict(key_from=key_from, key_to=key_to)
         try:
             result_iter = self.db.query(sql, vars=vars)
-            for row in result_iter:
+            for row in result_iter: # type: ignore
                 return row.amount
             return 0
         finally:

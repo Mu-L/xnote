@@ -274,3 +274,13 @@ class NoteRelationGroup(BaseDataRecord):
     def __init__(self, **kw):
         self.label = ""
         self.children = [] # type: list[TextLink]
+
+
+class NoteVisitLogDO(BaseDataRecord):
+    def __init__(self, **kw):
+        self.id = 0
+        self.note_id = 0
+        self.user_id = 0
+        self.visit_cnt = 0
+        self.atime = dateutil.format_datetime()
+        self.update(kw)

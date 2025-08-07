@@ -21,7 +21,8 @@ from xnote.core import xtables
 from xutils import dateutil
 from xutils import Storage
 from . import dao as note_dao
-
+from .models import NoteIndexDO, NoteVisitLogDO
+from xutils import BaseDataRecord
 
 NOTE_DAO = xutils.DAO("note")
 MAX_EDIT_LOG = 500
@@ -44,12 +45,12 @@ class UserNoteLogDao:
         return None
     
     @classmethod
-    def update(cls, log):
+    def update(cls, log: NoteVisitLogDO):
         where_dict = dict(id=log.id)
         return cls.db.update(where=where_dict, **log)
     
     @classmethod
-    def insert(cls, log):
+    def insert(cls, log: NoteVisitLogDO):
         log.pop("id")
         new_id = cls.db.insert(**log)
         log.id = new_id
@@ -59,23 +60,14 @@ class UserNoteLogDao:
     def list(cls, user_id=0, offset=0, limit=10, order="atime desc"):
         where_dict = dict(user_id=user_id)
         result = cls.db.select(where=where_dict, offset=offset, limit=limit, order=order)
-        return result
+        return NoteVisitLogDO.from_dict_list(result)
     
     @classmethod
     def count(cls, user_id=0):
         return cls.db.count(where=dict(user_id=user_id))
 
-class NoteVisitLogDO(Storage):
-    def __init__(self, **kw):
-        self.id = 0
-        self.note_id = 0
-        self.user_id = 0
-        self.visit_cnt = 0
-        self.atime = dateutil.format_datetime()
-        self.update(kw)
-
 @xutils.timeit_deco(name = "_update_log", switch_func = is_debug_enabled)
-def _update_log(user_name, note, increment = 1, insert_only = False, user_id=0):
+def _update_log(user_name, note: NoteIndexDO, increment = 1, insert_only = False, user_id=0):
     # 部分历史数据是int类型，所以需要转换一下
     note_id = note.id
     if user_id == 0:
@@ -124,7 +116,7 @@ def list_recent_viewed(creator = None, offset = 0, limit = 10):
         note_id = int(log.note_id)
         note_info = note_dict.get(note_id)
         if note_info != None:
-            note_info.badge_info = dateutil.format_date(log.atime, "/")
+            note_info.badge_info = dateutil.format_date(log.atime)
             result.append(note_info)
     return result
 
@@ -173,7 +165,7 @@ def list_recent_edit(user_name = None, offset = 0, limit = None, skip_deleted = 
     
     assert user_name != None
     creator_id = xauth.UserDao.get_id_by_name(user_name)
-    result = []
+    result = [] # type: list[NoteIndexDO]
     note_list = note_dao.NoteIndexDao.list(creator_id=creator_id, offset=offset, limit=limit, order="mtime desc")
     for note in note_list:
         note.badge_info = dateutil.format_date(note.mtime, "/")
@@ -182,7 +174,7 @@ def list_recent_edit(user_name = None, offset = 0, limit = None, skip_deleted = 
     return result
 
 @xutils.timeit(name = "NoteDao.ListRecentCreated", logfile = True)
-def list_recent_created(user_name = None, offset = 0, limit = 10, skip_archived = False):
+def list_recent_created(user_name:str, offset = 0, limit = 10, skip_archived = False):
     if limit is None:
         limit = xconfig.PAGE_SIZE
 
@@ -191,7 +183,7 @@ def list_recent_created(user_name = None, offset = 0, limit = 10, skip_archived 
     result = []
     note_list = note_dao.NoteIndexDao.list(creator_id=creator_id, offset=offset, limit=limit, order="ctime desc")
     for note in note_list:
-        note.badge_info = dateutil.format_date(note.ctime, "/")
+        note.badge_info = dateutil.format_date(note.ctime)
         result.append(note)
     return result
 
@@ -210,7 +202,7 @@ def add_create_log(user_name, note):
     # 目前通过ctime记录
     pass
 
-def list_recent_events(user_name = None, offset = 0, limit = xconfig.PAGE_SIZE):
+def list_recent_events(user_name:str, offset = 0, limit = xconfig.PAGE_SIZE):
     create_events = list_recent_created(user_name, offset, limit)
     edit_events = list_recent_edit(user_name, offset, limit)
     view_events = list_recent_viewed(user_name, offset, limit)
