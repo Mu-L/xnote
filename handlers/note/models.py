@@ -99,7 +99,7 @@ class NoteIndexDO(BaseDataRecord):
     def get_tags(self):
         return self.tag_str.split()
     
-    def set_tags(self, tags=[]):
+    def set_tags(self, tags: typing.List[str]=[]):
         self.tags = tags
         self.tag_str = " ".join(tags)
 
@@ -136,6 +136,11 @@ class NoteIndexDO(BaseDataRecord):
         """是否是置顶"""
         return self.level > 0
     
+    @property
+    def is_pinned(self):
+        """是否置顶"""
+        return self.level > 0
+    
     def get_url(self):
         return f"{xconfig.WebConfig.server_home}/note/view/{self.id}"
     
@@ -151,7 +156,7 @@ class NoteDO(NoteIndexDO):
         self.data = ""
         self.token = ""
         self.priority = 0 # (-1):归档, 0-正常, 1-置顶
-        self.tags = []
+        self.tags = [] # type: list[str]
         self.orderby = "" # 废弃字段
 
         # 假的属性

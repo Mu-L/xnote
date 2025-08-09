@@ -56,15 +56,23 @@ class _TagBindDaoImpl:
     def update_tag(self, user_id=0, note_id=0, tags=[]):
         self.tag_bind_service.bind_tags(user_id=user_id, target_id=note_id, tags=tags)
     
-    def update_tag_and_note(self, user_id=0, note_id=0, tags=[]):
+    def update_tag_and_note(self, user_id=0, note_id=0, tags: typing.Sequence[str]=[]):
         tags = self.get_uniq_tags(tags)
         note_index = note_dao.NoteIndexDao.get_by_id(note_id)
         if note_index == None:
             raise Exception("note is empty")
+        old_tags = self.get_by_note_id(user_id=user_id, note_id=note_id)
+        old_tag_codes = [x.tag_code for x in old_tags]
+
         self.tag_bind_service.bind_tags(user_id=user_id, target_id=int(note_id), tags=tags)
         note_index.set_tags(tags)
         note_dao.update_index(note_index)
-        for tag_code in tags:
+
+        all_tags = set()
+        all_tags.update(tags)
+        all_tags.update(old_tag_codes)
+
+        for tag_code in all_tags:
             count = self.tag_bind_service.count_user_tag(user_id=user_id, tag_code=tag_code)
             NoteTagInfoDao.update_tag_amount(user_id=user_id, tag_code=tag_code, amount=count)
 

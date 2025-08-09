@@ -132,7 +132,7 @@ class HttpResource:
         self.protocol = url.split("://")[0]
         self.domain, _ = splithost(url)
 
-    def get_res_url(self, url):
+    def get_res_url(self, url: str):
         """
             >>> HttpResource("http://www.a.com").get_res_url("https://b.com/b.png")
             'https://b.com/b.png'
@@ -392,7 +392,8 @@ def get_file_ext_by_content_type(content_type):
 
 class StructURL:
     def __init__(self):
-        self.params = {}
+        self.path = ""
+        self.params = {} # type: dict[str, list[str]]
 
     def get_single_param(self, name=""):
         value = self.params.get(name)
@@ -406,14 +407,30 @@ class StructURL:
             return []
         assert isinstance(value, list)
         return value
+    
+    def to_url(self):
+        if len(self.params) == 0:
+            return self.path
+        query = ""
+        for name in self.params:
+            value_list = self.params[name]
+            for value in value_list:
+                if query != "":
+                    query += "&"
+                query += f"{name}={value}"
+        return self.path + "?" + query
 
 def parse_url(url=""):
     qs_part = url
+    path = ""
     if "?" in url:
-        qs_part = url.split("?")[1]
+        parts = url.split("?")
+        path = parts[0]
+        qs_part = parts[1]
 
     params_dict = parse_qs(qs_part)
     result = StructURL()
+    result.path = path
     result.params = params_dict
     return result
 

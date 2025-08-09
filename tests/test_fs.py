@@ -35,6 +35,15 @@ class TestMain(BaseTestCase):
         self.check_OK("/fs_hex")
         self.check_OK("/fs_hex?path=./README.md")
 
+    def test_code_edit(self):
+        self.check_OK("/code/edit?path=./README.md")
+    
+    def test_code_edit_part(self):
+        old_config = xconfig.MAX_TEXT_SIZE
+        xconfig.MAX_TEXT_SIZE = 100
+        self.check_OK("/code/edit?path=./README.md")
+        xconfig.MAX_TEXT_SIZE = old_config
+
     def test_fs_tools(self):
         self.check_OK("/fs_tools")
         self.check_OK("/fs_bookmark")

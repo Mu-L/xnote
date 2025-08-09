@@ -65,6 +65,7 @@
 {% init pathlist = [] %}
 {% init show_preview = False %}
 {% init embed = False %}
+{% init file_too_large = False %}
 
 <div class="card editor-title">
     <h3 class="card-title btn-line-height">
@@ -92,6 +93,15 @@
         <pre class="col-md-12 warn">
             {{warn}}
         </pre>
+    {% end %}
+
+    {% if file_too_large %}
+    <div class="row warn">
+        <span>文件过大，只显示部分内容</span>
+        {% for link in part_links %}
+            {% render link %}
+        {% end %}
+    </div>
     {% end %}
 
     <form method="POST" action="/code/update">

@@ -865,10 +865,6 @@ li.menu-item:hover {
     border-bottom: 1px solid #eee;
 }
 
-select.no-border {
-    border: none;
-}
-
 .split-title {
     width: 100%;
     float: left;

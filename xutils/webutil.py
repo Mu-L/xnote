@@ -12,6 +12,7 @@ from http.server import BaseHTTPRequestHandler
 from io import BytesIO
 from web import utils
 from xutils.config import UtilityConfig
+from .netutil import parse_url
 
 #################################################################
 ##   Web.py Utilities web.py工具类的封装
@@ -170,12 +171,21 @@ def get_client_ip():
     return get_real_ip()
 
 
-def get_request_url(host=False):
-    # TODO 待测试
-    return web.ctx.path + "?" + web.ctx.query
+def get_request_url(host=False) -> str:
+    """返回请求的完整url, 比如 /note/view?id=1234
+    web.ctx.query部分包含?
+    """
+    return web.ctx.path + web.ctx.query
 
-def get_request_path():
+def get_request_path() -> str:
+    """返回请求的path部分, 比如 /note/view 不包含参数部分"""
     return web.ctx.path
+
+def replace_url_param(url: str, param: str, value: str) -> str:
+    result = parse_url(url)
+    result.params[param] = [value]
+    return result.to_url()
+
 
 class LogMiddleware:
     """WSGI middleware for logging the status.

@@ -166,8 +166,8 @@ class TagBindServiceImpl:
             where_sql += " AND target_id=$target_id"
         return self.db.count(where_sql, vars=vars)
     
-    def normalize_tags(self, tags=[]):
-        result = set()
+    def normalize_tags(self, tags:typing.Sequence[str]=[]):
+        result = set() # type: set[str]
         for tag in tags:
             if len(tag) > self.max_tag_length:
                 continue
@@ -187,9 +187,9 @@ class TagBindServiceImpl:
 
         self.db.update(where=where_dict, second_type=second_type, sort_value=sort_value)
 
-    def bind_tags(self, user_id=0, target_id=0, tags=[], update_only_changed = False, second_type=0, sort_value=""):
+    def bind_tags(self, user_id=0, target_id=0, tags:typing.Sequence[str]=[], update_only_changed = False, second_type=0, sort_value=""):
         assert target_id > 0
-        tags = self.normalize_tags(tags)
+        new_tag_set = self.normalize_tags(tags)
         tag_type = self.default_tag_type
         
         if update_only_changed:
@@ -198,7 +198,7 @@ class TagBindServiceImpl:
             for tag_info in old_tags:
                 old_tag_set.add(tag_info.tag_code)
                 
-            if old_tag_set == tags:
+            if old_tag_set == new_tag_set:
                 return
         
         # 删除的条件不加 second_type
@@ -206,7 +206,7 @@ class TagBindServiceImpl:
 
         with self.db.transaction():
             self.db.delete(where=where_dict)
-            for tag_code in tags:
+            for tag_code in new_tag_set:
                 new_bind = TagBind()
                 new_bind.ctime = dateutil.format_datetime()
                 new_bind.tag_type = tag_type
