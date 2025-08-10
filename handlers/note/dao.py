@@ -704,14 +704,13 @@ def get_full_by_id(note_id: int) -> typing.Optional[NoteDO]:
     return result
 
 # @xutils.timeit(name="NoteDao.GetById:leveldb", logfile=True)
-def get_by_id(id, include_full=True, creator=None) -> typing.Optional[NoteDO]:
-    if id == "" or id is None:
-        return None
-    id = str(id)
-    if id == "0":
-        return get_root(creator)
-
+def get_by_id(id: typing.Union[str, int], include_full=True, creator=None) -> typing.Optional[NoteDO]:
+    assert id != None
+    assert id != ""
+    
     id_int = int(id)
+    if id_int == 0:
+        return get_root(creator)
     note_index = NoteIndexDao.get_by_id(id_int)
 
     if not include_full:

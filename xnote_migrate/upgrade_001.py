@@ -11,8 +11,6 @@ from .base import log_info
 from handlers.note import dao_log
 from . import base
 
-dbutil.register_table("note_migrate_log", "笔记迁移日志")
-
 def do_upgrade():
     """升级入口"""
     old_key = "note_visit_log"

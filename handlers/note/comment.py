@@ -4,6 +4,7 @@
 # @modified 2022/04/16 22:36:45
 import math
 import xutils
+import typing
 
 from xnote.core import xconfig
 from xnote.core import xauth
@@ -19,7 +20,7 @@ from . import dao_comment
 from xutils import webutil
 from xutils import dateutil
 from xnote.core.models import SearchContext, SearchResult
-from .dao_comment import search_comment
+from .dao_comment import search_comment, CommentDO
 from xutils.text_parser import TokenType
 from .models import NoteTypeInfo
 from handlers.note.note_service import NoteService
@@ -58,14 +59,14 @@ def mark_text(content):
     text_tokens = parser.get_text_tokens(tokens)
     return "".join(text_tokens)
 
-def process_comments(comments, show_note = False):
+def process_comments(comments: typing.List[CommentDO], show_note = False):
     for comment in comments:
         if comment.content is None:
             continue
         comment.html = mark_text(comment.content)
 
         if show_note:
-            note = note_dao.get_by_id(comment.note_id, False)
+            note = note_dao.get_by_id(comment.note_id, include_full=False)
             if note != None:
                 comment.note_name = note.name
                 comment.note_url  = note.url

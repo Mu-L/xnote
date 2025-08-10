@@ -286,14 +286,14 @@ def parse_date_to_object(date_str):
     return date_object
 
 
-def parse_datetime(date = "", fmt = DEFAULT_FORMAT):
+def parse_datetime(date = "", fmt = DEFAULT_FORMAT) -> float:
     """解析时间字符串为unix时间戳
     :param {string} date: 时间
     :param {string} fmt: 时间的格式
-    :return {int}: 时间戳，单位是秒
+    :return {float}: 时间戳，单位是秒
     """
     if date == "":
-        return int(time.time())
+        return time.time()
     if isinstance(date, datetime.datetime):
         return date.timestamp()
     st = time.strptime(date, fmt)

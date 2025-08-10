@@ -241,9 +241,41 @@ class CalendarExampleHandler(BasePlugin):
     HTML = """
 {% include test/component/example_nav_tab.html %}
 
+<h3 class="card-title">贡献日历</h3>
 <div class="card">
     {% raw calendar.render() %}
 </div>
+
+<h3 class="card-title">日期选择器</h3>
+<div class="card">
+    <div class="row">
+        <div class="input-group">
+            <label>年份选择器</label>
+            <input type="text" class="date" data-date-type="year">
+        </div>
+        <div class="input-group">
+            <label>月份选择器</label>
+            <input type="text" class="date" data-date-type="month">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="input-group">
+            <label>日期选择器</label>
+            <input type="text" class="date" data-date-type="date">
+        </div>
+        <div class="input-group">
+            <label>时间选择器</label>
+            <input type="text" class="date" data-date-type="time">
+        </div>
+        <div class="input-group">
+            <label>日期时间选择器</label>
+            <input type="text" class="date" data-date-type="datetime">
+        </div>
+    </div>
+</div>
+
+{% include common/script/load_laydate.html %}
 """
 
     def handle(self, input=""):

@@ -14,6 +14,8 @@
 </div>
 
 <button class="btn btn-default" onclick="openDialog1()">打开对话框</button>
+<button class="btn link-style" onclick="xnote.showCode(this);" data-code-id="html1">展示代码</button>
+
 <script>
     function openDialog1() {
         var html = $("#dialog1").html();
@@ -29,6 +31,9 @@
 <button class="btn btn-default" id="toastBtn">toast</button>
 <button class="btn btn-default" id="promptBtn">prompt</button>
 <button class="btn btn-default" id="promptTextareaBtn">promptTextareaBtn</button>
+
+<button class="btn link-style" onclick="xnote.showCode(this);" data-code-id="html2">展示代码</button>
+
 
 <script>
     $("#alertBtn").click(function () {
@@ -64,6 +69,8 @@
 </div>
 
 <button class="btn btn-default" onclick="openDialog3()">打开对话框</button>
+<button class="btn link-style" onclick="xnote.showCode(this);" data-code-id="html3">展示代码</button>
+
 <script>
 function openDialog3 () {
     var html = $("#dialog3").html();
@@ -79,21 +86,29 @@ function dialog3Confirm(target) {
 
 <div class="card">
 	<p>对话框自定义HTML</p>
-	<pre class="marked-code">{{html1}}</pre>
 	{% raw html1 %}
+	<pre class="marked-code hide" id="html1">{{html1}}</pre>
 </div>
 
 <div class="card">
 	<p>对话框自定义HTML</p>
-	<pre class="marked-code">{{html3}}</pre>
 	{% raw html3 %}
+	<pre class="marked-code hide" id="html3">{{html3}}</pre>
 </div>
 
 <div class="card">
 	<p>对话框自定义HTML</p>
-	<pre class="marked-code">{{html2}}</pre>
 	{% raw html2 %}
+	<pre class="marked-code hide" id="html2">{{html2}}</pre>
 </div>
+
+<script>
+xnote.showCode = function(target) {
+    var codeId = $(target).attr("data-code-id");
+    var code = $("#" + codeId).text();
+    xnote.openTextDialog("代码", code);
+};
+</script>
 
 
 {% end %}

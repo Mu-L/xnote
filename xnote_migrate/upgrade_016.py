@@ -31,6 +31,7 @@ class CommentDO(Storage):
 
 class CommentIndexDO(Storage):
     def __init__(self):
+        self.id = 0
         self.ctime = dateutil.format_datetime()
         self.mtime = dateutil.format_datetime()
         self.type = ""

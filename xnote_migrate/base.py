@@ -88,7 +88,7 @@ def migrate_sqlite_table(new_table: xtables.TableProxy, old_dbname="", check_exi
     total = old_table.count()
     count = 0
 
-    def check_exist_func_default(record):
+    def check_exist_func_default(record: dict):
         id = record.get("id")
         return new_table.select_first(where=dict(id=id))
     
