@@ -16,8 +16,8 @@ from xnote.plugin.calendar import ContributionCalendar
 from xnote.plugin.itemlist import ItemList, ListItem, ConfirmButton, TextTag
 from xutils import textutil
 from xutils import webutil
-from xutils.number_utils import Int32Counter
-
+from xutils.number_utils import IntCounter
+from handlers.config import LinkConfig
 
 def get_example_tab():
     tab = TabBox(tab_key="name", title="案例:", css_class="btn-style")
@@ -34,12 +34,14 @@ def get_example_tab():
     return tab
 
 class TableExampleHandler(BaseTablePlugin):
+
+    parent_link = LinkConfig.develop_index
     
     title = "表格测试"
 
     show_aside = False
 
-    heading_count = Int32Counter()
+    heading_count = IntCounter()
 
     PAGE_HTML = """
 {% include test/component/example_nav_tab.html %}
@@ -237,6 +239,7 @@ class ExampleHandler:
 class CalendarExampleHandler(BasePlugin):
     title = "日历组件"
     rows = 0
+    parent_link = LinkConfig.develop_index
 
     HTML = """
 {% include test/component/example_nav_tab.html %}
@@ -294,6 +297,7 @@ class CalendarExampleHandler(BasePlugin):
         self.writehtml(self.HTML, **kw)
 
 class ListExampleHandler(BasePlugin):
+    parent_link = LinkConfig.develop_index
     title = "ItemList示例"
     rows = 0
     body_html = """

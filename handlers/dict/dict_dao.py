@@ -8,6 +8,8 @@
 @FilePath     : /xnote/handlers/dict/dict_dao.py
 @Description  : 描述
 """
+import typing
+
 from xnote.core import xtables
 from xnote.core import xconfig
 from xutils import Storage
@@ -31,7 +33,7 @@ def search_dict(key, offset = 0, limit = None):
     items = list(map(convert_dict_func, items))
     return items, count
 
-def get_relevant_words(word: str):
+def get_relevant_words(word: str) -> typing.List[str]:
     result = DictRelevantDao.find_one(key = word)
     if result != None:
         if "," in result.value:

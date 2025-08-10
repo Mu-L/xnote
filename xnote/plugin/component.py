@@ -158,4 +158,5 @@ class TextTag(BaseComponent):
         return f"""<span class="tag {self.css_class}">{text}</span>"""
 
 class LinkConfig:
+    """废弃了, 请到 handlers/config 模块进行配置"""
     app_index = TextLink(text="应用", href="/system/index")

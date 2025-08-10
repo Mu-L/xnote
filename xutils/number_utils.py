@@ -22,7 +22,7 @@ def create_random_int64():
     id_value = uuid.uuid4().int
     return id_value & mask
 
-class Int32Counter:
+class IntCounter:
     MAX_VALUE = 2**31 - 1
 
     def __init__(self, value=0):

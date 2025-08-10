@@ -291,7 +291,7 @@ class WebPageInfo:
         self.page = page
         self.total = total
         self.offset = get_page_offset(page=page, page_size=page_size)
-        self.page_max = get_page_max_by_total(total=total, page_size=page_size)
+        self.page_max = get_page_max(total=total, page_size=page_size)
 
 def get_page_offset(page=1, page_size=20):
     """计算分页的开始偏移量"""
@@ -299,7 +299,7 @@ def get_page_offset(page=1, page_size=20):
         return 0
     return (page-1) * page_size
 
-def get_page_max_by_total(total=0, page_size=20):
+def get_page_max(total=0, page_size=20):
     """计算最大分页"""
     if page_size <= 0:
         return 1

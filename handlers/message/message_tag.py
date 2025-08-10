@@ -275,7 +275,7 @@ class ListAjaxHandler:
         kw = Storage(
             page=page,
             page_url=page_url,
-            page_max=webutil.get_page_max_by_total(total, page_size),
+            page_max=webutil.get_page_max(total, page_size),
             item_list=tag_list
         )
 
