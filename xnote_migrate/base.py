@@ -77,6 +77,7 @@ def add_failed_log(table_name="", record=None, reason=""):
 
 
 def migrate_sqlite_table(new_table: xtables.TableProxy, old_dbname="", check_exist_func=None):
+    """把sqlite的表从旧的数据库迁移到新的数据库"""
     dbpath = xconfig.FileConfig.get_db_path(old_dbname)
     if not os.path.exists(dbpath):
         return

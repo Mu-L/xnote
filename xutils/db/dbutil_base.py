@@ -272,7 +272,7 @@ def check_table_name(table_name):
     TableInfo.check_table_name(table_name)
 
 
-def get_table_info(table_name):
+def get_table_info(table_name: str):
     return TableInfo.get_by_name(table_name)
 
 
@@ -552,7 +552,7 @@ def db_get(key: str, default_value=None):
     except KeyError:
         return default_value
     
-def db_get_object(key, default_value=None):
+def db_get_object(key: str, default_value=None):
     value = db_get(key)
     if value is None:
         return value
@@ -560,7 +560,7 @@ def db_get_object(key, default_value=None):
     return value
 
     
-def db_get_str(key, default_value=None, encoding="utf-8"):
+def db_get_str(key: str, default_value=None, encoding="utf-8"):
     check_leveldb()
     try:
         if key == "" or key == None:
@@ -570,8 +570,8 @@ def db_get_str(key, default_value=None, encoding="utf-8"):
             # print("key=%r", key)
             raise TypeError("expect str but see %r" % type(key))
 
-        key = key.encode(encoding)
-        value = _leveldb.Get(key)
+        key_bytes = key.encode(encoding)
+        value = _leveldb.Get(key_bytes)
         if value != None:
             return value.decode(encoding)
         return None
@@ -610,22 +610,22 @@ def db_put(key: str, obj_value, sync=False, check_table=True):
     value = convert_object_to_json(obj_value)
     _leveldb.Put(bkey, value.encode("utf-8"), sync=sync)
 
-def put_bytes(key, value, sync=False):
+def put_bytes(key: bytes, value: bytes, sync=False):
     check_before_write(key.decode("utf-8"))
     _leveldb.Put(key, value, sync=sync)
 
 
-def db_delete(key, sync=False):
+def db_delete(key: str, sync=False):
     check_leveldb()
     check_write_state()
 
     # 删除日志
     logging.info("Delete key: %s", key)
 
-    key = key.encode("utf-8")
-    _leveldb.Delete(key, sync=sync)
+    key_bytes = key.encode("utf-8")
+    _leveldb.Delete(key_bytes, sync=sync)
 
-def db_batch_delete(keys=[]):
+def db_batch_delete(keys: typing.Sequence[str]=[]):
     check_leveldb()
     
     key_bytes_list = []
@@ -640,7 +640,7 @@ def create_write_batch(db_instance=None):
 
 def scan(key_from=None,
          key_to=None,
-         func=None, # type: typing.Callable[[str, object], bool]|None
+         func=None, # type: typing.Callable[[str, typing.Any], bool]|None
          reverse=False,
          parse_json=True):
     """扫描数据库

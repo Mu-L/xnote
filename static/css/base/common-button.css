@@ -170,7 +170,8 @@
     height: 30px;
 }
 
-.btn.circle {
+/* 胶囊样式 */
+.btn.pill {
     border-radius: 14px;
 }
 

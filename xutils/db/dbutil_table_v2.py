@@ -78,7 +78,7 @@ class KvTableV2:
         clean_value_before_update(obj_copy)
         return obj_copy
 
-    def _check_before_delete(self, key):
+    def _check_before_delete(self, key: str):
         if not key.startswith(self.prefix):
             raise Exception("invalid key:%s" % key)
 
@@ -273,12 +273,12 @@ class KvTableV2:
         db_batch_delete(keys)
         self.index_db.delete(where="id in $ids", vars=dict(ids=ids))
 
-    def delete_by_id(self, id):
+    def delete_by_id(self, id: typing.Union[int, str]):
         id = str(id)
         key = self._build_key(id)
         self.delete_by_key(key)
 
-    def delete_by_key(self, key):
+    def delete_by_key(self, key: str):
         """通过key删除记录: 这里先删除记录，然后删除索引，如果删除记录成功，删除索引失败，还可以在列表发起重试"""
         validate_str(key, "delete_by_key: invalid key")
         self._check_before_delete(key)

@@ -51,7 +51,7 @@ class LdbTable:
         比较麻烦，要重新构建主键
     """
 
-    def __init__(self, table_name, user_name=None):
+    def __init__(self, table_name:str, user_name=None):
         # 参数检查
         check_table_name(table_name)
         table_info = get_table_info(table_name)
@@ -127,7 +127,7 @@ class LdbTable:
         assert len(parts) == 3, parts
         return parts[1]
 
-    def _format_value(self, key, value):
+    def _format_value(self, key:str, value):
         if not isinstance(value, dict):
             value = Storage(_raw=value)
 
@@ -148,7 +148,7 @@ class LdbTable:
     def _create_new_id(self, id_type="uuid", id_value=None):
         return self.id_gen.create_new_id(id_type, id_value)
 
-    def _check_before_delete(self, key):
+    def _check_before_delete(self, key: str):
         if not key.startswith(self.prefix):
             raise Exception("invalid key:%s" % key)
 

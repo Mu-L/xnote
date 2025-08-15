@@ -114,7 +114,7 @@ def to_py_datetime(datetime_info: "str|datetime.date"):
 def is_str(s):
     return isinstance(s, str)
 
-def before(days=None, month=None, format=False):
+def before(days:typing.Optional[int]=None, month:typing.Optional[int]=None, format=False):
     if days is not None:
         fasttime = time.time() - days * SECONDS_PER_DAY
         if format:
@@ -122,7 +122,7 @@ def before(days=None, month=None, format=False):
         return fasttime
     return None
 
-def days_before(days, format=False):
+def days_before(days:int, format=False):
     """获取N天前的日期"""
     seconds = time.time()
     seconds -= days * 3600 * 24
@@ -131,7 +131,8 @@ def days_before(days, format=False):
     return time.localtime(seconds)
 
 
-def format_datetime(value=None, format='%Y-%m-%d %H:%M:%S'):
+def format_datetime(value: typing.Union[None, datetime.datetime, float] = None, 
+                    format='%Y-%m-%d %H:%M:%S'):
     """格式化日期时间
     >>> format_datetime(0)
     '1970-01-01 08:00:00'
@@ -144,10 +145,9 @@ def format_datetime(value=None, format='%Y-%m-%d %H:%M:%S'):
         st = time.localtime(value)
         return time.strftime(format, st)
 
-def format_time(seconds = None):
-    return format_datetime(seconds)
+format_time = format_datetime
 
-def format_time_only(seconds=None):
+def format_time_only(seconds: typing.Optional[float]=None):
     """只格式化时间 TODO 时区问题
     >>> format_time_only(0)
     '08:00:00'
@@ -158,7 +158,7 @@ def format_time_only(seconds=None):
         st = time.localtime(seconds)
         return time.strftime('%H:%M:%S', st)
 
-def format_weekday(date_str, fmt = "") -> str:
+def format_weekday(date_str:str, fmt = "") -> str:
     if fmt == "":
         fmt = "%Y-%m-%d"
     
@@ -167,8 +167,9 @@ def format_weekday(date_str, fmt = "") -> str:
     return WDAY_DICT.get(wday) or ""
 
 format_wday = format_weekday
+convert_date_to_wday = format_weekday
 
-def datetime_to_weekday(datetime_obj):
+def datetime_to_weekday(datetime_obj: typing.Union[None, datetime.datetime, str]):
     """把datetime转换成星期"""
     if datetime_obj is None:
         return ""
@@ -212,7 +213,7 @@ def format_date(value: typing.Union[None, datetime.datetime, str, float]=None, f
     raise Exception(f"invalid type: {type(value)}")
         
 
-def format_mmdd(seconds=None):
+def format_mmdd(seconds:typing.Union[str, float, None]=None):
     """格式化月/日
     >>> format_mmdd(0)
     '01/01'
@@ -229,17 +230,17 @@ def format_mmdd(seconds=None):
     else:
         return format_date(seconds, "%m/%d")
 
-def format_millis(mills):
+def format_millis(mills: typing.Union[int, float]):
     return format_time(mills / 1000)
 
-def parse_date_to_timestamp(date_str):
+def parse_date_to_timestamp(date_str: str):
     st = time.strptime(date_str, DATE_FORMAT)
     return time.mktime(st)
 
 def parse_date_to_struct(date_str=""):
     return time.strptime(date_str, DATE_FORMAT)
 
-def parse_date_to_object(date_str):
+def parse_date_to_object(date_str: str):
     """解析日期结构
     @param {string} date_str 日期的格式
 
@@ -286,7 +287,7 @@ def parse_date_to_object(date_str):
     return date_object
 
 
-def parse_datetime(date = "", fmt = DEFAULT_FORMAT) -> float:
+def parse_datetime(date: typing.Union[str, datetime.datetime] = "", fmt = DEFAULT_FORMAT) -> float:
     """解析时间字符串为unix时间戳
     :param {string} date: 时间
     :param {string} fmt: 时间的格式
@@ -324,15 +325,12 @@ def current_wday() -> str:
     wday = str(tm.tm_wday + 1)
     return WDAY_DICT.get(wday) or ""
 
-def convert_date_to_wday(date_str):
-    return format_wday(date_str)
-
 def date_str_add(date_str="1970-01-01", years=0, months=0, days=0):
     tm = parse_date_to_struct(date_str)
     year, month, day = date_add(tm, years=years, months=months, days=days)
     return datetime.datetime(year, month, day).strftime(DATE_FORMAT)
 
-def date_add(tm, years = 0, months = 0, days = 0):
+def date_add(tm: typing.Optional[time.struct_time], years = 0, months = 0, days = 0):
     """date计算"""
     if tm is None:
         tm = time.localtime()
@@ -371,7 +369,7 @@ def get_last_day_of_year(date: datetime.date):
     """获取一年的最后一天"""
     return datetime.date(date.year, 12, 31)
 
-def is_leap_year(year):
+def is_leap_year(year: int):
     """判断是否是闰年"""
     return ((year % 4 == 0) and (year % 100 != 0)) or (year % 400 == 0)
 
@@ -396,7 +394,9 @@ def get_days_of_month(year=2020, month=1):
         d = days[month-1]
     return d
 
-def match_time(year = None, month = None, day = None, wday = None, tm = None):
+def match_time(year: typing.Optional[int] = None, month: typing.Optional[int] = None, 
+               day: typing.Optional[int] = None, wday: typing.Optional[int] = None, 
+               tm: typing.Optional[time.struct_time] = None):
     if tm is None:
         tm = time.localtime()
     if year is not None and year != tm.tm_year:
@@ -412,7 +412,7 @@ def match_time(year = None, month = None, day = None, wday = None, tm = None):
 def get_today():
     return format_date()
 
-def is_empty_datetime(value):
+def is_empty_datetime(value: typing.Union[str, datetime.datetime]):
     if value == DEFAULT_DATETIME or value == "":
         return True
     if isinstance(value, datetime.datetime):

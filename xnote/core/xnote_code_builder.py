@@ -7,6 +7,8 @@
 import os
 import shutil
 import threading
+import typing
+
 from . import xconfig
 
 try:
@@ -43,11 +45,11 @@ class FileBuilder:
     def __enter__(self):
         return self
     
-    def append_file_to(self, fpath, target_fp):
+    def append_file_to(self, fpath, target_fp: typing.BinaryIO):
         with open(fpath, "rb") as read_fp:
             for line in read_fp.readlines():
                 line = line.strip()
-                if line == "":
+                if len(line) == 0:
                     continue
                 if line.startswith(b"//"):
                     # 快速判断,不准确

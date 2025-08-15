@@ -273,7 +273,7 @@ class SQLDBInterface:
     
     def select_first(self, vars=None, what='*', where=None, order=None, group=None,
                limit=None, offset=None, _test=False):
-        return None
+        pass
     
     def update(self, where, vars=None, _test=False, **values):
         pass

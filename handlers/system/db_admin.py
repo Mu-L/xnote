@@ -3,13 +3,13 @@
 # @since 2021/02/12 23:04:00
 # @modified 2022/03/19 18:54:15
 import xutils
-from xutils import dbutil
-from xutils import Storage
-from xutils import textutil, webutil
 import math
 import web.db
 import typing
 
+from xutils import dbutil
+from xutils import Storage
+from xutils import textutil, webutil
 from xnote.core import xauth, xtables, xtemplate, xconfig
 from xutils.sqldb import TableProxy, TempTableProxy
 from xnote.plugin import DataTable
@@ -49,9 +49,9 @@ class DbScanHandler:
 
     @xauth.login_required("admin")
     def do_delete(self):
-        key = xutils.get_argument("key", "")
+        key = xutils.get_argument_str("key", "")
         dbutil.delete(key)
-        return dict(code="success")
+        return webutil.SuccessResult()
 
     @xauth.login_required("admin")
     def do_search(self):
@@ -129,11 +129,11 @@ class DbScanHandler:
 
     @xauth.login_required("admin")
     def GET(self):
-        action = xutils.get_argument("action", "")
-        db_key = xutils.get_argument("db_key", "")
+        action = xutils.get_argument_str("action", "")
+        db_key = xutils.get_argument_str("db_key", "")
         q_user_name = xutils.get_argument_str("q_user_name", "")
         prefix = xutils.get_argument_str("prefix", "")
-        reverse = xutils.get_argument("reverse", "")
+        reverse = xutils.get_argument_str("reverse", "")
         key_from = xutils.get_argument_str("key_from", "")
         p = xutils.get_argument_str("p")
 
@@ -157,7 +157,7 @@ class DbScanHandler:
         if q_user_name != "":
             real_prefix = prefix + ":" + q_user_name
 
-        def func(key, value):
+        def func(key: str, value: str):
             # print("db_scan:", key, value)
             self.scan_count += 1
             if self.scan_count > max_scan:
@@ -214,7 +214,7 @@ class DbScanHandler:
         else:
             return not table_info.is_deleted
 
-    def handle_admin_stat_list(self, kw):
+    def handle_admin_stat_list(self, kw: Storage):
         p = xutils.get_argument_str("p", "")
         show_delete = xutils.get_argument_bool("show_delete", False)
 
@@ -324,8 +324,8 @@ class SqlDBDetailHandler:
         db = xtables.MySqliteDB(db=dbpath)
 
         offset = webutil.get_page_offset(page=page, page_size=page_size)
-        result.rows = list(db.select(name, offset=offset, limit=page_size))
-        result.count = db.select(name, what="count(1) AS amount").first().amount
+        result.rows = list(db.select(name, offset=offset, limit=page_size)) # type: ignore
+        result.count = db.select(name, what="count(1) AS amount").first().amount # type: ignore
         return result
     
     def get_db_rows(self, name="", page=1, page_size=20, dbpath=""):
@@ -479,7 +479,7 @@ class DatabaseDriverInfoHandler(BaseTablePlugin):
         # TODO 可以一次性取出所有的变量
         if not hasattr(self, "mysql_vars"):
             self.mysql_vars = {}
-            for item in db.query("show variables"):
+            for item in db.query("show variables"): # type: ignore
                 key = item.get("Variable_name")
                 value = item.get("Value")
                 self.mysql_vars[key] = value
@@ -653,7 +653,7 @@ class SqliteStructHelper(StructHelper):
     
     def get_create_sql(self):
         vars = dict(type="table", tbl_name=self.table_name)
-        row = self.db.query("select name, sql from sqlite_master where type=$type AND tbl_name=$tbl_name", vars=vars).first()
+        row = self.db.query("select name, sql from sqlite_master where type=$type AND tbl_name=$tbl_name", vars=vars).first() # type: ignore
         assert row != None
         return row["sql"]
 

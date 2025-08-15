@@ -8,7 +8,7 @@ def do_upgrade():
 
 def migrate_user_20230616():
     new_table = xtables.get_user_table()
-    def check_user_exists(record):
+    def check_user_exists(record: dict):
         id = record.get("id")
         found = new_table.select_first(where=dict(id=id))
         if found != None:

@@ -8,6 +8,7 @@
 @FilePath     : /xnote/xutils/db/dbutil_id_gen.py
 @Description  : id生成
 """
+import typing
 import time
 import struct
 import xutils
@@ -37,13 +38,13 @@ class IdGenerator:
             return 0
         return int(value)
 
-    def create_new_id(self, id_type="uuid", id_value=None):
+    def create_new_id(self, id_type="uuid", id_value: typing.Union[str, float, None] = None):
         if id_type == "uuid":
             base.validate_none(id_value, "invalid id_value")
             return xutils.create_uuid()
 
         if id_type == "timeseq":
-            base.validate_none(id_value, "invalid id_value")
+            assert isinstance(id_value, (float, type(None)))
             return TimeSeqId.create(id_value)
 
         if id_type == "auto_increment":
@@ -51,10 +52,11 @@ class IdGenerator:
             return self.create_increment_id()
 
         if id_type == "value":
-            assert id_value != None
+            if not isinstance(id_value, str):
+                raise Exception(f"expect str value but see {type(id_value)}")
             return id_value
 
-        raise Exception("unknown id_type:%s" % id_type)
+        raise Exception(f"unknown id_type:{id_type}")
 
 
 
@@ -66,7 +68,7 @@ class TimeSeqId:
     max_retry = 100
 
     @classmethod
-    def create(cls, value):
+    def create(cls, value: typing.Optional[float]):
         """生成一个时间序列, python目前支持的最大时间是 9999 年
         @param {float|None} value 时间序列，单位是秒，可选
         @return {string}    16位字符串
@@ -74,7 +76,7 @@ class TimeSeqId:
         return cls.create_v1(value)
 
     @classmethod
-    def get_valid_ms(cls, value):
+    def get_valid_ms(cls, value: typing.Optional[float]):
         if value != None:
             error_msg = "expect <class 'float'> but see %r" % type(value)
             assert isinstance(value, float), error_msg
@@ -98,7 +100,7 @@ class TimeSeqId:
                 raise Exception("too many retry")
 
     @classmethod
-    def create_v1(cls, value):
+    def create_v1(cls, value: typing.Optional[float]):
         """v1版本是使用16进制编码的16位字符"""
         ms = cls.get_valid_ms(value)
         return struct.pack(">Q", ms).hex()
