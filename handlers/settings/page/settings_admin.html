@@ -65,6 +65,16 @@
 </div>
 
 <div class="settings-row admin-visible">
+    <div class="settings-key">malloc跟踪</div>
+    <div class="settings-value">
+        <select name="trace_malloc_enabled" data-type="str" value="{{SystemInfoEnum.trace_malloc_enabled.value}}">
+            <option value="0">关闭</option>
+            <option value="1">开启</option>
+        </select>
+    </div>
+</div>
+
+<div class="settings-row admin-visible">
     <div class="settings-key">自定义CSS</div>
     <div class="settings-value">
         <a href="{{_server_home}}/code/edit?type=script&path=user.css">配置</a>

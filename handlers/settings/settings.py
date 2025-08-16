@@ -20,6 +20,7 @@ from xnote.core import xmanager
 from xutils import sqlite3, Storage, cacheutil
 from xnote.core.xtemplate import T
 from xutils import logutil, webutil
+from xnote.service.system_info_service import SystemInfoEnum
 
 try:
     import psutil
@@ -71,6 +72,7 @@ class SettingsHandler:
         kw.show_admin_btn = False
         kw.show_back_btn = True
         kw.get_user_config = get_user_config
+        kw.SystemInfoEnum = SystemInfoEnum
 
         if category == "":
             kw.show_back_btn = False
@@ -166,6 +168,10 @@ def update_user_config(key, value):
 
 @xauth.login_required("admin")
 def update_sys_config(key, value):
+    info_enum = getattr(SystemInfoEnum, key)
+    if info_enum:
+        info_enum.save_info(value)
+        return
     setattr(xconfig, key, value)
 
 class ConfigHandler:
@@ -175,7 +181,7 @@ class ConfigHandler:
             return int(value)
 
         if type == "bool":
-            return value.lower() in ("true", "yes", "on")
+            return value.lower() in ("true", "yes", "on", "1")
         
         return value
     

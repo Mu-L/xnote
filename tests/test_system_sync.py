@@ -378,9 +378,9 @@ class TestSystemSync(BaseTestCase):
 
     def test_system_info(self):
         info_key = "config.test"
-        SystemInfoService.set_info(info_key, "1")
+        SystemInfoService.save_info(info_key, "1")
         value = SystemInfoService.get_info_value(info_key)
         assert value == "1"
-        SystemInfoService.set_info(info_key, "2")
+        SystemInfoService.save_info(info_key, "2")
         value = SystemInfoService.get_info_value(info_key)
         assert value == "2"

@@ -3,6 +3,7 @@ from xutils import BaseDataRecord
 from xutils import DEFAULT_DATETIME
 from xutils import dateutil
 from web.db import SQLLiteral
+from xutils import BaseEnum, EnumItem
 
 class SystemInfoRecord(BaseDataRecord):
     def __init__(self, **kw):
@@ -19,13 +20,16 @@ class SystemInfoRecord(BaseDataRecord):
         result.pop("id", None)
         return result
 
+
 class SystemInfoService:
 
+    # TODO 加上缓存封装
     db = xtables.get_table("system_info")
 
     @classmethod
-    def set_info(cls, info_key: str, info_value: str):
-        rowcount = int(cls.db.update(where=dict(info_key=info_key), info_value=info_value, version = SQLLiteral("version+1")))
+    def save_info(cls, info_key: str, info_value: str):
+        now = dateutil.format_datetime()
+        rowcount = int(cls.db.update(where=dict(info_key=info_key), mtime = now, info_value=info_value, version = SQLLiteral("version+1")))
         if rowcount > 0:
             return
         record = SystemInfoRecord()
@@ -46,3 +50,25 @@ class SystemInfoService:
         if info:
             return info.info_value
         return None
+
+class SystemInfoEnumItem(EnumItem):
+
+    def __init__(self, info_name="", info_key=""):
+        self.info_name = info_name
+        self.info_key = info_key
+
+    @property
+    def value(self):
+        return SystemInfoService.get_info_value(self.info_key)
+    
+    def save_info(self, info_value: str):
+        return SystemInfoService.save_info(self.info_key, info_value)
+    
+    @property
+    def bool_value(self):
+        value = self.value
+        return value in ("1", "true")
+
+class SystemInfoEnum(BaseEnum):
+    trace_malloc_enabled = SystemInfoEnumItem("trace_malloc开关", "config.trace_malloc.enabled")
+
