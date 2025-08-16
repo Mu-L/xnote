@@ -1,0 +1,7 @@
+<script>
+xnote.showCode = function(target) {
+    var codeId = $(target).attr("data-code-id");
+    var code = $("#" + codeId).text();
+    xnote.openTextDialog("代码", code);
+};
+</script>

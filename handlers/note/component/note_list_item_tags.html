@@ -1,11 +1,11 @@
 {% init sticky_position = "left" %}
 {% if hasattr(item, "is_public") and item.is_public %}
-    <span class="info-tag">分享中</span>
+    <span class="tag info">分享中</span>
 {% end %}
 
 {% if sticky_position == "right" %}
     {% if item.is_sticky %}
-        <span class="tag orange-tag">置顶</span>
+        <span class="tag orange">置顶</span>
     {% end %}
     {% if item.archived %}
         <span class="tag system">归档</span>

@@ -102,13 +102,6 @@ function dialog3Confirm(target) {
 	<pre class="marked-code hide" id="html2">{{html2}}</pre>
 </div>
 
-<script>
-xnote.showCode = function(target) {
-    var codeId = $(target).attr("data-code-id");
-    var code = $("#" + codeId).text();
-    xnote.openTextDialog("代码", code);
-};
-</script>
-
+{% include test/page/example_script.html %}
 
 {% end %}
