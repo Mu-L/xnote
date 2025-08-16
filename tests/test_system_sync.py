@@ -24,6 +24,7 @@ from xutils import webutil
 from xnote.core import xauth
 from xnote.core import xconfig
 from xnote.core import xnote_event
+from xnote.service.system_info_service import SystemInfoService
 
 from . import test_base
 from handlers.system.system_sync.node_follower import DBSyncer
@@ -374,3 +375,12 @@ class TestSystemSync(BaseTestCase):
 
         check_manager = FileIndexCheckManager()
         check_manager.run_step()
+
+    def test_system_info(self):
+        info_key = "config.test"
+        SystemInfoService.set_info(info_key, "1")
+        value = SystemInfoService.get_info_value(info_key)
+        assert value == "1"
+        SystemInfoService.set_info(info_key, "2")
+        value = SystemInfoService.get_info_value(info_key)
+        assert value == "2"

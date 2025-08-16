@@ -37,7 +37,7 @@ def init():
     dbutil.register_table("user_config", "用户配置表")
     db = dbutil.register_table("session", "用户会话信息", is_deleted=True)
     db.register_index("user", columns=["user_name"])
-    dbutil.register_table("sys_config", "系统配置表")
+    dbutil.register_table("sys_config", "系统配置表", is_deleted=True)
     
     dbutil.register_table("user_stat", "用户数据统计")
 

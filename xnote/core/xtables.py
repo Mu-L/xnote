@@ -518,14 +518,17 @@ def init_system_sync_token_table():
         manager.add_index("token_holder")
         manager.add_index("token")
 
-def init_system_state_table():
-    """系统状态表"""
-    table_name = "system_state"
-    comment = "系统状态"
-    with create_default_table_manager(table_name, comment=comment, pk_name="state_id") as manager:
+def init_system_info_table():
+    """系统信息表"""
+    table_name = "system_info"
+    comment = "系统信息"
+    with create_default_table_manager(table_name, comment=comment) as manager:
         manager.add_column("ctime", "datetime", default_value=DEFAULT_DATETIME)
         manager.add_column("mtime", "datetime", default_value=DEFAULT_DATETIME)
-        manager.add_column("value", "text", comment="")
+        manager.add_column("info_key", "varchar(100)", default_value="", comment="")
+        manager.add_column("info_value", "text", comment="")
+        manager.add_column("version", "int", default_value=0, comment="版本号")
+        manager.add_index("info_key", is_unique=True)
 
 def init_msg_index_table():
     """随手记索引"""
@@ -790,7 +793,7 @@ def init():
     init_lock_table()
     # 数据同步
     init_system_sync_token_table()
-    init_system_state_table()
+    init_system_info_table()
     
     # 统计信息
     init_site_visit_log()
