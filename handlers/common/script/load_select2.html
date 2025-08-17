@@ -12,6 +12,9 @@
                 if (parent.length == 0) {
                     parent = undefined;
                 }
+                if ($(elem).attr("data-disable-select2")) {
+                    return;
+                }
                 // select2默认支持 data-placeholder
                 // https://select2.org/configuration/data-attributes
                 $(elem).select2({

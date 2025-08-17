@@ -3,16 +3,15 @@
 # Last Modified on 2018/01/18
 import time
 import web
-import xauth
-import xtables
 import xutils
-import xconfig
+import typing
+from xnote.core import xconfig, xauth, xtables
 from xutils import dbutil
 
 dbutil.register_table("record", "系统日志表")
 _db = dbutil.get_table("record")
 
-def save_ip(real_ip):
+def save_ip(real_ip: typing.Optional[str]):
     if real_ip is not None:
         # 处理X-Forwarded-For
         real_ip = real_ip.split(",")[0]

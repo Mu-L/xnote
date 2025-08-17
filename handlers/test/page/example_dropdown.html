@@ -4,6 +4,7 @@
 
 {% include test/component/example_nav.html %}
 {% include common/script/load_select2.html %}
+{% include test/page/example_script.html %}
 
 {% init select2_html = """
 <select style="width: 100px;" data-placeholder="选项">
@@ -12,18 +13,46 @@
 </select>
 """ %}
 
-<span class="card-title">select2风格</span>
+{% init native_html = """
+<select data-disable-select2="true">
+    <option disabled selected>模拟placeholder</option>
+    <option value="1">选项1</option>
+    <option value="2">选项2</option>
+</select>
+""" %}
+
+<h3 class="card-title">
+	<span>原生组件</span>
+    <button class="btn link-style" onclick="xnote.showCode(this);" data-code-id="native_html">展示代码</button>
+</h3>
+<div class="card" id="native_html">
+    {% raw native_html %}
+</div>
+
+
+<h3 class="card-title">
+	<span>select2风格</span>
+	<button class="btn link-style" onclick="xnote.showCode(this);" data-code-id="select2_html">展示代码</button>
+</h3>
 <div class="card">
-	<pre class="marked-code">{{select2_html}}</pre>
-    <div class="margin-top-sm">
+	<pre class="marked-code hide" id="select2_html">{{select2_html}}</pre>
+    <div class="">
         {% raw select2_html %}
     </div>
 </div>
 
 
 {% init html1 = """
-<div class="x-dropdown margin-top-sm">
-    <span class="dropdown-btn btn">更多▾</span>
+<div class="x-dropdown">
+    <span class="dropdown-btn btn">左对齐▾</span>
+    <div class="dropdown-content">
+        <a class="dropdown-option">选项1</a>
+        <a class="dropdown-option">选项2</a>
+    </div>
+</div>
+
+<div class="x-dropdown align-right">
+    <span class="dropdown-btn btn">右对齐▾</span>
     <div class="dropdown-content">
         <a class="dropdown-option">选项1</a>
         <a class="dropdown-option">选项2</a>
@@ -31,26 +60,13 @@
 </div>
 """ %}
 
-{% init html2 = """
-<div class="x-dropdown align-right margin-top-sm">
-    <span class="dropdown-btn btn">更多▾</span>
-    <div class="dropdown-content">
-        <a class="dropdown-option">选项1</a>
-        <a class="dropdown-option">选项2</a>
-    </div>
-</div>
-""" %}
-
+<h3 class="card-title">
+	<span>dropdown组件</span>
+	<button class="btn link-style" onclick="xnote.showCode(this);" data-code-id="html1">展示代码</button>
+</h3>
 <div class="card">
-	<p>dropdown</p>
-	<pre class="marked-code">{{html1}}</pre>
+	<pre class="marked-code hide" id="html1">{{html1}}</pre>
 	{% raw html1 %}
-</div>
-
-<div class="card">
-	<p>dropdown 右对齐</p>
-	<pre class="marked-code">{{html2}}</pre>
-	{% raw html2 %}
 </div>
 
 
