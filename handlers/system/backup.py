@@ -124,8 +124,6 @@ class DBBackup:
             count = self.backup_kv_store()
         if backup_sql:
             self.backup_sql_tables()
-        
-        SystemInfoEnum.db_backup_file.save_info(self.db_backup_file)
         return count
     
     def backup_sql_tables(self):
@@ -264,6 +262,7 @@ class DBBackup:
                 fsutil.rmfile(destfile)
 
             fsutil.mvfile(self.db_backup_file, destfile)
+            SystemInfoEnum.db_backup_file.save_info(destfile)
 
             # 再次清理
             self.clean()

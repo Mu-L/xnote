@@ -864,7 +864,7 @@ class TableIndexRepair:
         for value in db.iter(limit=-1):
             if db._need_check_user:
                 key = value._key
-                assert xutils.is_str(key)
+                assert isinstance(key, str)
                 try:
                     parts = key.split(":")
                     if len(parts) != 3:

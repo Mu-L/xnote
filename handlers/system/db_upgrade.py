@@ -14,8 +14,8 @@
 3. 升级文件需要自己处理幂等逻辑，这里提供了幂等表`upgrade_log`
 """
 import xutils
-import xauth
 import xnote_migrate
+from xnote.core import xauth
 from xutils import dateutil, dbutil
 from xutils import Storage
 

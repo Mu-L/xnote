@@ -46,7 +46,7 @@ if (navigator.geolocation && window.xuser != "") {
                 altitude: pos.coords.altitude,
                 altitudeAccuracy: pos.coords.altitudeAccuracy
             };
-            $.post("/system/stats/location", {coords: JSON.stringify(coords)});
+            xnote.http.post("/system/stats/location", {coords: JSON.stringify(coords)});
         }
     });
 }
