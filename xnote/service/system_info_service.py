@@ -71,4 +71,5 @@ class SystemInfoEnumItem(EnumItem):
 
 class SystemInfoEnum(BaseEnum):
     trace_malloc_enabled = SystemInfoEnumItem("trace_malloc开关", "config.trace_malloc.enabled")
+    db_backup_file = SystemInfoEnumItem("数据库备份文件", "db.backup.file")
 

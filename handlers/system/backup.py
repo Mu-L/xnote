@@ -13,9 +13,9 @@ import threading
 import sqlite3
 
 import xutils
-from xnote.core import xconfig, xauth, xtemplate
 import web.db
 
+from xnote.core import xconfig, xauth, xtemplate
 from xutils import Storage
 from xutils import dbutil
 from xutils import fsutil, logutil
@@ -24,6 +24,7 @@ from xutils.db.driver_sqlite import SqliteKV
 from xnote.core import xtables
 from xnote.service import JobService, SysJob, JobStatusEnum, DatabaseLockService
 from xnote.plugin import LinkConfig
+from xnote.service.system_info_service import SystemInfoEnum
 
 config = xconfig
 
@@ -123,6 +124,8 @@ class DBBackup:
             count = self.backup_kv_store()
         if backup_sql:
             self.backup_sql_tables()
+        
+        SystemInfoEnum.db_backup_file.save_info(self.db_backup_file)
         return count
     
     def backup_sql_tables(self):
