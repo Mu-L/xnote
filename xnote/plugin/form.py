@@ -9,6 +9,8 @@
 @Description  : 描述
 """
 
+import typing
+
 class FormRowType:
     """表单行的类型"""
     input = "input"
@@ -44,6 +46,7 @@ class FormRow:
         self.options = []
         self.date_type = FormRowDateType.date # 用于日期组件
         self.readonly = False
+        self.multiple = False
     
     def add_option(self, title="", value=""):
         option = FormRowOption()
@@ -51,13 +54,17 @@ class FormRow:
         option.value = value
         self.options.append(option)
         return self
-
+    
     @property
-    def readonly_attr(self):
+    def html_attr(self):
+        result = ""
         if self.readonly:
-            return "readonly"
-        else:
-            return ""
+            result += " readonly"
+        
+        if self.multiple:
+            result += f" multiple=\"multiple\""
+        
+        return result
     
 class DataForm:
     """数据表格"""
@@ -88,6 +95,22 @@ class DataForm:
         row.css_class = css_class
         row.readonly = readonly
         row.date_type = date_type
+        
+        self.rows.append(row)
+        return row
+    
+    def add_select(self, title = "", field = "", placeholder = "", value = "", 
+                   css_class = "", readonly = False, multiple = False):
+        row = FormRow()
+        row.id = self._create_row_id()
+        row.type = FormRowType.select
+        row.title = title
+        row.field = field
+        row.placeholder = placeholder
+        row.value = value
+        row.css_class = css_class
+        row.readonly = readonly
+        row.multiple = multiple
         
         self.rows.append(row)
         return row

@@ -466,7 +466,6 @@ def list_user_session_detail(user_name):
 
 
 def create_user_session(user_name:str, expires=SESSION_EXPIRE, login_ip=""):
-    # type: (str, int, str) -> SessionInfo
     user_detail = get_user_by_name(user_name)
     if user_detail is None:
         raise Exception("user not found: %s" % user_name)

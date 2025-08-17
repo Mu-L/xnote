@@ -21,26 +21,28 @@ class ParamDict:
 
     """参数字典,在dict的基础上增加了类型方法"""
     def __init__(self, dict_value: dict):
-        self.dict = dict_value
+        self._dict = dict_value
 
     def get_int(self, key: str, default_value=0):
-        return int(self.dict.get(key, default_value))
+        return int(self._dict.get(key, default_value))
     
     def get_float(self, key: str, default_value=0.0):
-        return float(self.dict.get(key, default_value))
+        return float(self._dict.get(key, default_value))
     
     def get_str(self, key: str, default_value="", strip = True):
-        result = str(self.dict.get(key, default_value))
+        result = str(self._dict.get(key, default_value))
         if strip:
             return result.strip()
         return result
     
     def get_bool(self, key: str, default_value=False):
-        return bool(self.dict.get(key, default_value))
+        return bool(self._dict.get(key, default_value))
 
     def get(self, key: str):
-        return self.dict.get(key)
+        return self._dict.get(key)
     
+    def __str__(self) -> str:
+        return str(self._dict)
 
 class BaseTablePlugin(BasePlugin):
     rows = 0

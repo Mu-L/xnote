@@ -24,7 +24,7 @@ from xnote.plugin.table_plugin import BaseTablePlugin
 from xnote.plugin import DataTable, TableActionType, InfoTable, InfoItem
 from xnote.plugin import DataForm, LinkConfig
 from xnote.plugin.form import FormRowType
-from xnote.plugin.itemlist import ItemList, ListItem, ConfirmButton
+from xnote.plugin.list import ItemList, ListItem, ConfirmButton
 from xnote.plugin import sidebar
 
 OP_LOG_TABLE = xauth.UserOpLogDao

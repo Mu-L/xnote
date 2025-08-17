@@ -51,6 +51,14 @@
 	<a class="x-tab" data-tab-value="tab3">TAB3</a>
 </div>""" %}
 
+<h3 class="card-title">
+	<span>默认tab样式</span>
+	<button class="btn link-style" onclick="xnote.showCode(this);" data-code-id="html2">展示代码</button>
+</h3>
+<div class="card">
+	<pre id="html2" class="marked-code hide">{{tab_html2}}</pre>
+	{% raw tab_html2 %}
+</div>
 
 <h3 class="card-title">
 	<span>按钮tab</span>
@@ -61,15 +69,6 @@
 	{% raw tab_html1 %}
 </div>
 
-
-<h3 class="card-title">
-	<span>链接tab</span>
-	<button class="btn link-style" onclick="xnote.showCode(this);" data-code-id="html2">展示代码</button>
-</h3>
-<div class="card">
-	<pre id="html2" class="marked-code hide">{{tab_html2}}</pre>
-	{% raw tab_html2 %}
-</div>
 
 <h3 class="card-title">
 	<span>按钮tab（深色模式）</span>

@@ -32,7 +32,7 @@ from xnote.plugin import load_plugin_file, PluginContext, LinkConfig
 from xnote.plugin import TagSpan, BaseContainer
 from xnote.plugin import iter_plugins
 from handlers.plugin.plugin_config import INNER_TOOLS
-from xnote.plugin.itemlist import ItemList, ListItem, TextTag
+from xnote.plugin.list import ItemList, ListItem, TextTag
 
 """xnote插件模块，由于插件的权限较大，开发权限只开放给管理员，普通用户可以使用
 

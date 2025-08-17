@@ -61,7 +61,7 @@ class ListItem(BaseComponent):
         return self._code.generate(item = self)
 
 
-class ItemList(BaseContainer):    
+class ListView(BaseContainer):    
     _code = xtemplate.compile_template("""
 {% if len(item_list) == 0 %}
     {% include common/text/empty_text.html %}
@@ -77,3 +77,6 @@ class ItemList(BaseContainer):
 
     def render(self):
         return self._code.generate(item_list = self.children)
+
+
+ItemList = ListView

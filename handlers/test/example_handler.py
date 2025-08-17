@@ -13,7 +13,7 @@ from xnote.plugin.table_plugin import BaseTablePlugin, BasePlugin
 from xnote.plugin import DataTable, TableActionType, TabBox
 from xnote.plugin.table import InfoTable, InfoItem, ActionBar
 from xnote.plugin.calendar import ContributionCalendar
-from xnote.plugin.itemlist import ItemList, ListItem, ConfirmButton, TextTag
+from xnote.plugin.list import ListView, ListItem, ConfirmButton, TextTag
 from xutils import textutil
 from xutils import webutil
 from xutils.number_utils import IntCounter
@@ -154,11 +154,21 @@ class TableExampleHandler(BaseTablePlugin):
 
         if show_heading:
             form.add_heading("高级信息")
-            form.add_row("备注信息")
+
+        row = form.add_select("标签", field="tags", multiple=True, value="1,2")
+        row.add_option("标签1", "1")
+        row.add_option("标签2", "2")
+        row.add_option("标签3", "3")
+
+        form.add_row("备注信息")
             
         kw = Storage()
         kw.form = form
         return self.response_form(**kw)
+    
+    def handle_save(self):
+        data_dict = self.get_param_dict()
+        return webutil.FailedResult(code="500", message=f"data_dict={data_dict}")
     
     def get_tab_component(self):
         tab = TabBox(tab_key="tab", tab_default="2", css_class="btn-style", title="后端tab组件")
@@ -314,8 +324,8 @@ class ListExampleHandler(BasePlugin):
 </div>
 """
     def handle(self, input=""):
-        item_list = ItemList()
-        item_list2 = ItemList()
+        item_list = ListView()
+        item_list2 = ListView()
 
         action = xutils.get_argument_str("action")
         if action == "delete":

@@ -87,7 +87,7 @@ textarea:read-only, input[type=text]:read-only {
 select {
     padding: 5px;
     border: 1px solid #ccc;
-    border-radius: 3px;
+    border-radius: 5px;
 }
 
 /** 链接样式 **/

@@ -237,13 +237,29 @@ var XUI = function(window) {
     function initSelect() {
         $("select").each(function(index, ele) {
             var self = $(ele);
+            var multiple = self.attr("multiple");
             var children = self.find("option");
             // 使用$.val() 会取到第一个select标签值
             var value = self.attr("value");
-            for (var i = 0; i < children.length; i++) {
-                var child = children[i];
-                if (value == child.value) {
-                    child.selected = "selected";
+            if (value === undefined) {
+                return;
+            }
+
+            if (multiple === "multiple") {
+                var values = value.split(",");
+                // 处理多选
+                for (var i = 0; i < children.length; i++) {
+                    var child = children[i];
+                    if (values.indexOf(child.value) >= 0) {
+                        child.selected = "selected";
+                    }
+                }
+            } else {
+                for (var i = 0; i < children.length; i++) {
+                    var child = children[i];
+                    if (value == child.value) {
+                        child.selected = "selected";
+                    }
                 }
             }
         });
