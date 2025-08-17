@@ -2,28 +2,6 @@
 <script type="text/javascript">
 
 $(function () {
-    $("#updateMessageBtn").click(function () {
-        var id = $("#messageEditId").val();
-        var content = $("#messageEditContent").val();
-
-        var params = {
-            id: id,
-            content: content
-        }
-
-        xnote.http.post("/message/update", params, function (resp) {
-            if (resp.code == "success") {
-                xnote.toast("更新成功");
-
-                // 更新节点
-                var msg = {type: "message.updated"};
-                xnote.fire("message.updated", msg);
-            } else {
-                xnote.alert("更新失败:" + resp.message);
-            }
-        });
-    });
-
     function onFileUploaded(event) {
         var inputText = event.target;
         var oldText = $(".input-box").val();

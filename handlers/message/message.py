@@ -173,13 +173,6 @@ class ListAjaxHandler:
         if tag == "log.date":
             return MessageDateHandler().do_list_by_date(
                 user_name=user_name, date=date, offset=offset, limit=pagesize, tag="log")
-
-        if tag == "date":
-            # 日期
-            return self.do_list_by_date(user_name, date, offset, pagesize)
-
-        if filter_date != "":
-            return self.do_list_by_date(user_name, filter_date, offset, pagesize)
         
         return msg_dao.list_by_tag(user_name, tag, offset, pagesize)
 
@@ -235,14 +228,6 @@ class ListAjaxHandler:
 
         return xtemplate.render("message/page/message_list_ajax.html", **kw)
 
-    def get_top_keywords(self, msg_list):
-        """返回热门的标签"""
-        result = []
-        for item in msg_list:
-            if item.is_marked:
-                result.append(item)
-        return result
-
     def do_search(self, user_name, key, offset, pagesize, search_tags=None):
         # 搜索
         input_search_tags = xutils.get_argument_str("searchTags")
@@ -265,43 +250,30 @@ class ListAjaxHandler:
                                       limit=pagesize, search_tags=search_tags,
                                       no_tag=no_tag, date=date)
 
-    def do_list_by_date(self, user_name, date, offset, pagesize):
-        return MessageDateHandler().do_list_by_date(user_name=user_name, date=date, offset=offset, limit=pagesize)
 
-
-def update_message_content(id: str, user_name, content):
+def update_message_content(id: str, user_id: int, content):
     data = MessageDao.get_by_id(id)
-    if data and data.user == user_name:
-        if data.user_id == 0:
-            data.user_id = xauth.UserDao.get_id_by_name(user_name)
-            
-        # 先保存历史
-        MessageDao.add_history(data)
-        
-        data.content = content
-        data.mtime = xutils.format_datetime()
-        data.version = data.get('version', 0) + 1
-        MessageDao.update(data)
+    if data is None:
+        return
+    if data.user_id != user_id:
+        return
 
-        event = xnote_event.MessageUpdateEvent()
-        event.msg_id = data.int_id
-        event.msg_key = id
-        event.user_id = data.user_id
-        event.content = content
-        xmanager.fire("message.update", event)
+    # 先保存历史
+    MessageDao.add_history(data)
+    
+    data.content = content
+    data.mtime = xutils.format_datetime()
+    data.version = data.get('version', 0) + 1
+    MessageDao.update(data)
 
-        after_message_create_or_update(data)
+    event = xnote_event.MessageUpdateEvent()
+    event.msg_id = data.int_id
+    event.msg_key = id
+    event.user_id = data.user_id
+    event.content = content
+    xmanager.fire("message.update", event)
 
-
-def create_done_message(old_message):
-    old_id = old_message['id']
-
-    new_message = dao.MessageDO()
-    new_message.ref = old_id
-    new_message.tag = 'done'
-    new_message.user = old_message['user']
-    new_message.ctime = xutils.format_datetime()
-    MessageDao.create(new_message)
+    after_message_create_or_update(data)
 
 
 def update_message_tag(id, tag):
@@ -500,6 +472,7 @@ class SaveAjaxHandler:
         tag = xutils.get_argument_str("tag", DEFAULT_TAG)
         location = xutils.get_argument_str("location", "")
         user_name = xauth.get_current_name()
+        user_id = xauth.current_user_id()
         ip = get_remote_ip()
 
         if content == "":
@@ -514,7 +487,7 @@ class SaveAjaxHandler:
             message = create_message(user_name, tag, content, ip)
             return webutil.SuccessResult(data=message)
         else:
-            update_message_content(id, user_name, content)
+            update_message_content(id, user_id, content)
         return webutil.SuccessResult(data=dict(id=id))
 
     def POST(self):
@@ -601,12 +574,6 @@ class MessagePageHandler:
     def get_tag_list(self):
         return message_tag.get_tag_list()
 
-    def get_task_kw(self):
-        return TaskListHandler.get_task_kw()
-
-    def get_task_home_page(self):
-        return TaskListHandler.get_task_create_page()
-
     def do_view_by_date(self, date):
         kw = Storage()
         kw.message_placeholder = "补充%s发生的事情" % date
@@ -678,7 +645,7 @@ class CalendarHandler:
         date = "%s-%02d" % (year, month)
 
         filter_tab = TabBox(tab_key="filterKey", tab_default="", title="标签", css_class="btn-style")
-        filter_tab.add_tab(title="全部", value="", href=f"{xconfig.WebConfig.server_home}/message/calendar?date={date}")
+        filter_tab.add_tab(title="全部", value="", href=f"/message/calendar?date={date}")
 
         tag_list = message_tag.get_tag_list_by_month(user_id=user_id, month=date, tag="log")
         for tag_info in tag_list:

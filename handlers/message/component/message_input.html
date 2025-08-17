@@ -22,7 +22,10 @@
                 value="添加附件"/>
         {% end %}
         
-        <input type="button" name="" class="send-button btn create-btn" value="创建">
+        <input type="button" name="" class="send-button btn create-btn" value="创建" 
+            data-create-tag="{{create_tag}}"
+            data-default-content="{{default_content}}"
+            onclick="xnote.action.message.createMessage(this);">
     </div>
 
 </div>
@@ -46,26 +49,6 @@ $(function () {
         $(".input-box").val(topic + " " + oldText);
     }
 
-
-    $(".create-btn").click(function () {
-        var content = $(".input-box").val();
-        var date = getUrlParam("date");
-        var params = {content:content, tag: "{{create_tag}}", date: date};
-        xnote.http.post("/message/save", 
-            params,
-            function (respText) {
-                var data = respText;
-                if (data.code != "success") {
-                    xnote.alert(data.message);
-                } else {
-                    $(".input-box").val("{{default_content}}");
-                    $(".input-box")[0].style.height = "52px";
-                    // 发布创建消息
-                    xnote.fire("message.created", "");
-                }
-        });
-    });
-         
     $('textarea[autoHeight]').autoHeight();    
 
     // 监听上传事件

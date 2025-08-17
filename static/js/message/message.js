@@ -4,6 +4,7 @@ if (xnote.api.message === undefined) {
 
 
 var MessageState = {};
+// 优先用messageTag
 MessageState.messageTag = "";
 MessageState.tag = "";
 
@@ -183,6 +184,27 @@ MessageView.saveMessage = function (target) {
         }
     });
 };
+
+MessageView.createMessage = function (target) {
+    var createTag = $(target).attr("data-create-tag");
+    var defaultContent = $(target).attr("data-default-content");
+    var content = $(".input-box").val();
+    var date = getUrlParam("date");
+    var params = {content:content, tag: createTag, date: date};
+    xnote.http.post("/message/save", 
+        params,
+        function (respText) {
+            var data = respText;
+            if (data.success) {
+                $(".input-box").val(defaultContent);
+                $(".input-box")[0].style.height = "52px";
+                // 刷新列表
+                MessageView.refreshList();
+            } else {
+                xnote.alert(data.message);
+            }
+    });
+}
 
 // 基于标签创建新记录
 MessageView.createMessageOnTag = function(target) {

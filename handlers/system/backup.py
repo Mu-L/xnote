@@ -144,6 +144,7 @@ class DBBackup:
                 backup_table.log_profile = False # 备份的时候不需要profile
 
                 if backup_table.table_name == xconfig.DatabaseConfig.kv_store:
+                    # kv_store在kv备份里面处理
                     logger.info("skip table (%s)", backup_table.table_name)
                     continue
                 
@@ -172,7 +173,7 @@ class DBBackup:
             db.ctx.db.close()
             del db
 
-    def multiple_insert(self, db, batch):
+    def multiple_insert(self, db: xtables.TableProxy, batch):
         with db.transaction():
             for value in batch:
                 db.insert(**value)

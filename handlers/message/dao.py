@@ -886,7 +886,7 @@ class MessageDao:
         return add_search_history(user, search_key, cost_time)
 
     @staticmethod
-    def add_history(message):
+    def add_history(message: MessageDO):
         return add_message_history(message)
     
     @staticmethod
