@@ -71,22 +71,3 @@ class TabItem:
         self.css_class = css_class
         self.onclick = onclick
         self.item_id = item_id
-
-
-class TabConfig:
-
-    # 编解码工具
-    codecs_tab = TabBox(tab_key="tab", tab_default="base64", css_class="btn-style")
-    codecs_tab.add_item(title="BASE64", value="base64", href="/tools/base64?tab=base64")
-    codecs_tab.add_item(title="16进制转换", value="hex", href="/tools/hex?tab=hex")
-    codecs_tab.add_item(title="URL编解码", value="urlcoder", href="/tools/urlcoder?tab=urlcoder")
-    codecs_tab.add_item(title="MD5", value="MD5", href="/tools/hash?tab=MD5&type=md5")
-    codecs_tab.add_item(title="SHA-1", value="SHA-1", href="/tools/hash?tab=SHA-1&type=sha1")
-    codecs_tab.add_item(title="SHA-256", value="SHA-256", href="/tools/hash?tab=SHA-256&type=sha256")
-    codecs_tab.add_item(title="SHA-512", value="SHA-512", href="/tools/hash?tab=SHA-512&type=sha512")
-    codecs_tab.add_item(title="条形码", value="barcode", href="/tools/barcode?tab=barcode")
-    codecs_tab.add_item(title="二维码", value="qrcode", href="/tools/qrcode?tab=qrcode")
-
-
-    # 图片工具
-    img_tab = TabBox(tab_key="tab", tab_default="img_split", css_class="btn-style")

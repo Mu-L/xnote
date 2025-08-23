@@ -708,12 +708,19 @@ def escape_html(text: str):
     text = text.replace("\n", "<br/>")
     return text
 
-def encode_base64(text: str):
+def encode_base64(text: typing.Union[str, bytes], strip = True):
     """URL安全的base64编码，注意Python自带的方法没有处理填充字符=
     @param {str} text 待编码的字符
     """
-    b64result = base64.urlsafe_b64encode(text.encode("utf-8")).decode("utf-8")
-    return b64result.rstrip("=")
+    if isinstance(text, str):
+        text_bytes = text.encode("utf-8")
+    else:
+        text_bytes = text
+
+    b64result = base64.urlsafe_b64encode(text_bytes).decode("utf-8")
+    if strip:
+        return b64result.rstrip("=")
+    return b64result
 
 
 def decode_base64(text: str):
@@ -732,14 +739,25 @@ b64encode = encode_base64
 b64decode = decode_base64
 
 
-def b32encode(text:str):
-    result = base64.b32encode(text.encode('utf-8'))
-    return result.decode('utf-8').rstrip("=")
+def encode_base32(text:typing.Union[str, bytes], strip = True):
+    if isinstance(text, str):
+        text_bytes = text.encode("utf-8")
+    else:
+        text_bytes = text
 
-def b32decode(enc_text:str):
+    result = base64.b32encode(text_bytes).decode("utf-8")
+    if strip:
+        return result.rstrip("=")
+    return result
+
+def decode_base32(enc_text:str):
     padding = 8 - len(enc_text) % 8
     enc_text = enc_text + "=" * padding
     return base64.b32decode(enc_text).decode("utf-8")
+
+
+b32encode = encode_base32
+b32decode = decode_base32
 
 def encode_uri_component(text):
     # quoted = quote_unicode(text)

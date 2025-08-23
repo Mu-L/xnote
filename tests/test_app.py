@@ -356,6 +356,9 @@ class Main:
         self.check_OK("/test/test_dbutil")
         self.check_OK("/test/test_dbutil?p=clear")
 
+    def test_cache(self):
+        self.check_OK("/test/cache")
+
     def test_system_log(self):
         logger = logutil.new_mem_logger("log_test")
         logger.log("Hello,World")
@@ -386,7 +389,7 @@ class Main:
             _format="json",
         )
 
-        resp = json_request("/login", method="POST", data=params)
+        resp = json_request_return_dict("/login", method="POST", data=params)
 
         self.assertEqual("请输入密码", resp["error"])
 
@@ -398,7 +401,7 @@ class Main:
             password=password+"_error",
             _format="json",
         )
-        resp = json_request("/login", method="POST", data=params)
+        resp = json_request_return_dict("/login", method="POST", data=params)
         print("test_login_password_error", resp)
         self.assertEqual("用户名或密码错误", resp["error"])
 
