@@ -6,6 +6,7 @@ class LinkConfig:
     app_index = TextLink(text="应用", href="/system/index")
     develop_index = TextLink(text="开发", href="/plugin_list?category=develop")
     system_index = TextLink(text="系统", href="/plugin_list?category=system")
+    plugin_index = TextLink(text="插件中心", href="/plugin_list")
 
 
 class TabConfig:

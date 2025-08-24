@@ -10,8 +10,7 @@
 
 {% block body %}
 
-{% set encode_name = xutils.get_argument_str("tab") %}
-{% set encode_type = xutils.get_argument_str("type") %}
+{% set encode_name = xutils.get_argument_str("tab", "BASE64") %}
 
 <div class="card">
     {% set title = encode_name %}

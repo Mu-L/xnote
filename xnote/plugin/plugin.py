@@ -52,7 +52,7 @@ class PluginContext(Storage):
         self.url = ""  # 这个应该算是基础url，用于匹配访问日志
         self.url_query = ""  # 查询参数部分
         self.abs_url = "" # URL的绝对路径
-        self.category = None
+        self.category = None # type: None|str
         self.category_list = []
         
         self.require_admin = True
@@ -88,10 +88,6 @@ class PluginContext(Storage):
     # sort方法重写__lt__即可
     def __lt__(self, other: "PluginContext"):
         return self.title < other.title
-
-    # 兼容Python2
-    def __cmp__(self, other: "PluginContext"):
-        return cmp(self.title, other.title)
 
     def load_category_info(self, meta_obj: ScriptMeta):
         self.category = meta_obj.get_str_value("category")  # 这里取第一个分类

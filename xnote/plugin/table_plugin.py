@@ -53,13 +53,9 @@ class BaseTablePlugin(BasePlugin):
     FormRowDateType = FormRowDateType
     TableActionType = TableActionType
 
-    # 导航html
-    NAV_HTML = """
-<div class="card">
-    <button class="btn" onclick="xnote.table.handleEditForm(this)"
-        data-url="?action=edit" data-title="新增记录">新增记录</button>
-</div>
-"""
+    # 导航html, 废弃了
+    NAV_HTML = ""
+
     # 表格html
     TABLE_HTML = """
 <div class="card">

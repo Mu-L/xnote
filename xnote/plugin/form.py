@@ -11,6 +11,8 @@
 
 import typing
 
+FormValueType = typing.Union[int, str, list]
+
 class FormRowType:
     """表单行的类型"""
     input = "input"
@@ -99,7 +101,15 @@ class DataForm:
         self.rows.append(row)
         return row
     
-    def add_select(self, title = "", field = "", placeholder = "", value = "", 
+    def _format_value(self, value: FormValueType) -> str:
+        if isinstance(value, list):
+            values = []
+            for item in value:
+                values.append(str(item))
+            return ",".join(values)
+        return str(value)
+    
+    def add_select(self, title = "", field = "", placeholder = "", value: FormValueType = "", 
                    css_class = "", readonly = False, multiple = False):
         row = FormRow()
         row.id = self._create_row_id()
@@ -107,7 +117,7 @@ class DataForm:
         row.title = title
         row.field = field
         row.placeholder = placeholder
-        row.value = value
+        row.value = self._format_value(value)
         row.css_class = css_class
         row.readonly = readonly
         row.multiple = multiple

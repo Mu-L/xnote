@@ -201,27 +201,26 @@ class PluginSort:
         return None
 
     def sort_by_visit_cnt_desc(self, plugins: typing.List[PluginContext]):
-        for p in plugins:
-            log = self.get_log_by_url(p.url)
-            if log:
-                p.visit_cnt = log.visit_cnt
-            else:
-                p.visit_cnt = 0
         plugins.sort(key=lambda x: x.visit_cnt, reverse=True)
 
     def sort_by_recent(self, plugins: typing.List[PluginContext]):
+        plugins.sort(key=lambda x: x.visit_time, reverse=True)
+
+    def update_visit_info(self, plugins: typing.List[PluginContext]):
         for p in plugins:
             log = self.get_log_by_url(p.url)
             if log:
                 p.visit_time = log.visit_time
+                p.visit_cnt = log.visit_cnt
             else:
+                p.visit_cnt = 0
                 p.visit_time = ""
-
-        plugins.sort(key=lambda x: x.visit_time, reverse=True)
 
 
 def sort_plugins(user_name, plugins: typing.List[PluginContext], orderby=None):
     sort_obj = PluginSort(user_name)
+    sort_obj.update_visit_info(plugins)
+
     if orderby is None or orderby == "":
         # 默认排序
         sort_obj.sort_by_visit_cnt_desc(plugins)

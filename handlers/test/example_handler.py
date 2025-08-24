@@ -28,7 +28,7 @@ def get_example_tab():
     tab.add_tab("Dialog示例", value="dialog", href=f"/test/example?name=dialog")
     tab.add_tab("Dropdown示例", value="dropdown", href=f"/test/example?name=dropdown")
     tab.add_tab("Table示例", value="table", href=f"/test/example/table?name=table")
-    tab.add_tab("ItemList示例", value="list", href=f"/test/example/list?name=list")
+    tab.add_tab("ListView示例", value="list", href=f"/test/example/list?name=list")
     tab.add_tab("日历组件", value="calendar", href="/test/example/calendar?name=calendar")
     tab.add_tab("Hammer示例", value="hammer", href=f"/test/example?name=hammer")
     return tab
@@ -155,7 +155,7 @@ class TableExampleHandler(BaseTablePlugin):
         if show_heading:
             form.add_heading("高级信息")
 
-        row = form.add_select("标签", field="tags", multiple=True, value="1,2")
+        row = form.add_select("标签", field="tags", multiple=True, value=[1,2])
         row.add_option("标签1", "1")
         row.add_option("标签2", "2")
         row.add_option("标签3", "3")
@@ -308,18 +308,18 @@ class CalendarExampleHandler(BasePlugin):
 
 class ListExampleHandler(BasePlugin):
     parent_link = LinkConfig.develop_index
-    title = "ItemList示例"
+    title = "ListView示例"
     rows = 0
     body_html = """
 {% include test/component/example_nav_tab.html %}
 
 <div class="card">
-    <span class="card-title">ItemList: 外层链接</span>
+    <span class="card-title">ListView: 外层链接</span>
     {% render item_list %}
 </div>
 
 <div class="card">
-    <span class="card-title">ItemList: 内层链接</span>
+    <span class="card-title">ListView: 内层链接</span>
     {% render item_list2 %}
 </div>
 """

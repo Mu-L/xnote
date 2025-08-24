@@ -32,3 +32,7 @@ class TestMain(BaseTestCase):
         delete_visit_log(user_name="admin", url="/test")
         assert add_visit_log(user_name="admin", url="/test") == 1
         assert add_visit_log(user_name="admin", url="/test") == 2
+
+    def test_plugin_manage(self):
+        self.check_OK("/plugin_manage")
+        

@@ -1,5 +1,5 @@
 from xnote.plugin.base import BaseComponent, BaseContainer
-from xnote.plugin.component import TextSpan, EditFormButton, ConfirmButton
+from xnote.plugin.component import TextSpan, EditFormButton, ConfirmButton, TextLink
 
 class ActionBar(BaseContainer):
     """表格动作栏"""
@@ -32,4 +32,10 @@ class ActionBar(BaseContainer):
     def add_confirm_button(self, text="", url="", message="", css_class="", method="GET", reload_url="", float_right=False):
         btn = ConfirmButton(text=text, url=url, message=message, method=method, reload_url=reload_url, css_class=css_class)
         self._add(btn, float_right)
+
+    def add_link(self, text = "", href="", css_class="", float_right=False):
+        link = TextLink(text=text, href=href, css_class=css_class)
+        self._add(link, float_right)
+    
+
 

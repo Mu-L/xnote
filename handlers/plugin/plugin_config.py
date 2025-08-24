@@ -85,8 +85,8 @@ INNER_TOOLS = [
     dev_plugin("图像灰度化", "/tools/img2gray"),
 
     # 编解码
-    dev_plugin("编解码工具", "/tools/encode?nav=true"),
-    dev_plugin("base64", "/tools/encode?tab=base64", visible_in_list=False),
+    dev_plugin("编解码工具", "/tools/encode?tab=BASE64&nav=true"),
+    dev_plugin("base64", "/tools/encode?tab=BASE64", visible_in_list=False),
     dev_plugin("HEX转换", "/tools/hex", visible_in_list=False),
     dev_plugin("md5签名", "/tools/md5", visible_in_list=False),
     dev_plugin("sha1签名", "/tools/sha1", visible_in_list=False),
