@@ -602,12 +602,6 @@ class GetDialogHandler:
         if name == "group_option_dialog":
             self.get_group_option_dialog(kw)
 
-        if name == "share_group_dialog":
-            self.fill_share_data(kw)
-
-        if name == "share_note_dialog":
-            self.fill_share_data(kw)
-
         return xtemplate.render("note/ajax/%s.html" % name, **kw)
 
 

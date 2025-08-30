@@ -29,7 +29,13 @@ class NoteShareDao:
     @classmethod
     def get_by_note_and_to_user(cls, note_id=0, to_id=0):
         where = dict(share_type="note_to_user", target_id = int(note_id), to_id = to_id)
-        return cls.db.select_first(where=where)
+        record = cls.db.select_first(where=where)
+        return ShareInfoDO.from_dict_or_None(record)
+    
+    @classmethod
+    def get_by_id(cls, share_id: int):
+        record = cls.db.select_first(where = dict(id = share_id))
+        return ShareInfoDO.from_dict_or_None(record)
     
     @classmethod
     def delete_by_id(cls, id):
@@ -47,7 +53,7 @@ class NoteShareDao:
         record.target_id = target_id
         record.from_id = from_id
         record.to_id = to_id
-        return cls.db.insert(**record)
+        return cls.db.insert(**record.to_save_dict())
     
     @classmethod
     def get_where_dict(cls):
@@ -111,14 +117,14 @@ def list_share_to(to_user = "", from_user="", offset = 0, limit = None, orderby 
     notes = batch_query_list(id_list)
     return notes
 
-def list_share_by_note_id(note_id):
+def list_share_by_note_id(note_id: int):
     result = NoteShareDao.list(target_id = note_id)
     idset = set()
     for item in result:
         idset.add(item.to_id)
     user_name_dict = xauth.UserDao.batch_get_name_by_ids(ids=idset)
     for item in result:
-        item.to_user = user_name_dict.get(item.to_id)
+        item.to_user = user_name_dict.get(item.to_id, "")
     return result
 
 def count_share_to(to_user):

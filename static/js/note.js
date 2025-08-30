@@ -714,3 +714,16 @@ NoteView.openPreviewPopup = function (e, targetSelector) {
         }
     });
 }
+
+NoteView.initBtnCopy = function (copyBtnSelector, text, toastMessage) {
+    if (toastMessage === undefined) {
+        toastMessage = "已经复制到粘贴板";
+    }
+    $(copyBtnSelector).attr("data-clipboard-text", text);
+    new ClipboardJS(copyBtnSelector, {
+        text: function(trigger) {
+            xnote.toast(toastMessage);
+            return trigger.getAttribute('data-clipboard-text');
+        }
+    });
+}

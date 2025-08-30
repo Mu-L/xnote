@@ -353,6 +353,7 @@ class ShareTypeEnum(enum.Enum):
 
 class ShareInfoDO(BaseDataRecord):
     def __init__(self):
+        self.id = 0
         self.ctime = dateutil.format_datetime()
         # 分享类型 {note_public, note_to_user}
         self.share_type = ""
@@ -360,13 +361,21 @@ class ShareInfoDO(BaseDataRecord):
         self.from_id = 0
         self.to_id = 0
         self.visit_cnt = 0
+        self.to_user = ""
+
+    def to_save_dict(self):
+        result = dict(**self)
+        result.pop("id", None)
+        result.pop("to_user", None)
+        return result
 
 class ShareInfoDao:
     db = xtables.get_table_by_name("share_info")
 
     @classmethod
     def insert(cls, share_info: ShareInfoDO):
-        return cls.db.insert(**share_info)
+        data = share_info.to_save_dict()
+        return cls.db.insert(**data)
     
     @classmethod
     def insert_ignore(cls, share_info: ShareInfoDO):
@@ -1020,7 +1029,7 @@ def update_index(note: NoteIndexDO):
         return
     NoteIndexDao.update(note)
 
-def update_note(note_id, **kw):
+def update_note(note_id: typing.Union[int, str], **kw):
     # 这里只更新基本字段，移动笔记使用 move_note
     logging.info("update_note, note_id=%s, kw=%s", note_id, kw)
 

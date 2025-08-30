@@ -23,7 +23,7 @@ from xnote.core.models import SearchContext
 
 from handlers.note.dao import get_by_id, get_by_name, visit_note, get_by_user_skey
 from handlers.note import dao_comment
-from handlers.note import dao_delete, dao_tag
+from handlers.note import dao_delete, dao_tag, dao_share
 from handlers.note import html_importer
 from handlers.note import dao as note_dao
 from handlers.note.dao import NoteIndexDao
@@ -297,7 +297,7 @@ class TestMain(BaseTestCase):
 
         id = create_note_for_test("md", "xnote-share-test", content = "hello")
 
-        self.check_OK("/note/share?id=" + str(id))
+        self.check_OK(f"/note/share/edit?action=share_public&note_id={id}")
         file = json_request_return_dict("/note/view?id=%s&_format=json" % id).get("file")
         assert file != None
         self.assertEqual(1, file["is_public"])
@@ -310,9 +310,7 @@ class TestMain(BaseTestCase):
             assert result[0].name == "xnote-share-test"
         finally:
             login_test_user()
-        
-        
-        cancel_result = json_request_return_dict("/note/share/cancel?id=" + str(id))
+        cancel_result = json_request_return_dict(f"/note/share/edit?action=unshare_public&note_id={id}")
         assert cancel_result.get("success", False)
         
         file = json_request_return_dict("/note/view?id=%s&_format=json" % id).get("file")
@@ -338,13 +336,19 @@ class TestMain(BaseTestCase):
         delete_note_for_test("xnote-share-test")
         id = create_note_for_test("md", "xnote-share-test", content = "hello")
 
-        share_resp = json_request_return_dict("/note/share", method="POST",
-            data=dict(id=id, share_to="test2"))
+        data_json = textutil.tojson(dict(note_id = id, share_to = "test2"))
+        share_resp = json_request_return_dict("/note/share/edit?action=save", method="POST",
+            data=dict(data=data_json))
         print("share_resp:", share_resp)
         self.assertEqual("success", share_resp["code"])
 
-        delete_share_resp = json_request_return_dict("/note/share/cancel", method="POST",
-            data=dict(id=id, share_to="test2"))
+        to_user_id = xauth.UserDao.get_id_by_name("test2")
+        share_info = dao_share.get_share_by_note_and_to_user(note_id=id, to_user_id=to_user_id)
+        assert share_info != None
+        share_id = share_info.id
+
+        delete_share_resp = json_request_return_dict("/note/share/edit?action=delete", method="POST",
+            data=dict(share_id = share_id))
         
         print("delete_share_resp:", delete_share_resp)
         self.assertEqual("success", delete_share_resp["code"])
@@ -367,8 +371,9 @@ class TestMain(BaseTestCase):
         unauthorized_id = create_note_for_test("group", "xnote-private-group")
         assert unauthorized_id > 0
         
-        share_resp = json_request_return_dict("/note/share", method="POST",
-            data=dict(id=group_id, share_to=target_user))
+        data_json = textutil.tojson(dict(note_id=group_id, share_to=target_user))
+        share_resp = json_request_return_dict("/note/share/edit?action=save", method="POST",
+            data=dict(data=data_json))
         print("share_resp:", share_resp)
         
         try:
@@ -387,9 +392,11 @@ class TestMain(BaseTestCase):
     def test_link_share(self):
         delete_note_for_test("xnote-link-share-test")
         note_id = create_note_for_test(name = "xnote-link-share-test", type = "md")
-        resp = json_request_return_dict("/note/link_share", method = "POST", data = dict(id = note_id))
+        resp = json_request_return_dict("/note/share/edit?action=link_share&_format=json", method = "POST",
+                                         data = dict(note_id = note_id))
         self.assertEqual("success", resp["code"])
         self.assertTrue(resp["success"])
+        # 检查分享链接
         self.check_OK(resp["data"])
 
     def test_note_tag(self):
@@ -600,7 +607,6 @@ A example image
         note_id = create_note_for_test("group", "xnote-dialog-group")
 
         self.check_OK("/note/ajax/group_option_dialog?note_id=%s" % note_id)
-        self.check_OK("/note/ajax/share_group_dialog?note_id=%s"  % note_id)
         self.check_OK("/note/ajax/edit_symbol_dialog")
 
 

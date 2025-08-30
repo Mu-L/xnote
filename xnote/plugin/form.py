@@ -10,6 +10,7 @@
 """
 
 import typing
+from xnote.core import xtemplate
 
 FormValueType = typing.Union[int, str, list]
 
@@ -19,6 +20,8 @@ class FormRowType:
     select = "select"
     textarea = "textarea"
     date = "date"
+    heading = "heading"
+    html = "html"
 
 class FormRowOption:
     """表单行的选项"""
@@ -36,6 +39,13 @@ class FormRowDateType:
     default = date
 
 class FormRow:
+
+    date_type = FormRowDateType.date # 用于日期组件
+    readonly = False
+    multiple = False
+    html : typing.Union[str, bytes] = ""
+
+
     """数据行"""
     def __init__(self):
         self.id = ""
@@ -46,10 +56,7 @@ class FormRow:
         self.type = FormRowType.input
         self.css_class = ""
         self.options = []
-        self.date_type = FormRowDateType.date # 用于日期组件
-        self.readonly = False
-        self.multiple = False
-    
+
     def add_option(self, title="", value=""):
         option = FormRowOption()
         option.title = title
@@ -70,12 +77,16 @@ class FormRow:
     
 class DataForm:
     """数据表格"""
+
+    footer_html:typing.Union[str, bytes] = ""
     
     def __init__(self):
         self.id = "0"
         self.row_id = 0
         self.rows = [] # type: list[FormRow]
         self.save_action = "save"
+        self.save_btn_css = ""
+        self.close_btn_css = ""
         self.model_name = "default"
         self.path = ""
         self.headings = []
@@ -131,7 +142,14 @@ class DataForm:
         row.id = self._create_row_id()
         row.title = name
         row.css_class = "form-heading"
-        row.type = "heading"
+        row.type = FormRowType.heading
+        self.rows.append(row)
+
+    def add_html(self, html : typing.Union[str, bytes] = ""):
+        row = FormRow()
+        row.id = self._create_row_id()
+        row.html = html
+        row.type = FormRowType.html
         self.rows.append(row)
     
 
@@ -141,4 +159,7 @@ class DataForm:
             if item.type == type:
                 count+=1
         return count
+    
+    def render(self):
+        return xtemplate.render("common/form/form.html", form = self)
 

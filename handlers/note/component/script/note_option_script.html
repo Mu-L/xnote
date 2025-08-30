@@ -14,7 +14,7 @@
     // 移动笔记的回调函数
     window.moveNoteCallback = function (parentId) {
         var selfId = "{{file.id}}";
-        $.post("/note/move", {id:selfId, parent_id: parentId}, function (resp){
+        xnote.http.post("/note/move", {id:selfId, parent_id: parentId}, function (resp){
               console.log(resp);
               window.location.reload();
         });
@@ -22,7 +22,7 @@
 
     window.visitAndRefresh = function (el) {
         var url = $(el).attr("data-href");
-        $.get(url, function () {
+        xnote.http.get(url, function () {
             window.location.reload();
         });
     }
@@ -31,7 +31,7 @@
         xnote.prompt("新名称", oldName, function (newName) {
             console.log(newName);
             if (newName != "" && newName != null) {
-                $.post("/note/rename", {id:id, name:newName}, function (resp) {
+                xnote.http.post("/note/rename", {id:id, name:newName}, function (resp) {
                     var code = resp.code;
                     if (code != "success") {
                         alert(resp.message);
@@ -145,42 +145,6 @@
                     window.location.reload();
                 }
             })
-        });
-
-        function note_share_by_link(target) {
-            /* Act on the event */
-            xnote.http.post("/note/link_share", {id: "{{file.id}}"}, function (resp) {
-                if (resp.code == "success") {
-                    var link = window.location.protocol + "//" + window.location.host + resp.data;
-                    $(".note-share-link-text").text(link);
-                    $(".note-share-link-btn").attr("data-clipboard-text", link);
-
-                    var html = $(".share-tpl").html();
-                    layer.confirm(html, {
-                        btn: [] //按钮
-                    });
-                    new ClipboardJS('.note-share-link-btn', {
-                        text: function(trigger) {
-                            xnote.toast("已经复制到粘贴板");
-                            return trigger.getAttribute('data-clipboard-text');
-                        }
-                    });
-                } else {
-                    xnote.alert("分享失败!");
-                }
-            });
-        }
-
-        window.note_share_by_link = note_share_by_link;
-
-        $(".copy-link-option").click(function(event) {
-            $(".copy-link-option").attr('data-clipboard-text', window.location.href);
-            new ClipboardJS(".copy-link-option", {
-                text: function (trigger) {
-                    xnote.toast("已经复制到粘贴板");
-                    return trigger.getAttribute("data-clipboard-text");
-                }
-            });
         });
 
         // 显示目录弹窗

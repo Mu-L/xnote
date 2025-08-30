@@ -25,8 +25,7 @@ xnote.state.note = {
     <div class="dropdown-content {%if _is_mobile%}mobile{% end %}">
         <a class="dropdown-option link" href="javascript:rename('{{item.id}}', '{{item.name}}')">重命名</a>
         <a class="dropdown-option link" href="{{_server_home}}/note/alias/edit?parent_id={{file.id}}">管理别名</a>
-        <a class="dropdown-option link" data-id="{{item.id}}" data-note-type="{{item.type}}"
-            onclick="xnote.note.openDialogToShare(this)">分享</a>
+        <a class="dropdown-option link" href="{{_server_home}}/note/share/edit?note_id={{file.id}}">分享</a>
 
         <a class="dropdown-option link" onclick="xnote.note.openDialogToMoveByElement(this)" data-id="{{file.id}}">移动</a>
         <a class="dropdown-option copy-btn link">复制</a>
@@ -62,38 +61,6 @@ xnote.state.note = {
 
 <script type="text/javascript">
 $(function () {
-    $(".link-share-option").click(function(event) {
-        /* Act on the event */
-        xnote.http.post("/note/link_share", {id: "{{file.id}}"}, function (resp) {
-            if (resp.code == "success") {
-                var link = window.location.protocol + "//" + window.location.host + resp.data;
-                $(".share-link-text").text(link);
-                $(".share-link-btn").attr("data-clipboard-text", link);
-                var html = $(".share-tpl").html();
-                layer.confirm(html, {
-                    btn: [] //按钮
-                });
-                new ClipboardJS('.share-link-btn', {
-                    text: function(trigger) {
-                        xnote.toast("已经复制到粘贴板");
-                        return trigger.getAttribute('data-clipboard-text');
-                    }
-                });
-            } else {
-                xnote.alert("分享失败!");
-            }
-        });
-    });
-
-    $(".copy-link-option").click(function(event) {
-        $(".copy-link-option").attr('data-clipboard-text', window.location.href);
-        new ClipboardJS(".copy-link-option", {
-            text: function (trigger) {
-                xnote.toast("已经复制到粘贴板");
-                return trigger.getAttribute("data-clipboard-text");
-            }
-        });
-    });
 
     // 缓存外部资源
     $(".cache-external-option").click(function (event) {

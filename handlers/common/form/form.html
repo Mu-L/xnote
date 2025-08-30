@@ -15,7 +15,9 @@
     <form id="xnoteForm{{_xnote_form.id}}" class="x-form">
         {% for row in _xnote_form.rows %}
             <div class="form-row {{row.css_class}}">
-                <label>{{row.title}}</label>
+                {% if row.title %}
+                    <label>{{row.title}}</label>
+                {% end %}
                 {% if row.type == "input" %}
                     <input type="text" name="{{row.field}}" placeholder="{{row.placeholder}}" value="{{row.value}}" {% raw row.html_attr %}>
                 {% end %}
@@ -33,16 +35,23 @@
                     <input id="{{row.id}}" name="{{row.field}}" class="form-date" data-date-type="{{row.date_type}}" 
                         placeholder="{{row.placeholder}}" value="{{row.value}}" autocomplete="off">
                 {% end %}
+                {% if row.type == "html" %}
+                    {% raw row.html %}
+                {% end %}
             </div>
         {% end %}
     </form>
 </div>
 
 <div class="form-footer">
+    {% if _xnote_form.footer_html %}
+        {% raw _xnote_form.footer_html %}
+    {% else %}
     <div class="float-right">
-        <button class="btn large" onclick="xnote.handleFormSubmit(this)" data-form-id="xnoteForm{{_xnote_form.id}}">保存</button>
-        <button class="btn large btn-default" onclick="xnote.dialog.closeByElement(this)" data-form-id="xnoteForm{{_xnote_form.id}}">关闭</button>
+        <button class="btn large {{_xnote_form.save_btn_css}}" onclick="xnote.handleFormSubmit(this)" data-form-id="xnoteForm{{_xnote_form.id}}">保存</button>
+        <button class="btn large btn-default {{_xnote_form.close_btn_css}}" onclick="xnote.dialog.closeByElement(this)" data-form-id="xnoteForm{{_xnote_form.id}}">关闭</button>
     </div>
+    {% end %}
 </div>
 
 <script>

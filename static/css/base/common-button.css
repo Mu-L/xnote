@@ -80,6 +80,10 @@
     margin-bottom: 2px;
 }
 
+.btn.hide, button.hide {
+    display: none;
+}
+
 .btn.large, [type=button].large, button.large {
     padding-left: 20px;
     padding-right: 20px;
