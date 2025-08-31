@@ -78,6 +78,10 @@ class FormRow:
 class DataForm:
     """数据表格"""
 
+    form_type = "edit"
+    form_type_css = ""
+    form_method = "POST"
+    footer_btn_group_css = "float-right"
     footer_html:typing.Union[str, bytes] = ""
     
     def __init__(self):
@@ -96,7 +100,7 @@ class DataForm:
         return f"row_{self.id}_{self.row_id}"
 
     def add_row(self, title="", field="", placeholder="", value="", 
-                type="input", css_class="", readonly=False,
+                type=FormRowType.input, css_class="", readonly=False,
                 date_type = FormRowDateType.date):
         row = FormRow()
         row.id = self._create_row_id()
@@ -119,6 +123,19 @@ class DataForm:
                 values.append(str(item))
             return ",".join(values)
         return str(value)
+    
+    def add_date_input(self, title = "", field = "", value = "", css_class = "", date_type = FormRowDateType.date):
+        row = FormRow()
+        row.id = self._create_row_id()
+        row.title = title
+        row.field = field
+        row.value = value
+        row.type = FormRowType.date
+        row.css_class = css_class
+        row.date_type = date_type
+        
+        self.rows.append(row)
+        return row
     
     def add_select(self, title = "", field = "", placeholder = "", value: FormValueType = "", 
                    css_class = "", readonly = False, multiple = False):
@@ -162,4 +179,17 @@ class DataForm:
     
     def render(self):
         return xtemplate.render("common/form/form.html", form = self)
+    
+    @property
+    def is_edit_form(self):
+        return self.form_type == "edit"
+    
+    @property
+    def is_query_form(self):
+        return self.form_type == "query"
 
+class QueryForm(DataForm):
+    form_type = "query"
+    form_type_css = "query-form"
+    form_method = "GET"
+    footer_btn_group_css = ""

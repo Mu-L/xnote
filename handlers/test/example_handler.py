@@ -10,7 +10,7 @@ from xnote.core import xtemplate
 from xnote.core import xmanager
 from xnote.core import xconfig
 from xnote.plugin.table_plugin import BaseTablePlugin, BasePlugin
-from xnote.plugin import DataTable, TableActionType, TabBox
+from xnote.plugin import DataTable, TableActionType, TabBox, QueryForm
 from xnote.plugin.table import InfoTable, InfoItem, ActionBar
 from xnote.plugin.calendar import ContributionCalendar
 from xnote.plugin.list import ListView, ListItem, ConfirmButton, TextTag
@@ -55,29 +55,7 @@ class TableExampleHandler(BaseTablePlugin):
 </div>
 
 <div class="card">
-    <form>
-        <div class="row">
-            <div class="input-group">
-                <label>类型</label>
-                <select name="prefix" value="">
-                    <option value="">全部</option>
-                    <option value="">类型-1</option>
-                    <option value="">类型-2</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label>关键字</label>
-                <input type="text"/>
-            </div>
-        </div>
-
-        <div class="row">
-            <input type="button" class="btn do-search-btn" value="查询数据">
-            <a class="btn btn-default" href="">重置查询</a>
-        </div>
-
-    </form>
+    {% render query_form %}
 </div>
 
 <div class="card">
@@ -124,6 +102,7 @@ class TableExampleHandler(BaseTablePlugin):
         kw.page_max = 1
         kw.page_url = "?page="
 
+        kw.query_form = self.get_query_form()
         kw.weight_table = self.get_weight_table()
         kw.empty_table = self.get_empty_table()
         kw.tab = self.get_tab_component()
@@ -177,6 +156,21 @@ class TableExampleHandler(BaseTablePlugin):
         tab.add_tab(title="选项3", value="3", css_class="hide")
         tab.add_tab(title="onclick", href="#", onclick="javascript:alert('onclick!')")
         return tab
+    
+    def get_query_form(self):
+        type_str = xutils.get_argument_str("type")
+        keyword = xutils.get_argument_str("keyword")
+        date_str = xutils.get_argument_str("date")
+
+        form = QueryForm()
+        row = form.add_select(title="类型", field="type", value=type_str)
+        row.add_option("类型-1", "1")
+        row.add_option("类型-2", "2")
+        form.add_row(title="关键字", field="keyword", value=keyword)
+        form.add_date_input(title="日期", field="date", value=date_str)
+
+        return form
+
     
     def get_weight_table(self):
         table = DataTable()

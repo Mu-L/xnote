@@ -35,8 +35,13 @@
     width: 200px;
 }
 
+/** 默认表单(编辑表单) **/
 .form-row {
+    margin-top: 0px;
     margin-bottom: 10px;
+    padding-left: 10px;
+    width: 100%;
+    float: left;
 }
 .form-row label {
     width: 100px;
@@ -76,8 +81,28 @@
     width: 100%;
     background-color: #eee;
     padding: 5px;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin-top: 0px;
+    margin-bottom: 10px;
     font-weight: bold;
     line-height: normal;
+}
+
+/* 查询表单相关样式 */
+.query-form.form-body {
+    position: static;
+    padding: 0px;
+}
+.query-form.form-footer {
+    position: static;
+    padding: 0px;
+    height: auto;
+}
+.query-form .form-row {
+    width: 170px;
+    float: left;
+    padding-left: 0px;
+    margin-bottom: 5px;
+}
+.query-form .form-row-value {
+    width: 160px;
 }

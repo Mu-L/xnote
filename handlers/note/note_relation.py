@@ -49,12 +49,7 @@ xnote.execute(function() {
 </div>
 
 <div class="card">
-    <div class="table-action-row">
-        <button class="btn" onclick="xnote.table.handleEditForm(this)"
-            data-url="/note/relation?action=edit&note_id={{file.id}}" 
-            data-title="{{create_btn_text}}">{{create_btn_text}}</button>
-    </div>
-    {% include common/table/table.html %}
+    {% render table %}
 </div>
 """
 
@@ -64,11 +59,12 @@ xnote.execute(function() {
         note_index = NoteIndexDao.get_by_id(note_id=note_id, creator_id=user_id, check_user=True)
         if note_index is None:
             return "笔记不存在"
+        table = NoteRelationService.get_table(note_id=note_id, user_id=user_id)
+        table.action_bar.add_edit_button("创建关系", url=f"/note/relation?action=edit&note_id={note_id}")
         kw = Storage()
-        kw.create_btn_text = "创建关系"
         kw.file = note_index
         kw.pathlist = list_path(file=note_index)
-        kw.table = NoteRelationService.get_table(note_id=note_id, user_id=user_id)
+        kw.table = table
         return self.response_page(**kw)
 
     def handle_edit(self):

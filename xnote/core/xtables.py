@@ -388,7 +388,7 @@ def init_tag_bind_table():
         manager.add_column("ctime", "datetime", DEFAULT_DATETIME)
         manager.add_column("user_id", "bigint", 0)
         manager.add_column("tag_type", "tinyint", default_value=0, comment="一级类型")
-        manager.add_column("second_type", "tinyint", default_value=0, comment="二级类型")
+        manager.add_column("second_type", "tinyint", default_value=0, comment="二级类型,用于状态等字段")
         manager.add_column("tag_code",  "varchar(32)", default_value="")
         manager.add_column("target_id", "bigint", default_value=0)
         manager.add_column("sort_value", "varchar(50)", default_value="")
