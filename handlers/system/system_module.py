@@ -8,6 +8,7 @@ import inspect
 
 from xnote.core import xtemplate
 from xnote.core import xauth
+from xnote.core import xmanager
 from xutils import textutil
 from xutils import six
 
@@ -146,6 +147,9 @@ class ModuleListHandler(object):
     
     @xauth.login_required("admin")
     def GET(self):
+        user_name = xauth.current_name_str()
+        xmanager.add_visit_log(user_name, "/system/modules_info")
+
         return xtemplate.render("system/page/module_list.html", 
             show_aside = False,
             modules = list_modules(),

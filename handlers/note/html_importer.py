@@ -29,6 +29,7 @@ from . import dao_edit
 from .dao_api import NoteDao
 from handlers.note.models import NoteDO
 from handlers.note import dao_edit
+from handlers.config import LinkConfig
 
 class FsMapRecord(BaseDataRecord):
     url = ""
@@ -190,20 +191,21 @@ class ImportNoteHandler:
         return kw
 
     def GET(self):
-        address = xutils.get_argument("url")
-        save = xutils.get_argument("save")
+        address = xutils.get_argument_str("url")
+        save = xutils.get_argument_str("save")
         user_name = xauth.current_name_str()
 
         # 添加日志
         xmanager.add_visit_log(user_name, "/note/html_importer")
 
-        if save != "" and save != None:
+        if save != "":
             return self.POST()
 
         kw = self.get_kw()
         kw.url = address
         kw.address = address
         kw.show_aside = False
+        kw.parent_link = LinkConfig.note_plugin_index
 
         return xtemplate.render(self.template_path, **kw)
 
@@ -244,6 +246,7 @@ class ImportNoteHandler:
             kw.texts = result.texts
             kw.article_title = result.title
             kw.plain_text = result.plain_text
+            kw.parent_link = LinkConfig.note_plugin_index
 
             return xtemplate.render(self.template_path, **kw)
         except Exception as e:

@@ -3,12 +3,12 @@
 import xutils
 import typing
 
-from xnote.core import xconfig
+from xnote.core import xconfig, xtemplate
 from xnote.plugin import PluginContext
 from .models import PluginCategory
 
 
-def inner_plugin(name, url, category="inner", url_query="", icon= "fa fa-cube"):
+def inner_plugin(name: str, url:str, category="inner", url_query="", icon= "fa fa-cube"):
     context = PluginContext()
     context.name = name
     context.title = name
@@ -24,7 +24,7 @@ def inner_plugin(name, url, category="inner", url_query="", icon= "fa fa-cube"):
     return context
 
 
-def note_plugin(name, url, icon="", required_role="user", url_query="", visible_in_list=True):
+def note_plugin(name: str, url: str, icon="", required_role="user", url_query="", visible_in_list=True):
     context = PluginContext()
     context.name = name
     context.title = name
@@ -51,22 +51,25 @@ def file_plugin(name, url, icon= "fa fa-cube"):
     return inner_plugin(name, url, "dir", icon=icon)
 
 
-def dev_plugin(name, url, visible_in_list = True):
+def dev_plugin(name: str, url: str, visible_in_list = True):
     result = inner_plugin(name, url, "develop")
     result.visible_in_list = visible_in_list
     return result
 
 
-def system_plugin(name, url):
+def system_plugin(name: str, url: str):
     return inner_plugin(name, url, "system")
 
-def admin_plugin(name, url):
-    return inner_plugin(name, url, "admin")
+def admin_plugin(name: str, url: str, visible_in_list = True):
+    result = inner_plugin(name, url, "admin")
+    result.visible_in_list = visible_in_list
+    return result
 
 def load_inner_tools():
     pass
 
 
+# 内部工具,如果已经在产品列表页展示,应该配置成在插件列表不可见,但是可以被搜索到
 INNER_TOOLS = [
     # 开发工具
     dev_plugin("浏览器信息", "/tools/browser_info"),
@@ -94,6 +97,7 @@ INNER_TOOLS = [
     dev_plugin("条形码", "/tools/barcode", visible_in_list=False),
     dev_plugin("二维码", "/tools/qrcode", visible_in_list=False),
     dev_plugin("插件目录v2", "/plugin_list_v2"),
+    dev_plugin("Menu_Modules", "/system/modules_info"),
 
     # 其他工具
     inner_plugin("分屏模式", "/tools/multi_win"),
@@ -103,25 +107,25 @@ INNER_TOOLS = [
     # 笔记工具
     note_plugin("新建笔记", "/note/create", "fa-plus-square", visible_in_list=False),
     note_plugin("我的置顶", "/note/sticky", "fa-thumb-tack", visible_in_list=False),
-    note_plugin("搜索历史", "/search/history", "fa-search"),
+    note_plugin("搜索历史", "/search/history", "fa-search", visible_in_list=False),
     note_plugin("导入笔记", "/note/html_importer",
                 "fa-internet-explorer", required_role="admin"),
     note_plugin("时间视图", "/note/date", "fa-clock-o",
                 url_query="?show_back=true"),
-    note_plugin("数据统计", "/note/stat", "fa-bar-chart"),
+    note_plugin("数据统计", "/note/stat", "fa-bar-chart", visible_in_list=False),
     note_plugin("上传管理", "/fs_upload", "fa-upload", visible_in_list=False),
     note_plugin("我的文件", "/fs_upload?source=file", "fa-upload", visible_in_list=False),
     note_plugin("笔记批量管理", "/note/management", "fa-gear"),
-    note_plugin("回收站", "/note/removed", "fa-trash"),
-    note_plugin("笔记本", "/note/group", "fa-th-large"),
-    note_plugin("待办任务", "/message/task", "fa-calendar-check-o"),
-    note_plugin("随手记", "/message?tag=log", "fa-file-text-o"),
+    note_plugin("回收站", "/note/removed", "fa-trash", visible_in_list=False),
+    note_plugin("笔记本", "/note/group", "fa-th-large", visible_in_list=False),
+    note_plugin("待办任务", "/message/task", "fa-calendar-check-o", visible_in_list=False),
+    note_plugin("随手记", "/message?tag=log", "fa-file-text-o", visible_in_list=False),
     note_plugin("我的相册", "/note/gallery", "fa-photo", visible_in_list=False),
     note_plugin("我的清单", "/note/list", "fa-list", visible_in_list=False),
     note_plugin("我的评论", "/note/comment/mine", "fa-comments", visible_in_list=False),
-    note_plugin("标签列表", "/note/taglist", "fa-tags"),
+    note_plugin("标签列表", "/note/taglist", "fa-tags", visible_in_list=False),
     note_plugin("常用笔记", "/note/recent?orderby=hot", "fa-file-text-o", visible_in_list=False),
-    note_plugin("词典", "/note/dict", "icon-dict"),
+    note_plugin("词典", "/note/dict", "icon-dict", visible_in_list=False),
     note_plugin("时光轴", "/note/timeline", "fa-clock-o"),
     note_plugin("笔记日历", "/note/group/year", "fa-file-text-o"),
 
@@ -130,11 +134,11 @@ INNER_TOOLS = [
     file_plugin("我的收藏夹", "/fs_bookmark", icon="fa fa-folder"),
 
     # 管理后台
-    admin_plugin("系统注册表", "/system/event"),
-    admin_plugin("集群管理", "/system/sync"),
-    admin_plugin("系统日志", "/system/log"),
-    admin_plugin("缓存管理", "/system/cache"),
-
+    admin_plugin("系统注册表", "/system/event", visible_in_list=False),
+    admin_plugin("集群管理", "/system/sync", visible_in_list=False),
+    admin_plugin("系统日志", "/system/log", visible_in_list=False),
+    admin_plugin("缓存管理", "/system/cache", visible_in_list=False),
+    admin_plugin("数据修复", "/admin/repair"),
     # 系统工具
     # system_plugin("系统日志", "/system/log"),
 ]
@@ -184,7 +188,7 @@ class CategoryService:
         cls.define_plugin_category("inner",    u"内置工具", platforms=[])
         cls.define_plugin_category("money",    u"理财")
         cls.define_plugin_category("test",     u"测试", platforms=[])
-        cls.define_plugin_category("admin", "管理后台", css_class="hide")
+        cls.define_plugin_category("admin", "管理员", css_class="hide")
         cls.define_plugin_category("other", "其他", css_class="hide")
 
         cls.define_plugin_category(

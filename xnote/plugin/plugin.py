@@ -144,7 +144,7 @@ class PluginContext(Storage):
         self.abs_url = _get_absolute_url(self.url)
 
 
-def is_plugin_file(fpath):
+def is_plugin_file(fpath: str):
     return os.path.isfile(fpath) and fpath.endswith(".py")
 
 

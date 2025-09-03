@@ -11,6 +11,7 @@ from xnote.plugin import DataTable, FormRowType, TableActionType
 from handlers.message.dao import MessageDao
 from handlers.message.message_utils import process_message
 from handlers.message import message_tag
+from handlers.config import LinkConfig
 
 class RepairInfo(Storage):
     def __init__(self, code="", name="", content=""):
@@ -59,6 +60,7 @@ class RepairHandler(BaseTablePlugin):
     title = "数据修复"
     show_aside = True
     require_admin = True
+    parent_link = LinkConfig.admin_plugin_index
 
     repair_rows = [
         RepairMsgTag(code="fix_msg_tag", name="待办/随手记索引"),
