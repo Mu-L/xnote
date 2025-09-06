@@ -9,18 +9,7 @@
 {% import web %}
 
 <div class="card">
-    <div class="card-title btn-line-height">
-        <span>{{html_title}}</span>
-        <div class="float-right">
-            {% if show_admin_btn %}
-                <a class="btn btn-default" href="{{_server_home}}/system/admin">后台管理</a>
-            {% end %}
-
-            {% if show_back_btn %}
-                {% include common/button/back_button.html %}
-            {% end %}
-        </div>
-    </div>
+    {% include common/title/base_title.html %}
 </div>
 
 {% include settings/page/settings_tab.html %}

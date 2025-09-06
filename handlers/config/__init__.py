@@ -5,10 +5,11 @@ from xnote.plugin import TabBox
 class LinkConfig:
     app_index = TextLink(text="应用", href="/system/index")
     develop_index = TextLink(text="开发", href="/plugin_list?category=develop")
-    system_index = TextLink(text="系统", href="/plugin_list?category=system")
     plugin_index = TextLink(text="插件中心", href="/plugin_list")
+    system_plugin_index = TextLink(text="系统", href="/plugin_list?category=system")
     note_plugin_index = TextLink(text="笔记", href="/plugin_list?category=note")
     admin_plugin_index = TextLink(text="管理员", href="/plugin_list?category=admin")
+    system_info = TextLink(text="系统信息", href="/system/info")
 
 
 class TabConfig:

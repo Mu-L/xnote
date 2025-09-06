@@ -52,7 +52,7 @@ class PluginContext(Storage):
         self.url = ""  # 这个应该算是基础url，用于匹配访问日志
         self.url_query = ""  # 查询参数部分
         self.abs_url = "" # URL的绝对路径
-        self.category = None # type: None|str
+        self.category = "" # type: str
         self.category_list = []
         
         self.require_admin = True
@@ -204,26 +204,30 @@ def load_plugin_by_context(context: PluginContext):
 
 def load_plugin_by_context_and_class(context: PluginContext, main_class = None):
     if main_class != None:
+        if not issubclass(main_class, BasePlugin):
+            raise Exception("main_class must be subclass of BasePlugin")
+        
         fname = context.fname
         fpath = context.fpath
         plugin_name = context.plugin_name
-        
-        # 实例化插件
+
+        # 更新类的属性
         main_class.fname = fname
         main_class.fpath = fpath
+
+        # 实例化插件
         instance = main_class()
-        context.fname = fname
         context.name = os.path.splitext(fname)[0]
 
         if context.api_level < 2.8:
-            context.title = getattr(instance, "title", "")
-            context.category = attrget(instance, "category")
-            context.required_role = attrget(instance, "required_role")
+            context.title = instance.title
+            context.category = instance.category
+            context.required_role = instance.required_role
 
         if context.api_level >= 2.8:
             main_class.title = context.title
             main_class.category = context.category
-            main_class.required_role = context.required_role
+            main_class.permitted_role_list = context.permitted_role_list
 
         context.url = f"/plugin/{plugin_name}"
         context.clazz = main_class

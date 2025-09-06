@@ -418,7 +418,8 @@ class BasePlugin:
     search_placeholder = "综合搜索"
 
     # {插件路径} 系统自动填充
-    fpath = None
+    fname = ""
+    fpath = ""
 
     # {输入配置}
     placeholder = ""
@@ -660,6 +661,13 @@ class BasePlugin:
     @show_right.setter
     def show_right(self, show_aside = False):
         self.show_aside = show_aside
+
+    @property
+    def required_role(self):
+        """兼容历史字段"""
+        if len(self.permitted_role_list) > 0:
+            return self.permitted_role_list[0]
+        return None
 
 BaseTextPage = BasePlugin
 BaseTextPlugin = BasePlugin

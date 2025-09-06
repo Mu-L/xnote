@@ -51,7 +51,7 @@ class TraceMallocHandler(BasePlugin):
     require_admin = True
     title = "trace_malloc"
     rows = 0
-    parent_link = LinkConfig.system_index
+    parent_link = LinkConfig.system_plugin_index
 
     def handle(self, input=""):
         if _boot_snapshot is None:

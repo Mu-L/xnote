@@ -126,6 +126,7 @@ class CommentListAjaxHandler:
         list_date = xutils.get_argument_str("list_date")
         show_note = xutils.get_argument_bool("show_note")
         show_edit = xutils.get_argument_bool("show_edit")
+        comment_order = xutils.get_argument_str("comment_order")
         page = xutils.get_argument_int("page", 1)
         page_max  = 1
         page_size = xconfig.PAGE_SIZE
@@ -157,7 +158,8 @@ class CommentListAjaxHandler:
             if note_index is None:
                 raise Exception("笔记不存在")
             NoteService.check_auth(note_index, user_id=user_id)
-            comments  = dao_comment.list_comments(note_id, offset = offset, limit = page_size, user_name=user_name)
+            comments  = dao_comment.list_comments(note_id, offset = offset, limit = page_size, 
+                                                  user_name=user_name, order=comment_order)
             count = dao_comment.count_comment_by_note(note_id)
             note_user_id = note_index.creator_id
         

@@ -15,7 +15,7 @@ from xutils.sqldb import TableProxy, TempTableProxy
 from xnote.plugin import DataTable
 from xnote.plugin import sidebar
 from xnote.plugin.table_plugin import BaseTablePlugin
-from xnote.plugin import LinkConfig
+from handlers.config import LinkConfig
 
 def get_display_value(value):
     if value is None:
@@ -429,6 +429,7 @@ class DatabaseDriverInfoHandler(BaseTablePlugin):
     title = "数据库引擎信息"
     NAV_HTML = ""
     show_aside = True
+    parent_link = LinkConfig.system_info
 
     def get_aside_html(self):
         return sidebar.get_admin_sidebar_html()

@@ -21,6 +21,8 @@ from xutils import sqlite3, Storage, cacheutil
 from xnote.core.xtemplate import T
 from xutils import logutil, webutil
 from xnote.service.system_info_service import SystemInfoEnum
+from handlers.config import LinkConfig
+from xnote.plugin import TextLink
 
 try:
     import psutil
@@ -61,6 +63,8 @@ class SettingsHandler:
         kw = Storage()
         kw.show_aside = False
         kw.html_title = T("设置")
+        kw.title = T("设置")
+        kw.parent_link = LinkConfig.app_index
         kw.item_list = item_list
         kw.sys_mem_total  = xutils.format_size(sys_mem_total)
         kw.thread_cnt     = thread_cnt
@@ -79,6 +83,7 @@ class SettingsHandler:
 
         if xauth.is_admin() and category == "":
             kw.show_admin_btn = True
+            kw.right_link = LinkConfig.system_info
 
         if category == "search":
             kw.html_title = T("搜索设置")

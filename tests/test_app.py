@@ -304,7 +304,9 @@ class TestMain(BaseTestCase):
 # @api-level 2.8
 # @title Unit-Test-Plugin
 # @category test
-class Main:
+from xnote.core.xtemplate import BasePlugin
+
+class Main(BasePlugin):
     def render(self):
         return "hello,world"
         '''

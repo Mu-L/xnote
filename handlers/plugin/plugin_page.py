@@ -582,7 +582,7 @@ def reload_plugins_by_config(ctx=None):
     for section in parser.sections():
         name = parser.get(section, "name", fallback="")
         url = parser.get(section, "url", fallback="")
-        category = parser.get(section, "category", fallback=None)
+        category = parser.get(section, "category", fallback="")
         editable = parser.getboolean(section, "editable", fallback=False)
 
         # 构建上下文
