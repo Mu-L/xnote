@@ -4,7 +4,7 @@
 # @modified 2019/07/12 00:52:34
 import web
 import xutils
-import xtemplate
+from xnote.core import xtemplate
 
 def get_real_ip():
     real_ip_list = web.ctx.env.get("HTTP_X_FORWARDED_FOR")

@@ -9,7 +9,7 @@ import zipfile
 import os
 import sys
 
-def quote_unicode(url):
+def quote_unicode(url: str):
     from xnote.core import xconfig
     if not xconfig.USE_URLENCODE:
         return url
@@ -54,7 +54,7 @@ def get_abs_path_list(dirname, pathlist):
     return newpathlist
 
 
-def zip_dir(input_dir, outpath, skip_hidden=True, filter=None, excluded=[]):
+def zip_dir(input_dir: str, outpath: str, skip_hidden=True, filter=None, excluded=[]):
     # 创建目标文件
     absroot = os.path.abspath(outpath)
     # print(absroot)

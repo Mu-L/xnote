@@ -275,6 +275,7 @@ class FileConfig:
         cls.sqlite_dir = cls.init_system_dir("db/sqlite")
         cls.backup_dir = cls.init_system_dir("backup")
         cls.backup_db_dir = cls.init_system_dir("backup/db")
+        cls.backup_scripts_dir = cls.init_system_dir("backup/scripts")
         cls.tmp_dir = cls.init_system_dir("tmp")
         cls.trash_dir = cls.init_system_dir("trash")
         cls.scripts_dir = cls.init_system_dir("scripts")

@@ -7,13 +7,14 @@
 import os
 import time
 import xutils
-import xconfig
+from xnote.core import xconfig
+from xutils import webutil
 
 class handler:
 
     def GET(self):
         if xconfig.is_mute():
-            return dict(code="fail", message="mute")
+            return webutil.FailedResult(code="fail", message="mute")
         try:
             tm = time.localtime()
             if tm.tm_hour >= 0 and tm.tm_hour <= 6:
@@ -29,10 +30,7 @@ class handler:
                 msg += "，夜深了，请注意休息"
             xutils.say(msg)
             # voice.Release()
-            return dict(code="success", message="")
+            return webutil.SuccessResult()
         except Exception as e:
-            return dict(code="fail", message=str(e))
-        else:
-            pass
-        finally:
-            pass
+            return webutil.FailedResult(code="fail", message=str(e))
+

@@ -78,14 +78,16 @@ INNER_TOOLS = [
     dev_plugin("性能分析", "/system/handler_profile"),
 
     # 文本
-    dev_plugin("文本对比", "/tools/text_diff"),
-    dev_plugin("文本转换", "/tools/text_convert"),
-    dev_plugin("随机字符串", "/tools/random_string"),
+    dev_plugin("文本工具", "/tools/text_convert?tab=convert&nav=true"),
+    dev_plugin("文本转换", "/tools/text_convert?tab=convert", visible_in_list=False),
+    dev_plugin("文本对比", "/tools/text_diff?tab=diff", visible_in_list=False),
+    dev_plugin("随机文本", "/tools/text_random?tab=random", visible_in_list=False),
 
     # 图片
-    dev_plugin("图片合并", "/tools/img_merge"),
-    dev_plugin("图片拆分", "/tools/img_split"),
-    dev_plugin("图像灰度化", "/tools/img2gray"),
+    dev_plugin("图片工具", "/tools/img_merge?tab=merge&nav=true"),
+    dev_plugin("图片合并", "/tools/img_merge?tab=merge", visible_in_list=False),
+    dev_plugin("图片拆分", "/tools/img_split?tab=split", visible_in_list=False),
+    dev_plugin("图像灰度化", "/tools/img_gray?tab=gray", visible_in_list=False),
 
     # 编解码
     dev_plugin("编解码工具", "/tools/encode?tab=BASE64&nav=true"),

@@ -729,7 +729,9 @@ def decode_base64(text: str):
     """
     if text == "":
         return ""
-    padding = 4- len(text) % 4
+    padding = 4 - len(text) % 4
+    if padding == 4:
+        padding = 0
     text = text + '=' * padding
     return base64.urlsafe_b64decode(text).decode("utf-8")
 
@@ -752,6 +754,8 @@ def encode_base32(text:typing.Union[str, bytes], strip = True):
 
 def decode_base32(enc_text:str):
     padding = 8 - len(enc_text) % 8
+    if padding == 8:
+        padding = 0
     enc_text = enc_text + "=" * padding
     return base64.b32decode(enc_text).decode("utf-8")
 
@@ -769,25 +773,26 @@ def encode_uri_component(text):
     # quoted = quoted.replace("#", "%23")
     return quote(text)
 
-def md5_hex(string=""):
+def to_bytes(value: typing.Union[bytes, str], encoding="utf-8"):
+    if isinstance(value, str):
+        return value.encode(encoding=encoding)
+    return value
+
+def md5_hex(string: typing.Union[str, bytes]):
     """生成MD5哈希校验码, 长度是32"""
-    encoding = UtilityConfig.encoding
-    return hashlib.md5(string.encode(encoding)).hexdigest()
+    return hashlib.md5(to_bytes(string)).hexdigest()
 
-def sha1_hex(string=""):
+def sha1_hex(string: typing.Union[str, bytes]):
     """生成SHA-1哈希校验码, 长度是40"""
-    encoding = UtilityConfig.encoding
-    return hashlib.sha1(string.encode(encoding)).hexdigest()
+    return hashlib.sha1(to_bytes(string)).hexdigest()
 
-def sha256_hex(string=""):
+def sha256_hex(string: typing.Union[str, bytes]):
     """生成SHA-256哈希校验码, 长度是64"""
-    encoding = UtilityConfig.encoding
-    return hashlib.sha256(string.encode(encoding)).hexdigest()
+    return hashlib.sha256(to_bytes(string)).hexdigest()
 
-def sha512_hex(string=""):
+def sha512_hex(string: typing.Union[str, bytes]):
     """生成SHA-512哈希校验码, 长度是128"""
-    encoding = UtilityConfig.encoding
-    return hashlib.sha512(string.encode(encoding)).hexdigest()
+    return hashlib.sha512(to_bytes(string)).hexdigest()
 
 class Properties(object): 
     

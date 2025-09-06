@@ -3,9 +3,9 @@
 # @modified 2021/08/21 09:31:27
 import os
 import re
-import xauth
 import xutils
 import json
+from xnote.core import xauth
 from xutils import fsutil
 from xutils import dbutil
 

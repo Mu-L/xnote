@@ -1,18 +1,5 @@
 {% extends base %}
 
-{% block head %}
-
-<style type="text/css">
-
-label {
-    display: inline-block;
-    width: 100px;
-}
-
-</style>
-
-{% end %}
-
 {% block body %}
 
 {% include common/script/load_vue.html %}
@@ -20,32 +7,43 @@ label {
 <div class="col-md-12 card">
     {% set title = "图片合并" %}
     {% include "common/title/base_title.html" %}
+</div>
 
-    <p>
+{% include tools/img_tab.html %}
+
+<div id="app" class="card">
+    <p class="alert info">
         点击画布上的方块可以选择图片填充，选择多个图片依次水平往后填充,
         编辑完成之后点击预览按钮可以获取去除背景和方格的图片，设置列数和行数都为1可以用来调整图片大小,
         右键图片进行保存
     </p>
-</div>
-
-<div id="app" class="card">
     <input type="file" name="file" id="file" value="选择图片" onchange="handleFiles(this.files)" class="hide" multiple="multiple">
     <div class="col-md-12">
+
+        <div class="input-group">
             <label>列数</label>
             <input type="text" id="cols" value="4">
-        <br/>
+        </div>
+
+        <div class="input-group">
             <label>行数</label>
             <input type="text" id="rows" value="4">
-        <br/>
+        </div>
+
+        <div class="input-group">
             <label>每帧宽度</label>
             <input type="text" id="width" value="64">
-        <br/>
+        </div>
+
+        <div class="input-group">
             <label>每帧高度</label>
             <input type="text" id="height" value="64">
-        <p>
+        </div>
+
+        <div class="row">
             <button id="createCanvasBtn">创建画布</button>
             <button id="toggleResult">预览</button>
-        </p>
+        </div>
     </div>
 
     <div id="inputImageDiv" class="col-md-12">

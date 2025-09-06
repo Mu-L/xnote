@@ -380,6 +380,10 @@ li.menu-item:hover {
     margin: 0px;
 }
 
+.alert {
+    border-radius: 5px;
+}
+
 .warn {
     margin: 0px;
     padding: 5px;
@@ -388,8 +392,10 @@ li.menu-item:hover {
 
 .info {
     padding: 5px;
-    background-color: #C1FFC1;
+    /* background-color: #C1FFC1; */
     margin: 0px;
+    background-color: #cce5ff;
+    border-color: #b8daff;
 }
 
 .info.light {

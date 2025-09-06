@@ -1,28 +1,13 @@
 {% extends wide_base %}
 
-{% block head %}
-
-<style type="text/css">
-    .img-info {
-        display: block;
-        float: left;
-        margin: 5px;
-        width: 200px;
-    }
-
-    .img-info > label {
-        line-height: 27px;
-    }
-</style>
-
-{% end %}
-
 {% block body %}
 
 <div class="col-md-12 card">
     {% set title = "图片灰度化" %}
     {% include "common/title/base_title.html" %}
 </div>
+
+{% include tools/img_tab.html %}
 
 <div class="card">
     <input id="file" type="file" onchange="handleFiles(this.files)" class="hide" />
@@ -31,27 +16,27 @@
     <input id="larger" type="button" class="btn" value="刷新"/>
 
     <div class="col-md-12 top-offset-1">
-        <div class="img-info">
+        <div class="input-group">
             <label>图片大小</label>
             <span id="imgSize"></span>
         </div>
 
-        <div class="img-info">
+        <div class="input-group">
             <label>宽度</label>
-            <input id="width"/>
+            <input type="text" id="width"/>
         </div>
 
-        <div class="img-info">
+        <div class="input-group">
             <label>高度</label>
-            <input id="height"/>
+            <input type="text" id="height"/>
         </div>
 
-        <div class="img-info">
+        <div class="input-group">
             <label>灰度化</label>
             <input type="checkbox" id="gray" >
         </div>
 
-        <div class="img-info">
+        <div class="input-group">
             <label>旋转</label>
             <span id="rotate"></span>
         </div>

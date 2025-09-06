@@ -37,8 +37,11 @@ def get_local_ipv6_address():
     
     if not getIPV6_process:
         return None
+    
+    if not getIPV6_process.stdout:
+        return None
 
-    output = (getIPV6_process.stdout.read())
+    output = getIPV6_process.stdout.read()
     getIPV6_process.stdout.close()
 
     ipv6_pattern='(([a-f0-9]{1,4}:){7}[a-f0-9]{1,4})'
