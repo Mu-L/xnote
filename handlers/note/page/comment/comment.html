@@ -18,10 +18,6 @@
     .chat-msg-img {
         width: 180px;
     }
-
-    textarea.auto-height:focus {
-        height: 200px;
-    }
 </style>
 
 <link rel="stylesheet" type="text/css" href="{{_server_home}}/_static/lib/webuploader/webuploader.css">
@@ -164,6 +160,7 @@
         xnote.on("comment.closeEditDialog", function () {
             layer.close(editIndex);
         });
+        $("textarea.auto-height").autoHeight();
     });
 
 // 置顶评论
