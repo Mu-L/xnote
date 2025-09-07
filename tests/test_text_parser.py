@@ -1,7 +1,7 @@
 # encoding=utf-8
 
 import unittest
-from xutils.text_parser import TextParser, TextToken, TopicToken
+from xutils.text_parser import TextParser, TextToken, TopicToken, ImageListToken
 from xutils.text_parser import TokenType
 from xutils.text_parser import StrongToken
 from xutils.text_parser import ImageToken
@@ -132,6 +132,9 @@ link2:https://abc.com/test?name=1&age=2 text after link
         text = "file:///data/temp/1.png\nfile:///data/temp/2.png"
         parser = TextParser()
         tokens = parser.parse_to_tokens(text)
-        assert len(tokens) == 2
-        assert tokens[0] == ImageToken("file:///data/temp/1.png", "/data/temp/1.png")
-        assert tokens[1] == ImageToken("\nfile:///data/temp/2.png", "/data/temp/2.png")
+        assert len(tokens) == 1
+        assert tokens[0].type == TokenType.img_list
+        assert isinstance(tokens[0], ImageListToken)
+        img_tokens = tokens[0].tokens
+        assert img_tokens[0] == ImageToken("file:///data/temp/1.png", "/data/temp/1.png")
+        assert img_tokens[1] == ImageToken("\nfile:///data/temp/2.png", "/data/temp/2.png")

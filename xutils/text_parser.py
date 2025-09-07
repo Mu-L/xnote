@@ -295,6 +295,7 @@ class TokenType:
     phone_number = "phone_number"
     search = "search"
     img = "img"
+    img_list = "img_list"
 
 class TextToken(Storage):
     def __init__(self, value=""):
@@ -379,6 +380,20 @@ class ImageToken(TextToken):
 
     def __eq__(self, value: "ImageToken") -> bool:
         return self.type == value.type and self.value == value.value and self.href == value.href
+
+
+class ImageListToken(TextToken):
+    def __init__(self, tokens: typing.List[ImageToken]):
+        self.type = TokenType.img_list
+        self.tokens = tokens
+    
+    def get_html(self):
+        html = '<div class="row">'
+        for item in self.tokens:
+            item.has_multi = True
+            html += item.get_html()
+        html += '</div>'
+        return html
 
 class TextParser(TextParserBase):
 
@@ -529,7 +544,9 @@ class TextParser(TextParserBase):
             restore_index = self.i
 
             while self.current() in self.blank_chars:
-                self.read_next()
+                next = self.read_next()
+                if next == "":
+                    break
 
             if self.startswith("file://"):
                 href = self.read_before_blank()
@@ -546,10 +563,9 @@ class TextParser(TextParserBase):
                 break
                 
         if len(tmp_tokens) > 1:
-            for token in tmp_tokens:
-                token.has_multi = True
-
-        self.tokens += tmp_tokens
+            self.tokens.append(ImageListToken(tmp_tokens))
+        else:
+            self.tokens += tmp_tokens
 
     def mark_file(self):
         from xutils import fsutil
