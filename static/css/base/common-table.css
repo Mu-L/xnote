@@ -19,16 +19,15 @@
     word-break: break-all;
 }
 
-/* 
-这种方式走不通,需要声明hover-tr
 .table tr:hover td{
-    background-color: none;
+    /* 注意: background-color: none; 是一个无效的样式 */
+    background-color: transparent;
 }
 
 .table tr:hover{
     background-color: #eee;
 }
-*/
+
 
 .row-no, .index-td {
     width: 50px;

@@ -50,7 +50,7 @@ PlanView.addSelectedToPlan = function () {
         selectedIds.push(dataId);
     });
     var params = {
-        id: PlanView.state.id,
+        plan_id: PlanView.state.id,
         note_ids: selectedIds.join(",")
     }
     xnote.http.post("/plan/month/add", params, function (resp) {

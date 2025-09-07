@@ -15,6 +15,7 @@ from xutils import dbutil, Storage
 class MonthPlanRecord(Storage):
 
     def __init__(self, **kw):
+        self._id = ""
         self.user = ""
         self.user_id = 0
         self.month = ""

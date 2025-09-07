@@ -89,18 +89,19 @@ def login_test_user(user_name="admin"):
     xauth.TestEnv.login_user(user_name)
 
 
-def json_request(*args, **kw):
+def json_request(localpart='/', method='GET', data=None, **kw):
     global APP
-    if "data" in kw:
+    if data != None:
         # 对于POST请求设置无效
-        kw["data"]["_format"] = "json"
+        data["_format"] = "json"
     else:
-        kw["data"] = dict(_format="json")
+        data = dict(_format="json")
+
     kw["_format"] = "json"
     kw["headers"] = DEFAULT_HEADERS
 
     assert APP != None
-    ret = APP.request(*args, **kw)
+    ret = APP.request(localpart, method, data, **kw)
     if ret.status == "303 See Other":
         return
     assert ret.status == "200 OK"
@@ -109,12 +110,12 @@ def json_request(*args, **kw):
         return json.loads(data)
     return json.loads(data.decode("utf-8"))
 
-def json_request_return_dict(*args, **kw):
+def json_request_return_dict(localpart='/', method='GET', data=None, **kw):
     """请求接口,返回json,实例如下
     - json_request_return_dict("/api/test", method="POST", data=dict(name="test"))
     - json_request_return_dict("/api/get_info?p1=1&p2=test")
     """
-    ret = json_request(*args, **kw)
+    ret = json_request(localpart, method, data, **kw)
     assert isinstance(ret, dict)
     return TypedDict(ret)
 

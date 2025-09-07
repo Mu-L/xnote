@@ -18,6 +18,10 @@
     .chat-msg-img {
         width: 180px;
     }
+
+    textarea.auto-height:focus {
+        height: 200px;
+    }
 </style>
 
 <link rel="stylesheet" type="text/css" href="{{_server_home}}/_static/lib/webuploader/webuploader.css">
@@ -33,7 +37,7 @@
     {% end %}
 
     <div class="col-md-12">
-        <textarea id="commentText" autoHeight=true class="col-md-12 no-outline"
+        <textarea id="commentText" class="col-md-12 no-outline auto-height"
             placeholder="{{comment_placeholder}}"></textarea>
 
         <div class="row margin-top-sm">
@@ -88,9 +92,6 @@
             }
             $("#commentText").val(oldTextValue + line);
         }
-
-        // 自动调整高度
-        $('textarea[autoHeight]').autoHeight();
 
         refreshComments();
 

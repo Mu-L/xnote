@@ -730,13 +730,13 @@ A example image
         from handlers.plan.dao import MonthPlanDao
 
         delete_note_for_test("plan-test")
-        note_id = create_note_for_test("md", "plan-test")
+        note_id = create_note_for_test("md", "plan-test", tags="test plan")
         user_info = xauth.current_user()
         assert user_info != None
-        month = time.strftime("%Y-%m")
-        plan_record = MonthPlanDao.get_or_create(user_info, month)
-        plan_id = plan_record._id
-        json_request_return_dict("/plan/month/add", method="POST", data=dict(id=plan_id, note_ids=str(note_id)))
+        record = MonthPlanDao.get_or_create(user_info, month="now")        
+        params = dict(plan_id = record._id, note_ids = str(note_id))
+        result = json_request_return_dict("/plan/month/add", method = "POST", data = params)
+        assert result["success"] == True
         self.check_OK("/plan/month")
 
     def test_touch_note(self):

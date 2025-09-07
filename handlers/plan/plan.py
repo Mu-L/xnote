@@ -16,6 +16,7 @@ from xutils import Storage
 from handlers.plan.dao import MonthPlanDao
 from handlers.note import dao as note_dao
 from xutils import functions, dateutil
+from xutils import webutil
 
 class MonthPlanHandler:
 
@@ -82,11 +83,11 @@ class MonthPlanHandler:
 class MonthPlanAddAjaxHandler:
     @xauth.login_required()
     def POST(self):
-        plan_id = xutils.get_argument_str("id", "")
+        plan_id = xutils.get_argument_str("plan_id")
         note_ids_str = xutils.get_argument_str("note_ids", "")
         note_ids = note_ids_str.split(",")
         if plan_id == "":
-            return dict(code="400", message="参数id不能为空")
+            return webutil.FailedResult(code="400", message="参数id不能为空")
 
         user_id = xauth.current_user_id()
         record = MonthPlanDao.get_by_id(user_id, plan_id)
@@ -96,9 +97,9 @@ class MonthPlanAddAjaxHandler:
                 if id not in record.note_ids:
                     record.note_ids.append(id)
             record.save()
-            return dict(code="success")
+            return webutil.SuccessResult()
         else:
-            return dict(code="500", message="计划不存在")
+            return webutil.FailedResult(code="500", message="计划不存在")
 
 class MonthPlanRemoveAjaxHandler:
     @xauth.login_required()
