@@ -65,6 +65,7 @@ def zip_new_xnote():
 
 def chk_scripts_backup():
     dirname = xconfig.FileConfig.scripts_dir
+    xutils.makedirs(xconfig.FileConfig.backup_scripts_dir)
     destfile = os.path.join(xconfig.FileConfig.backup_scripts_dir, time.strftime("scripts.%Y-%m-%d.zip"))
     xutils.zip_dir(dirname, destfile)
 
@@ -437,6 +438,10 @@ class BackupHandler:
         if p == "backup_sql":
             backup = DBBackup()
             return backup.execute(backup_kv=False)
+        
+        if p == "backup_scripts":
+            chk_scripts_backup()
+            return "OK"
 
         # 备份所有的
         chk_db_backup()

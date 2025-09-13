@@ -473,9 +473,9 @@ class TestMain(unittest.TestCase):
         values = set()
         times = 1000
 
-        from xutils import number_utils
+        from xutils import number_util
         for i in range(times):
-            values.add(number_utils.create_random_int64())
+            values.add(number_util.create_random_int64())
         assert len(values) == times
 
 

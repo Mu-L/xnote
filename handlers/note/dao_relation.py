@@ -14,6 +14,7 @@ class NoteRelationDO(BaseDataRecord):
         self.mtime = now
         self.user_id = 0
         self.relation_name = ""
+        # 这个用于关系名称对应的note_id,可以为空
         self.relation_note_id = 0
         self.note_id = 0
         self.target_id = 0

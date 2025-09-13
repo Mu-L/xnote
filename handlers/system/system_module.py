@@ -11,6 +11,8 @@ from xnote.core import xauth
 from xnote.core import xmanager
 from xutils import textutil
 from xutils import six
+from xutils import Storage
+from handlers.config import LinkConfig
 
 class ModuleInfo:
     def __init__(self, mod, sysname):
@@ -139,9 +141,12 @@ class ModuleDetailHandler(object):
         doc_info = None
         if name is not None:
             doc_info = ModInfo(name)
-        return xtemplate.render("system/page/module_detail.html", 
-            show_aside = False,
-            doc_info = doc_info)
+        kw = Storage()
+        kw.title = "模块信息"
+        kw.show_aside = False
+        kw.doc_info = doc_info
+        kw.parent_link = LinkConfig.module_list
+        return xtemplate.render("system/page/module_detail.html", **kw)
 
 class ModuleListHandler(object):
     
@@ -162,4 +167,3 @@ xurls = (
     r"/system/module_list", ModuleListHandler,
     r"/system/module_detail", ModuleDetailHandler
 )
-        

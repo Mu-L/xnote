@@ -10,6 +10,7 @@ class LinkConfig:
     note_plugin_index = TextLink(text="笔记", href="/plugin_list?category=note")
     admin_plugin_index = TextLink(text="管理员", href="/plugin_list?category=admin")
     system_info = TextLink(text="系统信息", href="/system/info")
+    module_list = TextLink(text="模块信息", href="/system/module_list")
 
 
 class TabConfig:

@@ -31,7 +31,7 @@ import xutils.fsutil as fsutil
 import xutils.dateutil as dateutil
 import xutils.htmlutil as htmlutil
 # 兼容历史命名
-from . import number_utils as numutil
+from . import number_util as numutil
 
 from xutils import logutil
 from xutils.ziputil import *

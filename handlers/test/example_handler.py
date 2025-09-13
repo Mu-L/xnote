@@ -16,7 +16,7 @@ from xnote.plugin.calendar import ContributionCalendar
 from xnote.plugin.list import ListView, ListItem, ConfirmButton, TextTag
 from xutils import textutil
 from xutils import webutil
-from xutils.number_utils import IntCounter
+from xutils.number_util import IntCounter
 from handlers.config import LinkConfig
 
 def get_example_tab():

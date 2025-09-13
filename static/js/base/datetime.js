@@ -14,13 +14,15 @@ if (!Date.prototype.format) {
         var hour = this.getHours();
         var minute = this.getMinutes();
         var second = this.getSeconds();
-        if (format == "yyyy-MM-dd") {
+        if (format === undefined) {
+            return sFormat("%d-%2d-%2d %2d:%2d:%2d", year, month, day, hour, minute, second);
+        } if (format == "yyyy-MM-dd") {
             return sFormat("%d-%2d-%2d", year, month, day);
-        }
-        if (format == "HH:mm:ss") {
+        } else if (format == "HH:mm:ss") {
             return sFormat("%2d:%2d:%2d", hour, minute, second);
+        } else {
+            throw new Error("invalid date format " + format);
         }
-        return sFormat("%d-%2d-%2d %2d:%2d:%2d", year, month, day, hour, minute, second);
     };
 }
 

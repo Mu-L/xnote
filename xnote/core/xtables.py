@@ -210,9 +210,9 @@ def init_note_relation_table():
         manager.add_column("mtime", "datetime", default_value=DEFAULT_DATETIME)
         manager.add_column("user_id", "bigint", default_value=0)
         manager.add_column("relation_name", "varchar(50)", default_value="")
-        manager.add_column("relation_note_id", "bigint", default_value=0)
-        manager.add_column("note_id", "bigint", default_value=0)
-        manager.add_column("target_id", "bigint", default_value=0)
+        manager.add_column("relation_note_id", "bigint", default_value=0, comment="关系名称对应的笔记ID")
+        manager.add_column("note_id", "bigint", default_value=0, comment="源笔记ID")
+        manager.add_column("target_id", "bigint", default_value=0, comment="目标笔记ID")
 
         manager.add_index("note_id")
         manager.add_index("target_id")

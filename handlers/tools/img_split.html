@@ -1,8 +1,8 @@
-{% extends base %}
+{% extends wide_base %}
 
 {% block head %}
 <style type="text/css">
-#canvas {
+#canvas, #extractCanvas {
     max-width: 100%;
 }
 </style>
@@ -31,12 +31,6 @@
             <label class="label">行数</label>
             <input type="text" id="rows" value="4">
         </div>
-        <!--
-        <div>
-            <label class="label">选择第</label>
-            <input type="text" id="selectedPart" value="1">张
-        </div>
-        -->
         <div class="row">
             <button id="selectFile">选择文件</button>
             <button id="splitBtn">分割</button>
@@ -52,8 +46,12 @@
 </div>
 
 <div class="card">
-    {% set title = "输出图片" %}
-    {% include common/base_title.html %}
+    <div class="card-title">
+        <span>输出图片</span>
+        <div class="float-right">
+            <button onclick="xnote.exportImage()">导出图片</button>
+        </div>
+    </div>
     <canvas id="extractCanvas" class="hide"></canvas>
 </div>
 
@@ -211,6 +209,18 @@ $("#extractBtn").on("click", function (event) {
         ctx.drawImage(window.selectedImg, colIndex*width, rowIndex*height, width, height, 0, 0, width, height);
     }
 });
+
+xnote.exportImage = function() {
+    var fileNameStr = new Date().format();
+    fileNameStr = fileNameStr.replace(":", "_");
+    fileNameStr = fileNameStr.replace(" ", "_");
+    var canvas = document.getElementById("extractCanvas");
+    var dataURL = canvas.toDataURL('image/png'); // 默认PNG格式
+    var link = document.createElement('a');
+    link.href = dataURL;
+    link.download = "canvas_" + fileNameStr + ".png"; // 设置文件名
+    link.click();
+}
 
 $(function() {
     splitImage();
