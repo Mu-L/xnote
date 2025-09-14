@@ -106,3 +106,14 @@
 .query-form .form-row-value {
     width: 160px;
 }
+
+/* 页面编辑表单（非弹窗） */
+.page-edit-form.form-body {
+    position: static;
+    padding: 0px;
+}
+.page-edit-form.form-footer {
+    position: static;
+    padding: 0px;
+    height: auto;
+}

@@ -56,6 +56,13 @@ class DictDaoClass:
         return key
 
     def create(self, dict_item: DictDO):
+        if dict_item.dict_type == 0:
+            raise Exception("dict_type is invalid")
+        if dict_item.key == "":
+            raise Exception("key is invalid")
+        if dict_item.value == "":
+            raise Exception("value is invalid")
+        
         now = dateutil.format_datetime()
         dict_item.ctime = now
         dict_item.mtime = now

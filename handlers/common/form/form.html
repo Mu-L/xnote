@@ -44,6 +44,14 @@
     {% elif _xnote_form.is_query_form %}
         <button type="button" class="btn" onclick="xnote.submitFormQuery(this)" data-form-id="xnoteForm{{_xnote_form.id}}">查询数据</button>
         <a class="btn btn-default" href="?">重置查询</a>
+    {% elif _xnote_form.is_page_edit_form %}
+    <div class="form-row {{_xnote_form.footer_btn_group_css}}">
+        <label>&nbsp;</label>
+        <div class="form-row-value">
+            <button class="btn large {{_xnote_form.save_btn_css}}" onclick="xnote.submitFormSave(this)" data-form-id="xnoteForm{{_xnote_form.id}}">保存</button>
+            <button class="btn large btn-default {{_xnote_form.delete_btn_css}}" onclick="xnote.submitFormDelete(this)" data-form-id="xnoteForm{{_xnote_form.id}}">删除</button>
+        </div>
+    </div>
     {% end %}
 </div>
 
@@ -69,8 +77,28 @@
         xnote.http.post("{{_xnote_form.path}}?model={{_xnote_form.model_name}}&action={{_xnote_form.save_action}}", request, function (resp) {
             if (resp.success) {
                 xnote.toast("保存成功");
-                window.parent.location.reload();
-                // xnote.closeDialog("last");
+                setTimeout(function() {
+                    window.location.reload();
+                }, 500);
+            } else {
+                xnote.toast(resp.message);
+            }
+        });
+    };
+
+    xnote.submitFormDelete = function(target) {
+        var request = {};
+        var formId = $(target).attr("data-form-id");
+        var data = $("#"+formId).formData();
+        request.data = JSON.stringify(data);
+        console.log("request:", request);
+    
+        xnote.http.post("{{_xnote_form.path}}?model={{_xnote_form.model_name}}&action={{_xnote_form.delete_action}}", request, function (resp) {
+            if (resp.success) {
+                xnote.toast("删除成功");
+                setTimeout(function() {
+                    window.location.href = "{{_xnote_form.delete_reload_href}}";
+                }, 500);
             } else {
                 xnote.toast(resp.message);
             }

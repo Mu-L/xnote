@@ -83,12 +83,15 @@ class DataForm:
     form_method = "POST"
     footer_btn_group_css = "float-right"
     footer_html:typing.Union[str, bytes] = ""
+    save_action = "save"
+    delete_action = "delete"
+    delete_reload_href = ""
+    delete_btn_css = ""
     
     def __init__(self):
         self.id = "0"
         self.row_id = 0
         self.rows = [] # type: list[FormRow]
-        self.save_action = "save"
         self.save_btn_css = ""
         self.close_btn_css = ""
         self.model_name = "default"
@@ -152,6 +155,20 @@ class DataForm:
         
         self.rows.append(row)
         return row
+    
+    def add_textarea(self, title="", field="", placeholder="", value="", 
+                css_class="", readonly=False):
+        row = FormRow()
+        row.id = self._create_row_id()
+        row.title = title
+        row.field = field
+        row.placeholder = placeholder
+        row.value = value
+        row.type = FormRowType.textarea
+        row.css_class = css_class
+        row.readonly = readonly        
+        self.rows.append(row)
+        return row
 
     def add_heading(self, name=""):
         """添加子标题"""
@@ -185,6 +202,10 @@ class DataForm:
         return self.form_type == "edit"
     
     @property
+    def is_page_edit_form(self):
+        return self.form_type == "page_edit"
+    
+    @property
     def is_query_form(self):
         return self.form_type == "query"
 
@@ -193,3 +214,9 @@ class QueryForm(DataForm):
     form_type_css = "query-form"
     form_method = "GET"
     footer_btn_group_css = ""
+
+class PageEditForm(DataForm):
+    form_type = "page_edit"
+    form_type_css = "page-edit-form"
+    footer_btn_group_css = ""
+    delete_btn_css = "danger"

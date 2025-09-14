@@ -899,9 +899,10 @@ def refresh_user_session(session_info: SessionInfo):
 
 
 @logutil.timeit_deco(logargs=True, logret=True, switch_func=_is_debug_enabled)
-def has_login(name=None):
+def has_login(name: typing.Optional[str] =None):
     """验证是否登陆
-    如果``name``指定,则只能该用户名通过验证
+    
+    :param name: 如果为None,只校验登录,如果不为None,需要验证和输入的用户一致
     """
     if TestEnv.has_login:
         if name == "admin":

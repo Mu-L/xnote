@@ -21,6 +21,7 @@ from handlers.note.models import NoteTypeInfo
 from .models import DictTypeEnum, DictTypeItem
 from xnote.plugin.table import DataTable
 from xnote.plugin.table_plugin import BaseTablePlugin, TableActionType, FormRowType
+from xnote.plugin.form import DataForm, QueryForm, PageEditForm
 
 
 PAGE_SIZE = xconfig.PAGE_SIZE
@@ -34,6 +35,16 @@ def check_edit_auth(dict_type=0):
         xauth.check_login()
     else:
         xauth.check_login("admin")
+
+def can_edit_dict(dict_type=0):
+    """检查是否能编辑, admin可以编辑所有词典, 普通用户只能编辑个人词典"""
+    if dict_type == 0:
+        dict_type = xutils.get_argument_int("dict_type")
+    enum_item = DictTypeEnum.get_by_int_value(dict_type)
+    assert enum_item != None
+    if enum_item.has_user_id:
+        return True
+    return xauth.is_admin()
         
 class BaseDictHandler:
 
@@ -70,6 +81,19 @@ class DictHandler(BaseTablePlugin):
 {% include note/component/filter/type_filter.html %}
 {% include dict/page/dict_type_tab.html %}
 """ + BaseTablePlugin.TABLE_HTML
+    
+    page_edit_html = """
+<div class="card">
+    {% render dict_form %}
+</div>
+"""
+
+    page_edit_no_auth_html = """
+<div class="form-row">
+    <label>&nbsp;</label>
+    <span>无编辑权限</span>
+</div>
+"""
         
     def get_page_html(self):
         return self.PAGE_HTML
@@ -81,9 +105,12 @@ class DictHandler(BaseTablePlugin):
         return DictHandler.aside_html
     
     def get_option_html(self):
+        if self.dict_type == "":
+            return ""
+        
         server_home = xconfig.WebConfig.server_home
         return f"""
-<a class="btn btn-default" href="{server_home}/dict/add?dict_type={self.dict_type}">新增</a>
+<a class="btn btn-default" href="{server_home}/dict/list?action=page_edit&dict_type={self.dict_type}">新增</a>
 """
     
     def get_dict_type(self):
@@ -146,6 +173,35 @@ class DictHandler(BaseTablePlugin):
         self.search_action = f"/note/dict?dict_type={dict_type}"
 
         return self.response_page(**kw)
+    
+    def handle_page_edit(self):
+        dict_id = xutils.get_argument_int("dict_id")
+        dict_type = self.get_dict_type()
+        dao = self.get_dict_dao()
+        user_id = xauth.current_user_id()
+        if dict_id > 0:
+            item = dao.get_by_id(dict_id, user_id=user_id)
+        else:
+            item = dict_dao.DictDO()
+
+        if item == None:
+            return self.response_text("dict_item is None")
+        
+        dict_form = PageEditForm()
+        dict_form.delete_reload_href = xconfig.WebConfig.resolve_path(f"/dict/list?dict_type={dict_type}")
+
+        dict_form.add_row(field="dict_id", value=str(item.dict_id), css_class="hide")
+        row = dict_form.add_select(title="类型", field="dict_type", value=str(item.dict_type))
+        for type_info in DictTypeEnum.enums():
+            row.add_option(title=type_info.name, value=type_info.value)
+
+        dict_form.add_row(title="名称", field="key", value=item.key)
+        dict_form.add_textarea(title="解释", field="value", value=item.value)
+
+        if not can_edit_dict(dict_type):
+            dict_form.footer_html = self.page_edit_no_auth_html
+
+        self.writetemplate(self.page_edit_html, dict_form = dict_form)
     
     def handle_edit(self):
         check_edit_auth()
@@ -211,19 +267,6 @@ class DictAddHandler(BaseDictHandler):
         kw = self.create_kw()
         return xtemplate.render("dict/page/dict_add.html", **kw)
 
-class DictUpdateHandler(BaseDictHandler):
-
-    @xauth.login_required()
-    def GET(self):
-        dict_id = xutils.get_argument_int("dict_id")
-        dao = self.get_dict_dao()
-        user_id = xauth.current_user_id()
-        item = dao.get_by_id(dict_id, user_id=user_id)
-        kw = self.create_kw()
-        if item != None:
-            kw.name = item.key
-            kw.value = item.value
-        return xtemplate.render("dict/page/dict_update.html", **kw)
 
 class CreateAjaxHandler(BaseDictHandler):
     def POST(self):
@@ -290,7 +333,6 @@ xutils.register_func("dict.search", search_dict)
 
 xurls = (
     r"/dict/add", DictAddHandler,
-    r"/dict/update",    DictUpdateHandler,
     r"/dict/search",    DictHandler,
     r"/dict/list",      DictHandler,
     r"/note/dict",      DictHandler,

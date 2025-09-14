@@ -149,7 +149,7 @@ def is_plugin_file(fpath: str):
 
 
 @mem_util.log_mem_info_deco("load_plugin_file", log_args=True)
-def load_plugin_file(fpath, fname=None, raise_exception=False):
+def load_plugin_file(fpath: str, fname=None, raise_exception=False):
     if not is_plugin_file(fpath):
         return
     if fname is None:

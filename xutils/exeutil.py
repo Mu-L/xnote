@@ -7,6 +7,7 @@
 """脚本执行相关的代码"""
 from __future__ import print_function
 
+import typing
 import gc
 import sys
 import os
@@ -82,12 +83,19 @@ def exec_python_code(
         fpath         = None, 
         vars          = None):
     """执行python代码
-    @param {string} name 脚本的名称
-    @param {string} code 脚本代码
-    @param {bool} record_stdout 是否记录标准输出
-    @param {bool} raise_err 是否抛出异常
-    @param {bool} do_gc 是否执行GC
-    @param {dict} vars 执行的参数
+
+    :param name: 脚本的名称
+    :type name: str
+    :param code: 脚本代码
+    :type code: str
+    :param record_stdout: 是否记录标准输出
+    :param raise_err: 是否抛出异常
+    :param do_gc: 是否执行GC
+    :type do_gc: bool
+    :param fpath: 设置的__file__变量
+    :type fpath: str|None
+    :param vars: 执行的参数
+    :type vars: dict|None
     """
     ret = None
     try:
@@ -169,13 +177,13 @@ def exec_script(name: str, new_window=True, record_stdout = True, vars = None):
         return out
     return ret
 
-def _load_script_code_by_fpath(fpath):
+def _load_script_code_by_fpath(fpath: str):
     import xutils
     code  = xutils.readfile(fpath)
     code  = fix_py2_code(code)
     return code
 
-def _load_script_code(name, dirname = None):
+def _load_script_code(name: str, dirname: typing.Optional[str] = None):
     """加载脚本代码"""
     from xnote.core import xconfig
     if dirname is None:
@@ -184,12 +192,18 @@ def _load_script_code(name, dirname = None):
     fpath = os.path.join(dirname, name)
     return _load_script_code_by_fpath(fpath)
 
-def load_script(name, vars = None, dirname = None, code = None):
-    """加载脚本
-    @param {string} name 插件的名词，和脚本目录(/data/scripts)的相对路径
-    @param {dict} vars 全局变量，相当于脚本的globals变量
-    @param {dirname} dirname 自定义脚本目录
-    @param {code} 指定code运行，不加载文件
+def load_script(name: str, vars: typing.Optional[dict] = None, 
+                dirname: typing.Optional[str] = None, code = None):
+    """加载脚本文件
+
+    :param name: 插件的名称，和脚本目录(/data/scripts)的相对路径
+    :type name: str
+    :param vars: 全局变量，相当于脚本的globals变量
+    :type vars: dict | None
+    :param dirname: 自定义脚本目录
+    :type dirname: str | None
+    :param code: 指定code运行，不加载文件
+    :type code: str | None
     """
     code = _load_script_code(name, dirname)
     return exec_python_code(name, code, 
@@ -222,11 +236,11 @@ class ScriptMeta:
 
         self.meta_list_dict[key] = item_list
 
-    def load_meta_by_fpath(self, fpath):
+    def load_meta_by_fpath(self, fpath: str):
         code = _load_script_code_by_fpath(fpath)
         return self.load_meta_by_code(code)
 
-    def load_meta_by_code(self, code):
+    def load_meta_by_code(self, code: str):
         for line in code.split("\n"):
             if not line.startswith("#"):
                 continue
@@ -252,7 +266,7 @@ class ScriptMeta:
 
         return self.meta_dict
 
-    def get_raw_value(self, key):
+    def get_raw_value(self, key: str):
         return self.meta_dict.get(key)
 
     def get_str_value(self, key, default_value = ""):
@@ -272,7 +286,7 @@ class ScriptMeta:
             return []
         return [value]
 
-    def get_bool_value(self, key, default_value = False):
+    def get_bool_value(self, key: str, default_value = False):
         value = self.meta_dict.get(key)
         if value is None:
             return default_value
@@ -287,7 +301,7 @@ class ScriptMeta:
         except:
             return default_value
 
-    def get_float_value(self, key, default_value = 0.0):
+    def get_float_value(self, key: str, default_value = 0.0):
         value = self.get_raw_value(key)
         if value is None:
             return default_value
@@ -299,12 +313,12 @@ class ScriptMeta:
     def has_tag(self, key):
         return key in self.meta_dict
 
-def load_script_meta(fpath):
+def load_script_meta(fpath: str):
     meta_object = ScriptMeta()
     meta_object.load_meta_by_fpath(fpath)
     return meta_object
 
-def load_script_meta_by_code(code):
+def load_script_meta_by_code(code: str):
     meta_object = ScriptMeta()
     meta_object.load_meta_by_code(code)
     return meta_object

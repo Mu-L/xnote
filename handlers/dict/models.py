@@ -60,7 +60,7 @@ class DictDO(BaseDataRecord):
     
     @property
     def url(self):
-        return f"{server_home}/dict/update?dict_type={self.dict_type}&dict_id={self.dict_id}"
+        return f"{server_home}/dict/list?action=page_edit&dict_type={self.dict_type}&dict_id={self.dict_id}"
 
     def to_search_result(self):
         result = SearchResult()
