@@ -261,9 +261,11 @@ class TagListHtmlHandler:
 {% if len(tag_list) > 0 %}
     <div class="input-group-row">
         <label>标签</label>
+        <div class="input-group-value">
         {% for tag in tag_list %}
             <a class="tag lightgray large create-tag">{{ tag.tag_name }}</a>
         {% end %}
+        </div>
     </div>
 {% end %}
 """
@@ -314,20 +316,9 @@ class TagBindDialogHandler:
             return "无效的类型"
         
         user_id = xauth.current_user_id()
+
+        tag_category_list = dao_tag.list_tag_category_detail(user_id=user_id, tag_type=TagTypeEnum.note_tag.int_value)
         suggest_tag_list = NoteTagInfoDao.list(user_id=user_id, group_id=group_id, order="amount desc")
-        all_tag_list = NoteTagInfoDao.list(user_id=user_id, order="amount desc")
-        global_tag_list = SystemTagEnum.get_note_tags()
-        dup_codes = set([tag.tag_code for tag in suggest_tag_list + global_tag_list])
-        other_tag_list = [tag for tag in all_tag_list if tag.tag_code not in dup_codes]
-
-        def find_amount(tag_code:str):
-            for item in all_tag_list:
-                if item.tag_code == tag_code:
-                    return item.amount
-            return 0
-
-        for tag_info in global_tag_list:
-            tag_info.amount = find_amount(tag_info.tag_code)
 
         def get_active_class(tag: dao_tag.TagInfoDO):
             if tag.tag_code in tags:
@@ -340,15 +331,17 @@ class TagBindDialogHandler:
 
         view_link = TextLink(text="查看", href=view_url)
         manage_link = TextLink(text="管理", href=manage_url)
+        for tag_category in tag_category_list:
+            tag_category.link = view_link
+            
+        if len(suggest_tag_list) > 0:
+            suggest_tag_category = TagCategoryDetail(name="推荐标签", link=manage_link)
+            suggest_tag_category.tag_list = suggest_tag_list
+            tag_category_list.insert(0, suggest_tag_category)
 
-        tag_group_list = [
-            TagCategoryDetail(title = "系统标签", tag_list = global_tag_list, link = view_link),
-            TagCategoryDetail(title = "推荐标签", tag_list = suggest_tag_list, link = manage_link),
-            TagCategoryDetail(title = "其他标签", tag_list = other_tag_list, link = view_link),
-        ] 
         kw = Storage()
         kw.get_active_class = get_active_class
-        kw.tag_group_list = tag_group_list
+        kw.tag_group_list = tag_category_list
         web.header("Content-Type", 'text/html; charset=utf-8')
         return xtemplate.render_text(self.html, **kw)
 

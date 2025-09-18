@@ -31,8 +31,9 @@
     margin-top: 10px;
 }
 
-.input-group-row input, .input-group-row select {
+.input-group-row input, .input-group-row select, .input-group-value {
     width: 200px;
+    float: left;
 }
 
 /** 默认表单(编辑表单) **/

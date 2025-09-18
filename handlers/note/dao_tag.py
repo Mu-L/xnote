@@ -30,11 +30,22 @@ from .models import NoteIndexDO
 from xnote.plugin import TextLink
 
 class TagCategoryDetail(TagCategoryDO):
-    def __init__(self, **kw):
-        self.title = ""
+    def __init__(self, name = "", link: typing.Optional[TextLink] = None, 
+                 is_system = False, **kw):
+        self.name = name
         self.tag_list = []
-        self.link = TextLink()
+
+        if link:
+            self.link = link
+        else:
+            self.link = TextLink()
+
+        self.is_system = is_system
         self.update(kw)
+
+    @property
+    def title(self):
+        return self.name
 
 class _TagBindDaoImpl:
     """标签绑定信息"""
@@ -237,7 +248,7 @@ def list_tag_category_detail(user_id=0, tag_type=0):
         cate_dict[item.category_id] = cate_info
         cate_detail_list.append(cate_info)
     
-    sys_cate = TagCategoryDetail(name="系统标签")
+    sys_cate = TagCategoryDetail(name="系统标签", is_system = True)
     other_cate = TagCategoryDetail(name="其他标签")
 
     for item in all_tags:
