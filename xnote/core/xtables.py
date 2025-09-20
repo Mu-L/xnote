@@ -70,9 +70,11 @@ def create_record_table_manager(table_name=""):
     """默认使用 record.db 文件"""
     return create_table_manager_with_dbpath(table_name, xconfig.FileConfig.record_db_file)
 
-def create_default_table_manager(table_name="", pk_name="id", **kw):
+def create_default_table_manager(table_name="", pk_name="id", dbpath="", **kw):
     kw["pk_name"] = pk_name
-    return create_table_manager_with_dbpath(table_name, xconfig.FileConfig.record_db_file, **kw)
+    if dbpath == "":
+        dbpath = xconfig.FileConfig.record_db_file
+    return create_table_manager_with_dbpath(table_name, dbpath=dbpath, **kw)
 
 def get_default_db_instance():
     return get_db_instance(xconfig.FileConfig.record_db_file)

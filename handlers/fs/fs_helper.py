@@ -197,7 +197,7 @@ def handle_file_url(item: fsutil.FileItem):
     
     item.data_url = server_home + "/fs/~" + item.encoded_path
 
-def get_parent_file_object(path, name = ""):
+def get_parent_file_object(path: str, name = ""):
     path = os.path.abspath(path)
     parent_file = FileItem(os.path.dirname(path))
     handle_file_item(parent_file)
@@ -221,7 +221,7 @@ def get_file_thumbnail(fpath):
     # 未知类型
     return "/_static/image/file2.png"
 
-def get_file_download_link(fpath):
+def get_file_download_link(fpath:str):
     if fsutil.is_parent_dir(xconfig.DATA_DIR, fpath):
         relative_path = fsutil.get_relative_path(fpath, xconfig.DATA_DIR)
         fpath = relative_path

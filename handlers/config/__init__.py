@@ -11,6 +11,8 @@ class LinkConfig:
     admin_plugin_index = TextLink(text="管理员", href="/plugin_list?category=admin")
     system_info = TextLink(text="系统信息", href="/system/info")
     module_list = TextLink(text="模块信息", href="/system/module_list")
+    taglist = TextLink(text="标签列表", href="/note/taglist")
+    tag_manage = TextLink(text="标签管理", href="/note/tag_manage")
 
 
 class TabConfig:

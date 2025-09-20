@@ -482,10 +482,10 @@ class RenameAjaxHandler:
         user_name = user_info.name
 
         if dirname is None or dirname == "":
-            return dict(code="fail", message="dirname is blank")
+            return webutil.FailedResult(code="fail", message="dirname is blank")
         
         if old_name is None or old_name == "":
-            return dict(code="fail", message="old_name is blank")
+            return webutil.FailedResult(code="fail", message="old_name is blank")
 
         fs_checker.check_file_name(new_name)
         
@@ -501,11 +501,11 @@ class RenameAjaxHandler:
         old_path = xutils.get_real_path(old_path)
 
         if not xauth.is_admin() and not check_file_auth(old_path, user_name):
-            return dict(code="fail", message="unauthorized")
+            return webutil.FailedResult(code="fail", message="unauthorized")
         if not os.path.exists(old_path):
-            return dict(code="fail", message="源文件 `%s` 不存在" % old_name)
+            return webutil.FailedResult(code="fail", message="源文件 `%s` 不存在" % old_name)
         if os.path.exists(new_path):
-            return dict(code="fail", message="目标文件 `%s` 已存在" % new_name)
+            return webutil.FailedResult(code="fail", message="目标文件 `%s` 已存在" % new_name)
         os.rename(old_path, new_path)
 
         event = xnote_event.FileRenameEvent()
@@ -515,7 +515,7 @@ class RenameAjaxHandler:
         event.user_id = user_info.id
 
         xmanager.fire("fs.rename", event)
-        return dict(code="success")
+        return webutil.SuccessResult()
 
 class CutAjaxHandler:
 
@@ -526,7 +526,7 @@ class CutAjaxHandler:
         for i, fpath in enumerate(files):
             files[i] = os.path.abspath(fpath)
         xconfig.FS_CLIP = files
-        return dict(code="success")
+        return webutil.SuccessResult()
 
     def GET(self):
         return self.POST()
@@ -569,17 +569,18 @@ class ListAjaxHandler:
         show_parent = xutils.get_argument_str("show_parent")
 
         if fpath == "" or fpath == None:
-            return dict(code = "400", message = u"fpath参数为空")
+            return webutil.FailedResult(code = "400", message = u"fpath参数为空")
 
         if not os.path.exists(fpath):
-            return dict(code = "404", message = u"文件不存在")
+            return webutil.FailedResult(code = "404", message = u"文件不存在")
 
         files = list_file_objects(fpath)
         if show_parent == "true":
             files.insert(0, fs_helper.get_parent_file_object(fpath, "[上级目录]"))
 
-        return dict(code = "success", fpath = fpath, data = files)
-
+        result = webutil.SuccessResult(files)
+        result.fpath = fpath
+        return result
 
 class LinkHandler:
 

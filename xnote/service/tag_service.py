@@ -242,7 +242,7 @@ class TagInfoServiceImpl:
         return text
     
     def get_page(self, user_id=0, tag_type=0, target_id_list=[], offset=0, limit=20, 
-                 skip_count=False, skip_tag_type=False, order=None):
+                 skip_count=False, skip_tag_type=False, category_id:typing.Optional[int]=None, order=None):
         where_sql = "user_id=$user_id"
         tag_type = self.handle_tag_type(tag_type)
 
@@ -250,7 +250,9 @@ class TagInfoServiceImpl:
             where_sql += " AND tag_type=$tag_type"
         if len(target_id_list) > 0:
             where_sql += " AND target_id IN $target_id_list"
-        vars = dict(user_id=user_id, tag_type=tag_type, target_id_list=target_id_list)
+        if category_id != None:
+            where_sql += " AND category_id = $category_id"
+        vars = dict(user_id=user_id, tag_type=tag_type, target_id_list=target_id_list, category_id=category_id)
         result = self.db.select(where=where_sql, vars=vars, offset=offset, limit=limit, order=order)
         if skip_count:
             count = 0
@@ -376,7 +378,7 @@ class TagCategoryServiceImpl:
     
     def list(self, user_id=0, limit=100):
         assert user_id > 0
-        result_list = self.db.select(where=dict(user_id=user_id), limit=limit, order="sort_order")
+        result_list = self.db.select(where=dict(user_id=user_id), limit=limit, order="sort_order, name")
         return TagCategoryDO.from_dict_list(result_list)
     
     def get_by_id(self, category_id=0, user_id=0):
@@ -388,6 +390,9 @@ class TagCategoryServiceImpl:
     def get_by_name(self, name="", user_id=0):
         result = self.db.select_first(where=dict(name=name, user_id=user_id))
         return TagCategoryDO.from_dict_or_None(result)
+    
+    def count(self, user_id=0):
+        return self.db.count(where = dict(user_id=user_id))
     
     def get_name_dict(self, user_id=0, limit=100):
         assert user_id > 0

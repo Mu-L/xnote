@@ -269,12 +269,14 @@ class DbScanHandler:
 
         return result
 
-class SqlDBInfo:
-
+class SqlDBInfo(Storage):
     def __init__(self):
         self.name = ""
+        self.name_url = ""
         self.amount = 0
         self.comment = ""
+        self.operate_url = ""
+        self.struct_url = ""
 
 class SqlDBHandler:
 
@@ -284,20 +286,34 @@ class SqlDBHandler:
             return (1, table_info.table_name)
         return (0, table_info.table_name)
 
+
     @xauth.login_required("admin")
     def GET(self):
         p2 = xutils.get_argument_str("p2")
         db_list = xtables.get_all_tables(is_deleted=(p2=="delete"))
         db_list.sort(key = SqlDBHandler.sort_key)
-        db_info_list = []
+        db_info_table = DataTable()
+        db_info_table.default_head_style.min_width = "120px"
+        db_info_table.add_head("表名", field="name", link_field="name_url", min_width="150px")
+        db_info_table.add_head("说明", field="comment", min_width="150px")
+        db_info_table.add_head("记录数", field="amount")
+        db_info_table.add_action(title="操作", type="link", link_field="operate_url", css_class="btn btn-default")
+        db_info_table.add_action(title="结构", type="link", link_field="struct_url", css_class="btn btn-default")
+
+        server_home = xconfig.WebConfig.server_home
+
         for db in db_list:
             info = SqlDBInfo()
             info.name = db.tablename
+            info.name_url = f"{server_home}/system/sqldb_detail?name={info.name}"
             info.amount = db.count()
             info.comment = db.table_info.comment
-            db_info_list.append(info)
+            info.operate_url = f"{server_home}/system/sqldb_operate?table_name={info.name}"
+            info.struct_url = f"{server_home}/system/db/struct?table_name={info.name}"
+
+            db_info_table.add_row(info)
         kw = Storage()
-        kw.db_info_list = db_info_list
+        kw.db_info_table = db_info_table
         kw.parent_link = LinkConfig.app_index
         return xtemplate.render("system/page/db/sqldb_list.html", **kw)
 
@@ -552,6 +568,7 @@ class TableData:
         result = DataTable()
 
         min_width_dict = {
+            "name": "150px",
             "dflt_value": "150px",
             "type": "150px",
         }

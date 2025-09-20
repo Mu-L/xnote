@@ -87,7 +87,7 @@ class TableHelper:
     @classmethod
     def get_type_name(cls, type_name: str):
         """获取字段的类型名称,不包含长度"""
-        return cls._remove_name_length(type_name)
+        return cls._remove_name_length(type_name).lower()
     
     @classmethod
     def is_int_type(cls, coltype: str):
@@ -412,7 +412,12 @@ class TableManagerFacade:
 
     table_dict = {} # type: dict[str, TableInfo]
 
-    def __init__(self, tablename, db = empty_db, is_backup = False, **kw):
+    def __init__(self, tablename: str, db = empty_db, is_backup = False, **kw):
+        """初始化表管理器门面
+        
+        :param pk_name: 主键名称
+        :type pk_name: str
+        """
         self.table_info = TableInfo(tablename)
         self.table_info.pk_name = kw.get("pk_name", "id")
         self.table_info.db_type = kw.get("db_type", "")

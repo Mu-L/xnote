@@ -9,6 +9,8 @@ from xnote.core import xauth
 from xnote.core import xtemplate
 from xnote.service import TagInfoService, TagTypeEnum
 from xnote.service import TagCategoryService, TagCategoryDO
+from xnote.plugin import TabBox
+from handlers.config import LinkConfig
 
 class BaseTagManageHandler(BaseTablePlugin):
     require_admin = False
@@ -20,17 +22,13 @@ class BaseTagManageHandler(BaseTablePlugin):
         return xtemplate.render_text("""{% include note/component/sidebar/group_list_sidebar.html %}""")
 
 class TagCategoryManageHandler(BaseTagManageHandler):
+    parent_link = LinkConfig.taglist
 
     PAGE_HTML = """
-{% include note/page/taglist_tab.html %}
 {% include note/page/taglist_subtab.html %}
 
 <div class="card">
-    <div class="table-action-row">
-        <button class="btn" onclick="xnote.table.handleEditForm(this)"
-            data-url="?action=edit" data-title="{{create_btn_text}}">{{create_btn_text}}</button>
-    </div>
-    {% include common/table/table.html %}
+    {% render table %}
 </div>
 """
 
@@ -39,7 +37,7 @@ class TagCategoryManageHandler(BaseTagManageHandler):
         table = self.create_table()
         table.default_head_style.min_width = "100px"
         table.add_head("ID", "category_id")
-        table.add_head("名称", "name", css_class_field="type_class")
+        table.add_head("名称", "name", css_class_field="type_class", min_width="150px")
         table.add_head("描述", "description")
         table.add_head("标签数量", "tag_amount")
         table.add_head("修改时间", "mtime")
@@ -47,6 +45,8 @@ class TagCategoryManageHandler(BaseTagManageHandler):
 
         table.add_action("编辑", link_field="edit_url", type=TableActionType.edit_form)
         table.add_action("删除", link_field="delete_url", type=TableActionType.confirm, msg_field="delete_msg", css_class="btn danger")
+
+        table.action_bar.add_edit_button(text="新建类别", url="?action=edit")
 
         user_id = xauth.current_user_id()
         category_list = TagCategoryService.list(user_id=user_id)
@@ -57,7 +57,6 @@ class TagCategoryManageHandler(BaseTagManageHandler):
             table.add_row(row)
 
         kw = Storage()
-        kw.create_btn_text = "新建类别"
         kw.table = table
         kw.page = 1
         kw.page_max = 1
@@ -70,6 +69,7 @@ class TagCategoryManageHandler(BaseTagManageHandler):
         category_info = TagCategoryService.get_by_id(category_id, user_id=user_id)
         if category_info is None:
             category_info = TagCategoryDO()
+            category_info.sort_order = TagCategoryService.count(user_id=user_id) * 10
 
         form = self.create_form()
         form.add_row(field="category_id", value=str(category_id), css_class="hide")
@@ -121,13 +121,14 @@ class TagCategoryManageHandler(BaseTagManageHandler):
 
 class TagManageHandler(BaseTagManageHandler):
 
+    parent_link = LinkConfig.taglist
+
     PAGE_HTML = """
-{% include note/page/taglist_tab.html %}
 {% include note/page/taglist_subtab.html %}
 
 <div class="card">
     {% include common/table/table.html %}
-    <div class="padding-top-5 padding-bottom-5">
+    <div class="padding-top-sm padding-bottom-sm">
         {% include common/base/pagination.html %}
     </div>
 </div>
@@ -138,6 +139,7 @@ class TagManageHandler(BaseTagManageHandler):
     def handle_page(self):
         page = xutils.get_argument_int("page", 1)
         tag_type = xutils.get_argument_int("tag_type")
+        filter_type = xutils.get_argument_int("filter_type")
         table = self.create_table()
         table.default_head_style.min_width = "100px"
         table.add_head("ID", "tag_id")
@@ -153,13 +155,22 @@ class TagManageHandler(BaseTagManageHandler):
         page_size = 20
         offset = (page-1) * page_size
 
+        category_id = None
+        if filter_type == 1:
+            category_id = 0
+
         category_dict = TagCategoryService.get_name_dict(user_id=user_id)
-        rows, count = TagInfoService.get_page(user_id=user_id, offset=offset, tag_type=tag_type, limit=page_size)
+        rows, count = TagInfoService.get_page(
+            user_id=user_id, offset=offset, tag_type=tag_type, category_id=category_id, limit=page_size)
         for row in rows:
             row["edit_url"] = f"?action=edit&tag_id={row.tag_id}"
             row["category_name"] = category_dict.get(row.category_id, "")
             row["tag_type_str"] = row.tag_type_name
             table.add_row(row)
+
+        filter_tab = TabBox(tab_key="filter_type", css_class="btn-style", tab_default="0", title="过滤条件")
+        filter_tab.add_item(title="全部", value="0")
+        filter_tab.add_item(title="未分类", value="1")
 
         kw = Storage()
         kw.table = table
@@ -170,6 +181,7 @@ class TagManageHandler(BaseTagManageHandler):
         kw.tag_type_list = TagTypeEnum.enums()
         kw.default_tab = "manage"
         kw.default_subtab = "tag"
+        kw.filter_tab = filter_tab
 
         return self.response_page(**kw)
     

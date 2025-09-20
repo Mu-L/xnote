@@ -12,12 +12,8 @@ from xnote.core import xconfig
 from fnmatch import fnmatch
 from xutils import dbutil
 from xutils import Storage
-
 from .fs_helper import get_index_db
 
-dbutil.register_table("fs_index", "文件索引")
-
-FS = xutils.Module("fs")
 
 def get_fpath_from_key(key):
     left = len("fs_index")+1
@@ -47,10 +43,6 @@ def find_in_cache(key, maxsize=sys.maxsize):
     if quoted_key != key:
         plist += find_in_cache0(quoted_key)
     return plist
-
-def get_index_dirs():
-    index_dirs = xauth.get_user_config("admin", "index_dirs")
-    return index_dirs.split("\n")
 
 class SearchHandler:
 
@@ -83,16 +75,20 @@ class SearchHandler:
         else:
             plist = xutils.search_path(path, find_key)
 
-        filelist = FS.process_file_list(plist, path)
+        from .fs import process_file_list
+        filelist = process_file_list(plist, path)
         # TODO max result size
         tpl = "fs/page/fs.html"
         if mode == "grid":
             tpl = "fs/fs_grid.html"
 
+        user_info = xauth.current_user()
+        assert user_info != None
+
         kw = Storage()
         kw.path = path
         kw.quoted_path = xutils.quote(path)
-        kw.token = xauth.get_current_user().token
+        kw.token = user_info.token
         kw.filelist = filelist
 
         return xtemplate.render(tpl, **kw)

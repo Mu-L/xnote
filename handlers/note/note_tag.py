@@ -18,6 +18,7 @@ from . import dao_tag
 from .dao_tag import NoteTagInfoDao, NoteTagBindDao, TagTypeEnum, TagInfoDO, TagCategoryDetail, SystemTagEnum
 from . import dao as note_dao
 from xnote.plugin import TextLink
+from handlers.config import LinkConfig
 
 class TagUpdateAjaxHandler:
 
@@ -88,8 +89,10 @@ class TagListHandler:
         
         kw = Storage()
         kw.html_title = T("标签列表")
+        kw.title = T("标签列表")
         kw.tag_category_list = tag_category_list
         kw.tag_type_list = TagTypeEnum.enums()
+        kw.right_link = LinkConfig.tag_manage
 
         return xtemplate.render("note/page/taglist.html", **kw)
 

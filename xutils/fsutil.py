@@ -590,11 +590,11 @@ class FileItem(Storage):
     """文件对象"""
 
     def __init__(self,
-                 path,
-                 parent=None,
+                 path: str,
+                 parent:typing.Optional[str] = None,
                  merge=False,
                  encode_path=True,
-                 name=None):
+                 name:typing.Optional[str]=None):
         self.path = path
         self.path_b64 = textutil.encode_base64(path)
         realname = fixed_basename(path)
@@ -851,7 +851,7 @@ def backupfile(path, backup_dir=None, rename=False):
         shutil.copyfile(path, newpath)
 
 
-def get_free_space(folder):
+def get_free_space(folder: str):
     """返回文件夹的可用空间
     参考来源: https://www.jb51.net/article/115604.htm
 
