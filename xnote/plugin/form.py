@@ -84,7 +84,8 @@ class DataForm:
     footer_btn_group_css = "float-right"
     footer_html:typing.Union[str, bytes] = ""
     save_action = "save"
-    delete_action = "delete"
+    delete_confirm_msg = "Delete?"
+    delete_url = ""
     delete_reload_href = ""
     delete_btn_css = ""
     

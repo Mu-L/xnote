@@ -172,7 +172,7 @@ def init_note_index_table():
         # 访问时间atime
         manager.add_column("atime", "datetime", default_value=DEFAULT_DATETIME)
         # 删除时间
-        manager.add_column("dtime", "datetime", DEFAULT_DATETIME)
+        manager.add_column("dtime", "datetime", default_value=None, not_null=False)
         manager.add_column("is_deleted", "tinyint", 0, comment="逻辑删除标记")
         manager.add_column("is_public", "tinyint", 0, comment="是否是公开的笔记")
         

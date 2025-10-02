@@ -13,6 +13,7 @@ class LinkConfig:
     module_list = TextLink(text="模块信息", href="/system/module_list")
     taglist = TextLink(text="标签列表", href="/note/taglist")
     tag_manage = TextLink(text="标签管理", href="/note/tag_manage")
+    dict_list = TextLink(text="词典", href="/note/dict")
 
 
 class TabConfig:

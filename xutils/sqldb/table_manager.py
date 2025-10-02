@@ -23,6 +23,8 @@ class ColumnInfo:
     def __init__(self):
         self.name = ""
         self.type = ""
+        self.not_null = False
+        self.default_value = None
 
 def quote_name(name: str):
     if "`" in name:
@@ -137,11 +139,8 @@ class BaseTableManager:
         strval = strval.replace("'", "''")
         return "'%s'" % strval
     
-    def desc_columns(self):
-        demo = ColumnInfo()
-        demo.name = "demo"
-        demo.type = "text"
-        return [demo]
+    def desc_columns(self) -> typing.List[ColumnInfo]:
+        raise NotImplementedError("desc_columns not implemented")
 
     def add_column(self, colname:str, coltype: str,
                    default_value=None, not_null=True, **kw):
@@ -222,12 +221,14 @@ class MySQLTableManager(BaseTableManager):
         sql = f"DESC `{self.tablename}`"
         columns = list(self.db.query(sql)) # type: ignore
         if self.debug:
-            print("desc %s, columns=%s" % (self.tablename, columns))
+            print("[mysql] desc %s, columns=%s" % (self.tablename, columns))
         result = []
         for col in columns:
             item = ColumnInfo()
             item.type = col["Type"]
             item.name = col["Field"]
+            item.not_null = col["Null"] == "NO"
+            item.default_value = col["Default"]
             result.append(item)
         return result
     
@@ -344,6 +345,8 @@ class SqliteTableManager(BaseTableManager):
             item = ColumnInfo()
             item.type = col["type"]
             item.name = col["name"]
+            item.not_null = col["notnull"] == 1
+            item.default_value = col["dflt_value"]
             result.append(item)
         return result
 
@@ -472,10 +475,10 @@ class TableManagerFacade:
             self.rename_column(old_name=old_name, new_name=colname)
 
         if TableHelper.is_varchar_type(coltype):
-            assert default_value != None, f"varchar column {colname} default value cant be NULL"
+            assert default_value != None, f"varchar column {colname} default value can not be NULL"
         
         if TableHelper.is_int_type(coltype):
-            assert default_value != None, f"{coltype} column {colname} default value cant be NULL"
+            assert default_value != None, f"{coltype} column {colname} default value can not be NULL"
             assert isinstance(default_value, int)
 
         self.table_info.add_column(colname, coltype, default_value, not_null, comment=comment)

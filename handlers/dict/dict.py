@@ -22,6 +22,7 @@ from .models import DictTypeEnum, DictTypeItem
 from xnote.plugin.table import DataTable
 from xnote.plugin.table_plugin import BaseTablePlugin, TableActionType, FormRowType
 from xnote.plugin.form import DataForm, QueryForm, PageEditForm
+from handlers.config import LinkConfig
 
 
 PAGE_SIZE = xconfig.PAGE_SIZE
@@ -187,8 +188,13 @@ class DictHandler(BaseTablePlugin):
         if item == None:
             return self.response_text("dict_item is None")
         
+        self.parent_link = LinkConfig.dict_list
+        self.title = "编辑"
+
         dict_form = PageEditForm()
         dict_form.delete_reload_href = xconfig.WebConfig.resolve_path(f"/dict/list?dict_type={dict_type}")
+        dict_form.delete_confirm_msg = f"确认删除记录[{item.key}]吗?"
+        dict_form.delete_url = f"?action=delete&dict_id={item.dict_id}"
 
         dict_form.add_row(field="dict_id", value=str(item.dict_id), css_class="hide")
         row = dict_form.add_select(title="类型", field="dict_type", value=str(item.dict_type))
@@ -238,7 +244,6 @@ class DictHandler(BaseTablePlugin):
         dict_id = data_dict.get_int("dict_id")
         key = data_dict.get_str("key")
         value = data_dict.get_str("value")
-        dict_type = data_dict.get_int("dict_type")
         dao = self.get_dict_dao(dict_type)
 
         user_id = xauth.current_user_id()
@@ -252,10 +257,21 @@ class DictHandler(BaseTablePlugin):
             dict_item.key = key
             dict_item.value = value
             dict_item.user_id = user_id
+            dict_item.dict_type = dict_type
             dao.create(dict_item)
         else:
             dao.update(dict_id=dict_id, user_id=user_id, value=value)
         return webutil.SuccessResult()
+    
+    def handle_delete(self):
+        dict_id = xutils.get_argument_int("dict_id")
+        user_id = xauth.current_user_id()
+        record = dict_dao.DictPublicDao.get_by_id(dict_id=dict_id, user_id=user_id, ignore_type=True)
+        if record is None:
+            return webutil.FailedResult("404", message="record not found")
+        dict_dao.DictPublicDao.delete_by_id(dict_id=dict_id)
+        return webutil.SuccessResult()
+
     
 class DictAddHandler(BaseDictHandler):
 

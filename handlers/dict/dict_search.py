@@ -6,6 +6,7 @@ from xnote.core import xmanager
 from xnote.core.xtemplate import T
 from xnote.core.models import SearchContext
 from .dict_dao import DictPublicDao, DictPersonalDao
+from xutils import sqldb
 
 # \u7ffb\u8bd1 翻译
 # \u5b9a\u4e49 定义
@@ -25,8 +26,9 @@ def on_default_search(ctx: SearchContext):
         return
 
     user_id = ctx.user_id
+    key = sqldb.utils.remove_like_wildcard(ctx.input_text)
     for dao in (DictPersonalDao, DictPublicDao):
-        results, _ = dao.find_page(user_id=user_id, key=ctx.input_text, skip_count=True)
+        results, _ = dao.find_page(user_id=user_id, key_like=key, skip_count=True)
         for item in results:
             ctx.dicts.append(item.to_search_result())
 

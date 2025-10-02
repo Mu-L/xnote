@@ -17,6 +17,7 @@ from xutils import dateutil, is_str
 from xnote.core.models import SearchResult
 from .models import DictDO, DictTypeEnum, DictTypeItem
 from xutils import textutil
+from xutils import sqldb
 
 PAGE_SIZE = xconfig.PAGE_SIZE
 
@@ -26,10 +27,12 @@ def convert_dict_func(item: DictDO):
     return v
 
 
-def search_dict(key, offset = 0, limit = None):
+def search_dict(key: str, offset = 0, limit = None):
     if limit is None:
         limit = PAGE_SIZE
-    items, count = DictPublicDao.find_page(key=key, offset=offset, limit=limit)
+    # 移除模糊匹配
+    key = sqldb.utils.remove_like_wildcard(key)
+    items, count = DictPublicDao.find_page(key_like=key, offset=offset, limit=limit)
     items = list(map(convert_dict_func, items))
     return items, count
 
@@ -67,7 +70,7 @@ class DictDaoClass:
         dict_item.ctime = now
         dict_item.mtime = now
         dict_item.dict_type = self.dict_type.int_value
-        dict_item.key = dict_item.key.lower()
+        dict_item.key = dict_item.key
 
         save_dict = dict_item.to_save_dict()
         if not self.dict_type.has_user_id:
@@ -96,12 +99,15 @@ class DictDaoClass:
 
         return self.db.update(where=where_dict, **values) # type:ignore
 
-    def get_by_id(self, dict_id=0, user_id=0):
+    def get_by_id(self, dict_id=0, user_id=0, ignore_type = False):
         assert dict_id > 0
         where_dict = {
             self.db.table_info.pk_name: dict_id,
-            "dict_type": self.dict_type.int_value,
         }
+
+        if not ignore_type:
+            where_dict["dict_type"] = self.dict_type.int_value
+
         if self.dict_type.has_user_id:
             where_dict["user_id"] = user_id
         
@@ -123,11 +129,10 @@ class DictDaoClass:
             return results[0]
         return None
     
-    def find_page(self, user_id=0, key="", fuzzy_key="", offset=0, limit=20, skip_count=False):
+    def find_page(self, user_id=0, key="", fuzzy_key="", key_like="", offset=0, limit=20, skip_count=False):
         if self.dict_type.has_user_id:
             assert user_id > 0
 
-        key = key.lower()
         fuzzy_key = fuzzy_key.lower()
 
         where = "dict_type=$dict_type"
@@ -138,8 +143,10 @@ class DictDaoClass:
         if fuzzy_key != "":
             where += " AND `key` LIKE $fuzzy_key"
             fuzzy_key = self.to_fuzzy(fuzzy_key)
+        if key_like != "":
+            where += " AND `key` LIKE $key_like"
         
-        vars = dict(user_id=user_id, key=key, fuzzy_key=fuzzy_key, dict_type=self.dict_type.int_value)
+        vars = dict(user_id=user_id, key=key, fuzzy_key=fuzzy_key, dict_type=self.dict_type.int_value, key_like=key_like)
         db_result = self.db.select(where=where, vars=vars, offset=offset, limit=limit)
         if skip_count:
             amount = 0
