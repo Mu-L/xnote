@@ -110,3 +110,6 @@ class TestMain(test_base.BaseTestCase):
     def test_admin_repair(self):
         self.check_OK("/admin/repair")
         self.check_OK("/admin/repair?action=repair&code=fix_msg_tag")
+
+    def test_system_template_cache(self):
+        self.check_OK("/system/template_cache")

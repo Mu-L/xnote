@@ -146,15 +146,18 @@ class TextParserBase(object):
         return self.text[self.i:self.i+length] == target
 
     def find(self, target: str):
-        """以{self.i}作为开始下标，寻找目标字符串
-        @param {string} target 
-        @return 目标字符串的索引下标，如果找不到返回-1
+        """
+        以{self.i}作为开始下标，寻找目标字符串
+
+        :param target: 目标字符 
+        :return: 目标字符串的索引下标，如果找不到返回-1
         """
         return self.text.find(target, self.i)
 
     def find_blank(self):
         """找到一个空白字符
-        @return 第一个空白字符的索引，如果找不到返回-1
+        
+        :return: 第一个空白字符的索引，如果找不到返回-1
         """
         i = self.i
         for i in range(self.i, self.length):
@@ -164,8 +167,8 @@ class TextParserBase(object):
 
         return -1
 
-    def stash_str(self, c):
-        """暂存字符到str_token"""
+    def str_token_append(self, c: str):
+        """追加字符到str_token"""
         self.str_token += c
 
     def save_str_token(self):
@@ -189,20 +192,6 @@ class TextParserBase(object):
             # 位于第一个空白字符
             self.i = end
         return found
-    
-    def read_include_target_char(self, char_list, start_index = None):
-        """包含目标{char_list},读取后索引{i}位于any之后的字符"""
-        if start_index is None:
-            start_index = self.i
-
-        for i in range(start_index, self.max_index+1):
-            c = self.text[i]
-            if c in char_list:
-                self.i = i + 1
-                return self.text[start_index:i]
-        # 没找到，下标移动到最后
-        self.i = self.length
-        return self.text[start_index:]
 
     def read_till_index(self, index: int):
         """包含目标索引，读取后{i}=index+1"""
@@ -285,6 +274,9 @@ class TextParserBase(object):
         for token in tokens:
             result.append(token.get_html())
         return result
+    
+    def is_blank(self, char: str):
+        return char in (" ", "\r", "\n", "\t")
 
 
 class TokenType:
@@ -430,23 +422,39 @@ class TextParser(TextParserBase):
 
         start_index = self.i
         self.save_str_token()
-        end_tuple = ("#", "\n")
         key0 = None
         for i in range(self.i+1, self.length):
             c = self.text[i]
+            if self.is_blank(c):
+                # 话题终止
+                key0 = self.text[start_index:i]
+                self.i = i
+                break
+            
             if c == '#':
-                key0 = self.read_till_index(i)
+                # '#'字符结束,包含尾部的'#'字符
+                key0 = self.text[start_index: i + 1]
+                self.i = i + 1
                 break
             elif c == '\n':
-                key0 = self.read_before_index(i)
+                # 换行终止
+                key0 = self.text[start_index: i]
+                self.i = i
                 break
 
         if key0 is None:
+            # 读到文本结束了
             key0 = self.read_rest()
+
+    
+        if key0 == "#" or key0 == "##":
+            # 连续的##字符, 无效的话题
+            self.str_token_append(key0)
+            return
 
         if len(key0) > self.topic_len_limit:
             # 超过限制，不认为是话题
-            self.stash_str('#')
+            self.str_token_append('#')
             self.i = start_index + 1
             return
         # 记录关键字
@@ -520,7 +528,7 @@ class TextParser(TextParserBase):
         
         key = self.read_till_target(end_char)
         if key == "":
-            self.stash_str(self.text[self.i])
+            self.str_token_append(self.text[self.i])
             # self.tokens.append(self.text[self.i])
             self.i += 1
             return
@@ -609,12 +617,12 @@ class TextParser(TextParserBase):
             elif self.startswith("file://"):
                 self.mark_file()
             elif c == '\n':
-                self.stash_str(c)
+                self.str_token_append(c)
                 self.save_str_token()
                 self.read_next()
             else:
                 # 未命中规则，保存并且往下读取一个字符
-                self.stash_str(c)
+                self.str_token_append(c)
                 self.read_next()
 
             # 前面都读取了一个字符，这里不需要再读取

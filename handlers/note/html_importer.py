@@ -366,7 +366,7 @@ class MarkdownImageParser(TextParserBase):
                 self.append_token(name_part)
 
                 if self.current() != "(":
-                    self.stash_str(c)
+                    self.str_token_append(c)
                     continue
                 else:
                     href_part = self.read_till_target(")")
@@ -377,7 +377,7 @@ class MarkdownImageParser(TextParserBase):
                 code_part = self.read_till_target("```")
                 self.append_token(code_part)
             else:
-                self.stash_str(c)
+                self.str_token_append(c)
                 self.read_next()
 
             c = self.current()

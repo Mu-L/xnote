@@ -115,18 +115,28 @@ link2:https://abc.com/test?name=1&age=2 text after link
         print(result)
 
         struct_tokens = parser.parse_to_tokens(text)
-        # print("struct_tokens:", struct_tokens)
+        self.print_head("test_other")
         for token in struct_tokens:
             print(token)
 
-        assert struct_tokens[0] == TopicToken("#Topic1#")
-        assert struct_tokens[1] == TextToken(" ")
-        assert struct_tokens[2] == TopicToken("#Topic2 Test#")
-        assert struct_tokens[3] == TextToken("\n")
-        assert struct_tokens[4] == TopicToken("#中文话题#")
-        assert struct_tokens[5] == TextToken("\n")
-        assert struct_tokens[6] == TextToken("This is a new line\n")
-        assert struct_tokens[7] == TextToken("图片")
+        index = 0
+        assert struct_tokens[index] == TopicToken("#Topic1#")
+        index += 1
+        assert struct_tokens[index] == TextToken(" ")
+        index += 1
+        assert struct_tokens[index] == TopicToken("#Topic2")
+        index += 1
+        assert struct_tokens[index] == TextToken(" Test")
+        index += 1
+        assert struct_tokens[index] == TextToken("#\n")
+        index += 1
+        assert struct_tokens[index] == TopicToken("#中文话题#")
+        index += 1
+        assert struct_tokens[index] == TextToken("\n")
+        index += 1
+        assert struct_tokens[index] == TextToken("This is a new line\n")
+        index += 1
+        assert struct_tokens[index] == TextToken("图片")
 
     def test_multi_img(self):
         text = "file:///data/temp/1.png\nfile:///data/temp/2.png"

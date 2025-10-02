@@ -76,6 +76,11 @@ def run_test(args: Namespace):
 		py_exec("-m pytest tests/test_xutils_cache.py --doctest-modules --cov xutils.cacheutil --capture no")
 		py_exec("-m coverage html -i")
 		return
+	
+	if target == "text_parser":
+		py_exec("-m pytest tests/test_text_parser.py --doctest-modules --cov xutils.text_parser --capture no")
+		py_exec("-m coverage html -i")
+		return
 
 	if target == "fs":
 		py_exec("-m pytest tests/test_fs.py --doctest-modules --cov handlers.fs --cov handlers.fs --capture no")
