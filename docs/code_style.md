@@ -58,7 +58,7 @@ my_package # 带下划线的包名
     - NoteDao 笔记的数据操作对象
     - NoteRecord 笔记的数据库记录（建议用Record替代DO,因为DO和Dao容易混淆）
 - 分层命名规则：
-    - 视图层（handlers）: 具体的功能，有状态，包括API和页面，处理业务逻辑
+    - 视图层（xnote_handlers）: 具体的功能，有状态，包括API和页面，处理业务逻辑
     - 核心层（core）: 基于功能抽象出来的通用能力，适用于WEB应用，有状态，只处理功能逻辑，不感知业务逻辑
     - 基础层（xutils/lib）: 非常基础并且通用的能力，适用于全部领域，基本无状态
 
@@ -95,18 +95,18 @@ my_package # 带下划线的包名
 
 # 6. 模块内部的命名
 
-- `handlers/common/` 通用组件
-- `handlers/note` note模块的根目录
-- `handlers/note/*.py` 后台处理程序
-- `handlers/note/page/` 模板页面目录
-- `handlers/note/page/xxx_ajax` ajax页面目录
-- `handlers/note/page/xxx_css` CSS组件
-- `handlers/note/page/xxx_script` JS脚本组件
+- `xnote_handlers/common/` 通用组件
+- `xnote_handlers/note` note模块的根目录
+- `xnote_handlers/note/*.py` 后台处理程序
+- `xnote_handlers/note/page/` 模板页面目录
+- `xnote_handlers/note/page/xxx_ajax` ajax页面目录
+- `xnote_handlers/note/page/xxx_css` CSS组件
+- `xnote_handlers/note/page/xxx_script` JS脚本组件
 
 > 示例
 
 ```text
-handlers/note/
+xnote_handlers/note/
 |-- page
 |   |-- css
 |   |   |-- layout_css.html

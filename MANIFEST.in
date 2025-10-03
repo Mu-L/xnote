@@ -2,7 +2,7 @@ recursive-include static *
 recursive-include lib *
 recursive-include config *
 recursive-include docs *
-recursive-include handlers *
+recursive-include xnote_handlers *
 
 global-exclude htmlcov/*
 global-exclude data/*

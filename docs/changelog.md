@@ -387,7 +387,7 @@ v2.0版本主要目标是增强扩展能力。
     - 表格样式的统一优化
     - 分页支持跳转到最后一页
     - 公告的API支持wday
-    - handlers/file重命名为handlers/note
+    - xnote_handlers/file重命名为handlers/note
     - 搜索优化，图书搜索移出默认操作，加快搜索速度
     - markdown的图片居中
 
