@@ -677,6 +677,19 @@ def init_search_history_table():
         manager.add_column("search_key", "varchar(100)", default_value="")
         manager.add_index("user_id")
 
+
+def init_clip_log_table():
+    """
+    剪贴板记录, since 2025-10-03
+    """
+    table_name = "clip_log_v2"
+    comment = "剪贴板记录"
+    with create_default_table_manager(table_name, comment=comment) as manager:
+        manager.add_column("ctime", "datetime", default_value=DEFAULT_DATETIME, comment="创建时间")
+        manager.add_column("mtime", "datetime", default_value=DEFAULT_DATETIME, comment="修改时间")
+        manager.add_column("content", "text", default_value="")
+
+    
 def DBWrapper(dbpath, tablename):
     db = MySqliteDB(db=dbpath)
     return TableProxy(db, tablename)
@@ -685,23 +698,8 @@ def DBWrapper(dbpath, tablename):
 def get_file_table():
     return get_table_by_name("file")
 
-
-def get_note_table():
-    return get_file_table()
-
-
-def get_note_history_table():
-    dbpath = xconfig.FileConfig.record_db_file
-    return DBWrapper(dbpath, "note_history")
-
-
 def get_note_content_table():
     return DBWrapper(xconfig.DB_PATH, "note_content")
-
-
-def get_file_tag_table():
-    return DBWrapper(xconfig.DB_PATH, "file_tag")
-
 
 def get_schedule_table():
     return DBWrapper(xconfig.DB_PATH, "schedule")
@@ -826,6 +824,7 @@ def init():
 
     # 通用的分享记录
     init_share_info_table()
+    init_clip_log_table()
     
     # KV表
     init_kv_store_table()

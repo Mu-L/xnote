@@ -54,6 +54,7 @@ def init_system_table():
     dbutil.register_table("z", "老版本的zset实现", is_deleted = True)
     dbutil.register_table("fs_sync_index_copy", "文件索引拷贝", is_deleted=True)
     dbutil.register_table("fs_sync_index_failed", "文件索引拷贝失败", is_deleted=True)
+    dbutil.register_table("clip_log", "剪贴板历史", is_deleted=True)
 
 
 def init_deleted_table():

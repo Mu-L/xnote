@@ -113,3 +113,6 @@ class TestMain(test_base.BaseTestCase):
 
     def test_system_template_cache(self):
         self.check_OK("/system/template_cache")
+
+    def test_system_log(self):
+        self.check_OK("/system/clipboard-monitor?log_type=clip")

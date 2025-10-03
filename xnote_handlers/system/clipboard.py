@@ -7,54 +7,74 @@ import logging
 
 from xnote.core import xmanager
 from xnote.core.xtemplate import BasePlugin
+from xnote.core import xtables
 from xnote.plugin import sidebar
 from xnote.plugin.table_plugin import BaseTablePlugin
 from xutils import dateutil
 from xutils import dbutil, BaseDataRecord
 from xutils import textutil
+from xutils import webutil
 
 ASIDE_HTML = """
 {% include system/component/admin_nav.html %}
 """
 
-
-dbutil.register_table("clip_log", "剪切板历史")
-
-class ClipLogDO(BaseDataRecord):
-
+class ClipLogRecord(BaseDataRecord):
     def __init__(self):
-        self.create_time = ""
+        self.id = 0
+        self.ctime = dateutil.format_datetime()
+        self.mtime = dateutil.format_datetime()
         self.content = ""
+
+    def to_save_dict(self):
+        result = dict(**self)
+        result.pop("id")
+        return result
 
 class ClipLogDao:
 
-    db = dbutil.get_table("clip_log")
-    last_log_content = ""
+    db = xtables.get_table_by_name("clip_log_v2")
     max_log_count = 500
     max_content_size = 1024 * 1024 # 1MB
 
     @classmethod
     def init(cls):
-        last = cls.db.get_last()
-        if last != None:
-            cls.last_log_content = last.content
+        pass
+
+    @classmethod
+    def find_by_content(cls, content=""):
+        record = cls.db.select_first(where = dict(content = content))
+        return ClipLogRecord.from_dict_or_None(record)
+    
+    @classmethod
+    def find_last(cls):
+        record = cls.db.select_first(order = "mtime desc")
+        return ClipLogRecord.from_dict_or_None(record)
 
     @classmethod
     def add_log(cls, log_content=""):
         log_content = log_content.strip()
         if log_content == "":
             return
-        if log_content == cls.last_log_content:
-            return
         
         if len(log_content) > cls.max_content_size:
-            logging.warn("clipboard data too large")
+            logging.warning("clipboard data too large")
             log_content = log_content[:cls.max_content_size]
         
-        record = ClipLogDO()
-        record.create_time = dateutil.format_datetime()
+        current_time = dateutil.format_datetime()
+        last = cls.find_last()
+        old = cls.find_by_content(content=log_content)
+        if old is not None:
+            if last != None and last.id == old.id:
+                return
+            cls.db.update(where = dict(id = old.id), mtime = current_time)
+            return
+        
+        record = ClipLogRecord()
+        record.ctime = current_time
+        record.mtime = current_time
         record.content = log_content
-        cls.db.insert(record)
+        cls.db.insert(**record.to_save_dict())
         cls.last_log_content = log_content
         cls.clear_old_logs()
     
@@ -62,17 +82,18 @@ class ClipLogDao:
     def clear_old_logs(cls):
         buf_size = 10
         if cls.db.count() > cls.max_log_count + buf_size:
-            for record in cls.db.list(limit=buf_size):
-                cls.db.delete(record)
+            for record in cls.db.select(limit=buf_size, order="mtime"):
+                cls.db.delete(where = dict(id = record.id))
 
     @classmethod
     def list_recent(cls, offset=0, limit=100):
-        result = cls.db.list(reverse=True, limit=limit)
-        return ClipLogDO.from_dict_list(result)
+        result = cls.db.select(offset=offset, limit=limit, order="mtime desc")
+        return ClipLogRecord.from_dict_list(result)
     
     @classmethod
-    def get_by_id(cls, id=""):
-        return cls.db.get_by_id(id)
+    def get_by_id(cls, id=0):
+        record = cls.db.select(where = dict(id = id))
+        return ClipLogRecord.from_dict_or_None(record)
     
     @classmethod
     def count(cls):
@@ -115,7 +136,8 @@ class Main(BaseTablePlugin):
         records = ClipLogDao.list_recent(offset=offset, limit=page_size)
         
         table = self.create_table()
-        table.add_head("时间", "create_time")
+        table.default_head_style.min_width = "100px"
+        table.add_head("时间", "mtime", min_width="200px")
         table.add_head("内容", "content_short", detail_field="content")
 
         for item in records:
@@ -133,9 +155,8 @@ class Main(BaseTablePlugin):
         return self.response_page(**kw)
 
     def handle_detail(self):
-        id = xutils.get_argument_str("id")
-        return dict(
-            code = "success",
+        id = xutils.get_argument_int("id")
+        return webutil.SuccessResult(
             data = ClipLogDao.get_by_id(id)
         )
 
@@ -151,11 +172,11 @@ def watch_clipboard(ctx=None):
         import pyperclip
         content = pyperclip.paste()
         if len(content) > MAX_CLIP_SIZE:
-            logging.warn("clip content too large: %s, max_size: %s", len(content), MAX_CLIP_SIZE)
+            logging.warning("clip content too large: %s, max_size: %s", len(content), MAX_CLIP_SIZE)
             return
         ClipLogDao.add_log(content)
     except:
-        pass
+        xutils.print_exc()
 
 
 xurls = (
