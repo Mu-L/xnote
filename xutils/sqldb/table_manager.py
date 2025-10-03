@@ -390,6 +390,7 @@ class TableInfo:
         self.enable_binlog = True
         self.log_profile = True
         self.is_deleted = False
+        self.is_plugin = False
     
     def add_column(self, colname, *args, **kw):
         self.column_names.append(colname)
@@ -415,15 +416,20 @@ class TableManagerFacade:
 
     table_dict = {} # type: dict[str, TableInfo]
 
-    def __init__(self, tablename: str, db = empty_db, is_backup = False, **kw):
+    def __init__(self, tablename: str, db = empty_db, is_backup = False, is_plugin = False, **kw):
         """初始化表管理器门面
         
         :param pk_name: 主键名称
         :type pk_name: str
+        :param is_plugin: 是否是插件表
+        :param check_table_define: 是否检查表格定义
+        :type check_table_define: bool
         """
         self.table_info = TableInfo(tablename)
         self.table_info.pk_name = kw.get("pk_name", "id")
         self.table_info.db_type = kw.get("db_type", "")
+        self.table_info.is_plugin = kw.get("is_plugin", False)
+        
         if db.dbname == "mysql":
             self.manager = MySQLTableManager(tablename, db = db, **kw)
         else:

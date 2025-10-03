@@ -255,7 +255,7 @@ def list_all_plugins(user_name, sort=True, orderby=None):
     return links
 
 
-def list_other_plugins(user_name, sort=True):
+def list_other_plugins(sort=True):
     return find_plugins("other")
 
 
@@ -264,7 +264,7 @@ def list_plugins(category: str, sort=True, orderby=None):
     user_name = xauth.current_name()
 
     if category == "other":
-        plugins = list_other_plugins(user_name)
+        plugins = list_other_plugins()
     elif category and category != "all":
         # 某个分类的插件
         plugins = find_plugins(category)

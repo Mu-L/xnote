@@ -4,10 +4,7 @@
 {% include system/component/db_nav.html %}
 
 <div class="card">
-    <div class="x-tab-box" data-tab-key="p2" data-tab-default="active">
-        <a class="x-tab" href="{{_server_home}}/system/sqldb_admin?p=sqldb&p2=active" data-tab-value="active">活跃</a>
-        <a class="x-tab" href="{{_server_home}}/system/sqldb_admin?p=sqldb&p2=delete" data-tab-value="delete">已删除</a>
-    </div>
+    {% render filter_tab %}
 </div>
 
 <div class="card">

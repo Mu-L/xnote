@@ -12,19 +12,13 @@ from xutils import Storage
 from xutils import textutil, webutil
 from xnote.core import xauth, xtables, xtemplate, xconfig
 from xutils.sqldb import TableProxy, TempTableProxy
-from xnote.plugin import DataTable
+from xnote.plugin import DataTable, TabBox
 from xnote.plugin import sidebar
 from xnote.plugin.table_plugin import BaseTablePlugin
 from handlers.config import LinkConfig
 
-def get_display_value(value):
-    if value is None:
-        return value
-
-    if len(value) > 100:
-        return value[:100] + "..."
-    return value
-
+def get_display_value(value: str):
+    return textutil.get_short_text(value, 100)
 
 def parse_bool(value):
     return value == "true"
@@ -278,7 +272,7 @@ class SqlDBInfo(Storage):
         self.operate_url = ""
         self.struct_url = ""
 
-class SqlDBHandler:
+class SqlDBAdminHandler:
 
     @staticmethod
     def sort_key(table_info: xtables.TableProxy):
@@ -286,12 +280,22 @@ class SqlDBHandler:
             return (1, table_info.table_name)
         return (0, table_info.table_name)
 
+    def filter_tables(self, filter = ""):
+        if filter == "delete":
+            return xtables.get_all_tables(is_deleted=True)
 
-    @xauth.login_required("admin")
+        tables = xtables.get_all_tables(is_deleted=False)
+        if filter == "plugin":
+            return [p for p in tables if p.table_info.is_plugin]
+        
+        return [p for p in tables if not p.table_info.is_plugin]
+
+
+    @xauth.admin_required()
     def GET(self):
         p2 = xutils.get_argument_str("p2")
-        db_list = xtables.get_all_tables(is_deleted=(p2=="delete"))
-        db_list.sort(key = SqlDBHandler.sort_key)
+        db_list = self.filter_tables(p2)
+        db_list.sort(key = SqlDBAdminHandler.sort_key)
         db_info_table = DataTable()
         db_info_table.default_head_style.min_width = "120px"
         db_info_table.add_head("表名", field="name", link_field="name_url", min_width="150px")
@@ -312,9 +316,16 @@ class SqlDBHandler:
             info.struct_url = f"{server_home}/system/db/struct?table_name={info.name}"
 
             db_info_table.add_row(info)
+
+        filter_tab = TabBox(tab_key="p2", tab_default="active")
+        filter_tab.add_tab(title="活跃", value="active")
+        filter_tab.add_tab(title="插件", value="plugin")
+        filter_tab.add_tab(title="删除", value="delete")
+
         kw = Storage()
         kw.db_info_table = db_info_table
         kw.parent_link = LinkConfig.app_index
+        kw.filter_tab = filter_tab
         return xtemplate.render("system/page/db/sqldb_list.html", **kw)
 
 class SqlResult:
@@ -704,7 +715,7 @@ xurls = (
     "/system/db_scan", DbScanHandler,
     "/system/db_admin", DbScanHandler,
     "/system/leveldb_admin", DbScanHandler,
-    "/system/sqldb_admin", SqlDBHandler,
+    "/system/sqldb_admin", SqlDBAdminHandler,
     "/system/sqldb_detail", SqlDBDetailHandler,
     "/system/sqldb_operate", SqlDBOperateHandler,
     "/system/db/drop_table", DropTableHandler,
