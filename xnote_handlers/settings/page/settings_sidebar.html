@@ -1,6 +1,6 @@
 {% init show_app_index_icon = False %}
 {% include common/sidebar/app_index.html %}
-{% from handlers.settings.model import SettingTabEnum %}
+{% from xnote_handlers.settings.model import SettingTabEnum %}
 
 {% init data_list = SettingTabEnum.enums() %}
 <div class="card list">

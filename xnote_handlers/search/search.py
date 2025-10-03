@@ -417,7 +417,7 @@ class RuleManager:
         try:
             mod, func_name = func_str.rsplit('.', 1)
             # mod = __import__(mod, None, None, [''])
-            mod = six._import_module("handlers.search." + mod)
+            mod = six._import_module("xnote_handlers.search." + mod)
             func = getattr(mod, func_name)
             func.modfunc = func_str
             rule = BaseRule(r"^%s\Z" % u(pattern), func)
