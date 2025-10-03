@@ -21,14 +21,14 @@ from xnote.core import xauth
 from xnote.core.xtemplate import T
 from xnote.core.models import SearchContext
 
-from handlers.note.dao import get_by_id, get_by_name, visit_note, get_by_user_skey
-from handlers.note import dao_comment
-from handlers.note import dao_delete, dao_tag, dao_share
-from handlers.note import html_importer
-from handlers.note import dao as note_dao
-from handlers.note.dao import NoteIndexDao
-from handlers.note.dao_relation import NoteRelationDao
-from handlers.note.models import NoteIndexDO
+from xnote_handlers.note.dao import get_by_id, get_by_name, visit_note, get_by_user_skey
+from xnote_handlers.note import dao_comment
+from xnote_handlers.note import dao_delete, dao_tag, dao_share
+from xnote_handlers.note import html_importer
+from xnote_handlers.note import dao as note_dao
+from xnote_handlers.note.dao import NoteIndexDao
+from xnote_handlers.note.dao_relation import NoteRelationDao
+from xnote_handlers.note.models import NoteIndexDO
 
 from xutils import Storage
 from xutils import textutil
@@ -43,7 +43,7 @@ BaseTestCase = test_base.BaseTestCase
 
 NOTE_DAO = xutils.DAO("note")
 
-from handlers.note.dao_api import NoteDao
+from xnote_handlers.note.dao_api import NoteDao
 
 def get_note_info(id):
     return get_by_id(id)
@@ -221,7 +221,7 @@ class TestMain(BaseTestCase):
         assert_json_request_success(self, u"/note/api/timeline?type=search&key=xnote中文")
 
     def test_timeline_sort_func(self):
-        from handlers.note.note_timeline import build_date_result
+        from xnote_handlers.note.note_timeline import build_date_result
         note1 = NoteIndexDO(name = "note1", ctime = "2015-01-01 00:00:00")
         note2 = NoteIndexDO(name = "note2", ctime = "2015-06-01 00:00:00")
         note3 = NoteIndexDO(name = "note3", ctime = "2014-01-01 00:00:00")
@@ -423,7 +423,7 @@ class TestMain(BaseTestCase):
         json_request("/note/remove?id=%s" % id)
     
     def test_note_tag_info_create(self):
-        from handlers.note.dao_tag import NoteTagInfoDao, NoteTagBindDao
+        from xnote_handlers.note.dao_tag import NoteTagInfoDao, NoteTagBindDao
         from xnote.service.tag_service import TagTypeEnum
         delete_note_for_test("group-test")
         group_id = create_note_for_test("group", "group-test")
@@ -588,7 +588,7 @@ class TestMain(BaseTestCase):
         self.assertTrue(result.texts[0].find("# Head1") >= 0)
 
     def test_markdown_img_parser(self):
-        from handlers.note.html_importer import MarkdownImageParser
+        from xnote_handlers.note.html_importer import MarkdownImageParser
         parser = MarkdownImageParser()
         md_content = """
 # title
@@ -611,7 +611,7 @@ A example image
 
 
     def test_lock_success(self):
-        from handlers.note import dao_draft
+        from xnote_handlers.note import dao_draft
 
         note_id = "001"
         token = textutil.create_uuid()
@@ -624,7 +624,7 @@ A example image
 
 
     def test_lock_conflict(self):
-        from handlers.note import dao_draft
+        from xnote_handlers.note import dao_draft
 
         note_id = "002"
         token1 = textutil.create_uuid()
@@ -638,13 +638,13 @@ A example image
 
 
     def test_log_list_recent_events(self):
-        from handlers.note.dao_log import list_recent_events
+        from xnote_handlers.note.dao_log import list_recent_events
         events = list_recent_events("test")
         self.assertTrue(len(events) > 0)
     
     def test_get_note_depth(self):
-        from handlers.note.dao import get_by_id
-        from handlers.note.dao_read import get_note_depth
+        from xnote_handlers.note.dao import get_by_id
+        from xnote_handlers.note.dao_read import get_note_depth
         note_id = create_note_for_test("group", "test-get-note-depth")
         note_info = get_by_id(note_id)
         assert note_info != None
@@ -652,13 +652,13 @@ A example image
         self.assertEqual(1, note_depth)
     
     def test_check_and_create_default_book(self):
-        from handlers.note.dao_book import check_and_create_default_book
+        from xnote_handlers.note.dao_book import check_and_create_default_book
         check_and_create_default_book("test")
 
 
     def test_note_visit(self):
-        from handlers.note.dao import visit_note
-        from handlers.note.dao_log import list_most_visited
+        from xnote_handlers.note.dao import visit_note
+        from xnote_handlers.note.dao_log import list_most_visited
 
         delete_note_for_test("visit-test")
 
@@ -677,7 +677,7 @@ A example image
 
 
     def test_comment_search(self):
-        from handlers.note.dao_comment import CommentDO
+        from xnote_handlers.note.dao_comment import CommentDO
         note_id = create_note_for_test("list", "check-list-test")
 
         user_info = xauth.current_user()
@@ -727,7 +727,7 @@ A example image
         self.check_OK("/note/group_list?type=year")
 
     def test_month_plan(self):
-        from handlers.plan.dao import MonthPlanDao
+        from xnote_handlers.plan.dao import MonthPlanDao
 
         delete_note_for_test("plan-test")
         note_id = create_note_for_test("md", "plan-test", tags="test plan")
@@ -757,7 +757,7 @@ A example image
     def test_checklist_search(self):
         delete_note_for_test("checklist-test")
         note_id = create_note_for_test("list", "checklist-test")
-        from handlers.note.dao_comment import CommentDao, CommentDO
+        from xnote_handlers.note.dao_comment import CommentDao, CommentDO
         comment = CommentDO()
         comment.type = "list_item"
         comment.content = "comment content"
@@ -770,7 +770,7 @@ A example image
         CommentDao.delete_by_id(comment_id)
         
     def test_note_tag_v2(self):
-        from handlers.note.dao_tag import NoteTagInfoDao, NoteTagBindDao
+        from xnote_handlers.note.dao_tag import NoteTagInfoDao, NoteTagBindDao
         delete_note_for_test("group-test")
         group_id = create_note_for_test(type="group", name="group-test")
         delete_note_for_test("tag-test")

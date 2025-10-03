@@ -62,12 +62,12 @@ def run_test(args: Namespace):
 	if target == "xutils_db":
 		# py_exec("-m pytest tests/test_xutils_db.py::TestMain::test_dbutil_mysql_enhanced --doctest-modules --cov xutils.db --cov handlers.system.db_index --capture no")
 		py_exec("-m pytest tests/test_xutils_db.py tests/test_xutils_db_table.py tests/test_xutils_db_hash_table.py \
-	  			--doctest-modules --cov xutils.db --cov handlers.system.db_index --cov xutils.db2 --capture no")
+	  			--doctest-modules --cov xutils.db --cov xnote_handlers.system.db_index --cov xutils.db2 --capture no")
 		py_exec("-m coverage html -i")
 		return
 	
 	if target == "xutils_sqldb":
-		py_exec("-m pytest tests/test_xutils_sqldb.py --doctest-modules --cov xutils.sqldb --cov handlers.system.db_index \
+		py_exec("-m pytest tests/test_xutils_sqldb.py --doctest-modules --cov xutils.sqldb --cov xnote_handlers.system.db_index \
 	  			--capture no")
 		py_exec("-m coverage html -i")
 		return
@@ -83,27 +83,27 @@ def run_test(args: Namespace):
 		return
 
 	if target == "fs":
-		py_exec("-m pytest tests/test_fs.py --doctest-modules --cov handlers.fs --cov handlers.fs --capture no")
+		py_exec("-m pytest tests/test_fs.py --doctest-modules --cov xnote_handlers.fs --cov xnote_handlers.fs --capture no")
 		py_exec("-m coverage html -i")
 		return
 
 	if target == "app":
-		py_exec(f"-m pytest tests/test_app.py --doctest-modules --cov handlers --capture {args.capture}")
+		py_exec(f"-m pytest tests/test_app.py --doctest-modules --cov xnote_handlers --capture {args.capture}")
 		py_exec("-m coverage html -i")
 		return
 	
 	if target == "note":
-		py_exec(f"-m pytest tests/test_note.py --doctest-modules --cov handlers --capture {args.capture}")
+		py_exec(f"-m pytest tests/test_note.py --doctest-modules --cov xnote_handlers --capture {args.capture}")
 		py_exec("-m coverage html -i")
 		return
 	
 	if target == "system_sync":
-		py_exec(f"-m pytest tests/test_system_sync.py --doctest-modules --cov handlers.system.system_sync --capture no")
+		py_exec(f"-m pytest tests/test_system_sync.py --doctest-modules --cov xnote_handlers.system.system_sync --capture no")
 		py_exec("-m coverage html -i")
 		return
 	
 	if target == "message":
-		py_exec("-m pytest tests/test_message.py --doctest-modules --cov handlers.message --capture no")
+		py_exec("-m pytest tests/test_message.py --doctest-modules --cov xnote_handlers.message --capture no")
 		py_exec("-m coverage html -i")
 		return
 	
@@ -113,7 +113,7 @@ def run_test(args: Namespace):
 		return
 
 	if target == "admin":
-		py_exec("-m pytest tests/test_admin.py --doctest-modules --cov handlers --capture no")
+		py_exec("-m pytest tests/test_admin.py --doctest-modules --cov xnote_handlers --capture no")
 		py_exec("-m coverage html -i")
 		return
 	
@@ -141,7 +141,7 @@ def run_test(args: Namespace):
 	check_and_install_pkg("lmdb", "lmdb==1.4.1")
 	if os.name != "nt":
 		check_and_install_pkg("leveldb", "leveldb==0.201")
-	os.system("%s -m pytest tests --doctest-modules --cov handlers --cov xutils --cov core --cov xnote --ff" % executable)
+	os.system("%s -m pytest tests --doctest-modules --cov xnote_handlers --cov xutils --cov core --cov xnote --ff" % executable)
 	os.system(f"{executable} -m coverage html -i")
 
 def set_mysql_config(args, props, prop_key):

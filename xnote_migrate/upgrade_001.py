@@ -8,7 +8,7 @@
 
 from xutils import dbutil
 from .base import log_info
-from handlers.note import dao_log
+from xnote_handlers.note import dao_log
 from . import base
 
 def do_upgrade():

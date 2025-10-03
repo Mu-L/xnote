@@ -57,7 +57,7 @@ def init():
     cacheutil.init(xconfig.STORAGE_DIR)
 
     APP = web.application(list(), var_env, autoreload=False)
-    last_mapping = (r"/tools/(.*)", "handlers.tools.tools.handler")
+    last_mapping = (r"/tools/(.*)", "xnote_handlers.tools.tools.handler")
     mgr = xmanager.init(APP, var_env, last_mapping=last_mapping)
     mgr.reload()
     # 加载template
@@ -185,7 +185,7 @@ class BaseTestCase(unittest.TestCase):
 class BaseTestMain(unittest.TestCase):
 
     def test_get_upload_file_path(self):
-        from handlers.fs.fs_upload import get_upload_file_path
+        from xnote_handlers.fs.fs_upload import get_upload_file_path
         remove_tmp_file("test.txt")
         path, webpath = get_upload_file_path("user", "test.txt")
         print()
@@ -196,7 +196,7 @@ class BaseTestMain(unittest.TestCase):
         self.assertEqual("/data/files/user/upload/%s/test.txt" % date, webpath)
 
     def test_get_upload_file_path_1(self):
-        from handlers.fs.fs_upload import get_upload_file_path
+        from xnote_handlers.fs.fs_upload import get_upload_file_path
         remove_tmp_file("test_1.txt")
         create_tmp_file("test.txt")
         path, webpath = get_upload_file_path("user", "test.txt")
@@ -210,7 +210,7 @@ class BaseTestMain(unittest.TestCase):
         remove_tmp_file("test.txt")
 
     def test_get_upload_file_path_2(self):
-        from handlers.fs.fs_upload import get_upload_file_path
+        from xnote_handlers.fs.fs_upload import get_upload_file_path
         create_tmp_file("test.txt")
         create_tmp_file("test_1.txt")
         remove_tmp_file("test_2.txt")

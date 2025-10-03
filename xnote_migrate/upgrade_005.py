@@ -6,8 +6,8 @@
 
 from xutils import dbutil
 from . import base
-from handlers.note import dao as note_dao
-from handlers.note.dao_share import share_note_to
+from xnote_handlers.note import dao as note_dao
+from xnote_handlers.note.dao_share import share_note_to
 from xutils import BaseDataRecord
 
 def do_upgrade():

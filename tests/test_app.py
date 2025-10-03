@@ -251,7 +251,7 @@ class TestMain(BaseTestCase):
 
     def test_search_message(self):
         self.check_200("/message?key=test&category=message")
-        from handlers.search import search
+        from xnote_handlers.search import search
         handler = search.get_search_handler("message")
         self.assertEqual(u"搜索随手记", handler.placeholder)
 
@@ -324,7 +324,7 @@ class Main(BasePlugin):
 
     def test_plugin_category_list(self):
         self.check_200("/plugin_category_list")
-        from handlers.plugin.service import CategoryService
+        from xnote_handlers.plugin.service import CategoryService
         assert len(CategoryService.category_list) > 0
 
         resp = json_request_return_dict("/plugin_category_list?_format=json")
@@ -422,7 +422,7 @@ class Main(BasePlugin):
 
 
     def test_system_log2(self):
-        from handlers.system.system_log import LogVisitHandler
+        from xnote_handlers.system.system_log import LogVisitHandler
         handler = LogVisitHandler()
         # insert
         handler.do_get("test", "127.0.0.1")

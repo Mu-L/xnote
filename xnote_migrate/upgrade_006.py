@@ -6,7 +6,7 @@
 
 import logging
 import xutils
-import handlers.note.dao as note_dao
+import xnote_handlers.note.dao as note_dao
 from xutils import dbutil
 from . import base
 

@@ -10,8 +10,8 @@ from xnote.core import xauth
 from xutils import textutil
 from .test_base import json_request, BaseTestCase, request_html, json_request_return_dict
 from .test_base import init as init_app, get_test_file_path
-from handlers.fs.fs_index import build_fs_index
-from handlers.fs.fs_helper import FileInfoDao, FileInfo
+from xnote_handlers.fs.fs_index import build_fs_index
+from xnote_handlers.fs.fs_helper import FileInfoDao, FileInfo
 
 init_app()
 
@@ -129,7 +129,7 @@ class TestMain(BaseTestCase):
         self.check_OK(f"/fs_text?method=refresh&path={xutils.quote(txt_path)}")
 
     def test_fs_download(self):
-        from handlers.system.system_sync.dao import SystemSyncTokenDao, SystemSyncToken
+        from xnote_handlers.system.system_sync.dao import SystemSyncTokenDao, SystemSyncToken
         fpath = self.prepare_test_file("./test_download.txt", "test download")
         fpath_b64 = textutil.encode_base64(fpath)
         self.check_OK(f"/fs_download?fpath={fpath_b64}")

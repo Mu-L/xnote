@@ -4,7 +4,7 @@ from xnote.core import xauth
 from xnote_migrate import upgrade_010
 from .test_note import create_note_for_test, delete_note_for_test
 from xutils import dbutil
-from handlers.note.dao_tag import NoteTagBindDao
+from xnote_handlers.note.dao_tag import NoteTagBindDao
 from xnote_migrate.base import get_upgrade_log_table
 
 app          = test_base.init()

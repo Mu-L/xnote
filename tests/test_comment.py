@@ -12,9 +12,9 @@ import copy
 
 from .test_base import json_request, json_request_return_dict, BaseTestCase
 from .test_base import init as init_app
-from handlers.dict import dict_dao
-from handlers.note.dao import NoteIndexDao, NoteIndexDO
-from handlers.note.dao_comment import CommentDao, CommentRecord
+from xnote_handlers.dict import dict_dao
+from xnote_handlers.note.dao import NoteIndexDao, NoteIndexDO
+from xnote_handlers.note.dao_comment import CommentDao, CommentRecord
 from xnote.core.models import SearchContext
 from xnote.core import xauth
 from tests.test_base_note import delete_note_for_test, create_note_for_test
@@ -97,7 +97,7 @@ class TestMain(BaseTestCase):
         self.check_OK("/note/comment/mine")
 
         # 搜索评论
-        from handlers.note.comment import search_comment_detail, search_comment_summary
+        from xnote_handlers.note.comment import search_comment_detail, search_comment_summary
         ctx = SearchContext(key = "hell")
         ctx.user_name = xauth.current_name_str()
         ctx.words = ["hello"]

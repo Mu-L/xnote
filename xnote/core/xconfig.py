@@ -125,9 +125,9 @@ FS_OPTIONS = []
 # 存储目录配置项
 ##################################
 # 请求处理器目录
-HANDLERS_DIR = resolve_config_path("handlers")
+HANDLERS_DIR = resolve_config_path("xnote_handlers")
 # 工具目录
-TOOLS_DIR = resolve_config_path("handlers/tools")
+TOOLS_DIR = resolve_config_path("xnote_handlers/tools")
 # 语言配置目录
 LANG_DIR = resolve_config_path("config/lang")
 DB_ENGINE = "leveldb"

@@ -2,7 +2,7 @@
 import xutils
 import logging
 import os
-import handlers.note.dao as note_dao
+import xnote_handlers.note.dao as note_dao
 
 from xnote.core import xtables, xauth, xconfig
 from xnote_migrate import base

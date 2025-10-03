@@ -16,10 +16,10 @@ from xnote.core import xtables, xauth
 from xnote_migrate import base
 from xutils import dbutil, dateutil
 from xutils.db.dbutil_helper import new_from_dict
-from handlers.note.dao import NoteDO, create_note, NoteIndexDao
+from xnote_handlers.note.dao import NoteDO, create_note, NoteIndexDao
 from xnote.service.search_service import SearchHistoryDO, SearchHistoryService, SearchHistoryType
 from xutils.base import BaseDataRecord
-from handlers.note.dao_tag import NoteTagBindDao, NoteTagInfoDao
+from xnote_handlers.note.dao_tag import NoteTagBindDao, NoteTagInfoDao
 
 def do_upgrade():
     # since v2.9.7

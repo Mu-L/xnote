@@ -39,14 +39,14 @@ class TestMain(BaseTestCase):
         self.check_OK("/search?search_type=comment&key=test")
 
     def test_search_history(self):
-        from handlers.note import dao
+        from xnote_handlers.note import dao
         dao.add_search_history(None, "test")
         dao.expire_search_history("user")
         dao.list_search_history("user")
 
         user_name = xauth.current_name_str()
         dao.add_search_history(user_name, "test")
-        from handlers.search.search import list_search_history
+        from xnote_handlers.search.search import list_search_history
 
         words = list_search_history(user_name=user_name)
         assert "test" in words

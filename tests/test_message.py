@@ -31,9 +31,9 @@ BaseTestCase = test_base.BaseTestCase
 
 # 必须init之后再import
 
-from handlers.message import dao as msg_dao
-from handlers.message import message_model
-from handlers.message import message_tag
+from xnote_handlers.message import dao as msg_dao
+from xnote_handlers.message import message_model
+from xnote_handlers.message import message_tag
 
 MSG_DB = dbutil.get_table("msg_v3")
 
@@ -69,7 +69,7 @@ class TestMain(BaseTestCase):
 
     def test_message_create_and_update(self):
         # Py2: webpy会自动把str对象转成unicode对象，data参数传unicode反而会有问题
-        from handlers.message.dao import MessageDao
+        from xnote_handlers.message.dao import MessageDao
         response = json_request_return_dict(
             "/message/save", method="POST", data=dict(content="Xnote-Unit-Test"))
         self.assertEqual("success", response.get("code"))
@@ -258,7 +258,7 @@ class TestMain(BaseTestCase):
         new_msg_id = resp_data.get("id")
         self.assertEqual("success", response.get("code"))
 
-        from handlers.message.message_search import on_search_message, SearchHandler
+        from xnote_handlers.message.message_search import on_search_message, SearchHandler
         ctx = SearchContext(key="xnote")
         ctx.search_message = True
         ctx.user_name = user_name
@@ -291,7 +291,7 @@ class TestMain(BaseTestCase):
 
     def test_message_keyword_mark(self):
         user_name = xauth.current_name_str()
-        from handlers.message.dao import MsgTagInfoDao
+        from xnote_handlers.message.dao import MsgTagInfoDao
         tags = MsgTagInfoDao.list(user=user_name, tag_code="#test#")
         for tag in tags:
             print("删除tag:", tag)
@@ -310,7 +310,7 @@ class TestMain(BaseTestCase):
 
         self.assertEqual("success", result["code"])
 
-        from handlers.message.message import get_or_create_keyword
+        from xnote_handlers.message.message import get_or_create_keyword
 
         user_id = xauth.current_user_id()
         keyword = get_or_create_keyword(user_id, "#test#", "127.0.0.1")
@@ -322,7 +322,7 @@ class TestMain(BaseTestCase):
         logutil.wait_task_done()
 
     def test_message_keyword_delete(self):
-        from handlers.message.dao import MessageDO
+        from xnote_handlers.message.dao import MessageDO
         user_name = xauth.current_name_str()
         user_id = xauth.current_user_id()
         tagname = "#delete-test#"

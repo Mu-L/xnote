@@ -11,7 +11,7 @@
 import xutils
 from xutils import dbutil
 from . import base
-from handlers.note.dao import add_history_index
+from xnote_handlers.note.dao import add_history_index
 
 def do_upgrade():
     """修复笔记历史的索引"""

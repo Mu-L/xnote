@@ -11,7 +11,7 @@
 from .test_base import json_request, json_request_return_dict, BaseTestCase
 from .test_base import init as init_app
 from xnote.core import xauth
-from handlers.dict import dict_dao
+from xnote_handlers.dict import dict_dao
 
 app = init_app()
 

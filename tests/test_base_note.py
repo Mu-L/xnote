@@ -1,7 +1,7 @@
 from xnote.core import xauth
-from handlers.note import dao as note_dao
-from handlers.note import dao_delete
-from handlers.note.dao import get_by_id, get_by_name
+from xnote_handlers.note import dao as note_dao
+from xnote_handlers.note import dao_delete
+from xnote_handlers.note.dao import get_by_id, get_by_name
 from tests.test_base import json_request_return_dict
 
 def delete_note_for_test(name=""):

@@ -27,10 +27,10 @@ from xnote.core import xnote_event
 from xnote.service.system_info_service import SystemInfoService
 
 from . import test_base
-from handlers.system.system_sync.node_follower import DBSyncer
-from handlers.system.system_sync.dao import ClusterConfigDao
-from handlers.system.system_sync.models import LeaderStat
-from handlers.system.system_sync import system_sync_proxy
+from xnote_handlers.system.system_sync.node_follower import DBSyncer
+from xnote_handlers.system.system_sync.dao import ClusterConfigDao
+from xnote_handlers.system.system_sync.models import LeaderStat
+from xnote_handlers.system.system_sync import system_sync_proxy
 
 app = test_base.init()
 json_request = test_base.json_request
@@ -41,8 +41,8 @@ DBSyncer.MAX_LOOPS = 5
 DBSyncer.FULL_SYNC_MAX_LOOPS = 5
 
 def get_test_access_token(readonly=False):
-    from handlers.system.system_sync.models import SystemSyncToken
-    from handlers.system.system_sync.dao import SystemSyncTokenDao
+    from xnote_handlers.system.system_sync.models import SystemSyncToken
+    from xnote_handlers.system.system_sync.dao import SystemSyncTokenDao
     follower_name = "test"
     token_info = SystemSyncTokenDao.get_by_holder(follower_name)
     if token_info == None:
@@ -90,7 +90,7 @@ class LeaderNetMock:
         raise Exception("unsupported url:%s" % url)
 
     def refresh_token(self, url):
-        from handlers.system.system_sync.dao import SystemSyncTokenDao
+        from xnote_handlers.system.system_sync.dao import SystemSyncTokenDao
         follower_name = "test"
         token_info = SystemSyncTokenDao.get_by_holder(follower_name)
         result = webutil.SuccessResult(token_info)
@@ -217,7 +217,7 @@ class TestSystemSync(BaseTestCase):
             netutil.set_net_mock(None)
 
     def test_system_sync_db_full(self):
-        from handlers.system.system_sync.system_sync_controller import FOLLOWER
+        from xnote_handlers.system.system_sync.system_sync_controller import FOLLOWER
         netutil.set_net_mock(LeaderNetMock())
 
         try:
@@ -238,7 +238,7 @@ class TestSystemSync(BaseTestCase):
             netutil.set_net_mock(None)
 
     def test_system_sync_db_binlog(self):
-        from handlers.system.system_sync.system_sync_controller import FOLLOWER
+        from xnote_handlers.system.system_sync.system_sync_controller import FOLLOWER
         netutil.set_net_mock(LeaderNetMock())
 
         try:
@@ -261,7 +261,7 @@ class TestSystemSync(BaseTestCase):
 
 
     def test_system_sync_db_broken(self):
-        from handlers.system.system_sync.system_sync_controller import FOLLOWER
+        from xnote_handlers.system.system_sync.system_sync_controller import FOLLOWER
         admin_token = self.get_access_token()
         self.init_leader_config()
 
@@ -289,7 +289,7 @@ class TestSystemSync(BaseTestCase):
         self.assertEqual(1234, FOLLOWER.db_syncer.get_binlog_last_seq())
     
     def test_is_token_active(self):
-        from handlers.system.system_sync.system_sync_controller import FOLLOWER
+        from xnote_handlers.system.system_sync.system_sync_controller import FOLLOWER
         result = """
         {
             "code": "success",
@@ -324,7 +324,7 @@ class TestSystemSync(BaseTestCase):
         self.check_OK("/system/sync?p=build_index")
     
     def test_list_files(self):
-        from handlers.system.system_sync import system_sync_indexer
+        from xnote_handlers.system.system_sync import system_sync_indexer
 
         testfile_1 = os.path.join(xconfig.UPLOAD_DIR, "fs_sync_test_01.txt")
         testfile_2 = os.path.join(xconfig.UPLOAD_DIR, "fs_sync_test_02.txt")
@@ -337,7 +337,7 @@ class TestSystemSync(BaseTestCase):
         self.assertTrue(len(result) > 0)
     
     def test_leader_list_binlog(self):
-        from handlers.system.system_sync.system_sync_controller import LEADER
+        from xnote_handlers.system.system_sync.system_sync_controller import LEADER
         from xutils.db.binlog import BinLog
         binlog = BinLog.get_instance()
         binlog.set_max_size(1000)
@@ -350,8 +350,8 @@ class TestSystemSync(BaseTestCase):
         assert result.success == True
 
     def test_leader_list_file_binlog(self):
-        from handlers.system.system_sync.system_sync_controller import LEADER
-        from handlers.system.system_sync.system_sync_indexer import on_fs_upload, FileIndexCheckManager
+        from xnote_handlers.system.system_sync.system_sync_controller import LEADER
+        from xnote_handlers.system.system_sync.system_sync_indexer import on_fs_upload, FileIndexCheckManager
         from xutils.db.binlog import BinLog, BinLogOpType
         binlog = BinLog.get_instance()
         binlog.set_max_size(1000)

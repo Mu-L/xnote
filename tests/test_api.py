@@ -1,6 +1,6 @@
 from .test_base import json_request, json_request_return_dict, BaseTestCase
 from .test_base import init as init_app
-from handlers.dict import dict_dao
+from xnote_handlers.dict import dict_dao
 from xutils import textutil
 
 app = init_app()

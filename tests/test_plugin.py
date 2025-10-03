@@ -7,7 +7,7 @@
 from . import test_base
 from .test_base import json_request_return_dict
 from xnote.core import xauth
-from handlers.plugin.dao import add_visit_log, delete_visit_log
+from xnote_handlers.plugin.dao import add_visit_log, delete_visit_log
 
 app          = test_base.init()
 json_request = test_base.json_request

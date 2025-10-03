@@ -11,7 +11,7 @@
 
 from xnote.core import xauth
 from . import base
-from handlers.note.dao import get_by_id
+from xnote_handlers.note.dao import get_by_id
 from xutils import dbutil
 from xutils import BaseDataRecord
 from xutils.number_util import parse_int

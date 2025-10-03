@@ -9,7 +9,7 @@
 import xutils
 from xutils import dbutil
 from . import base
-from handlers.note import dao as note_dao
+from xnote_handlers.note import dao as note_dao
 
 
 def do_upgrade():

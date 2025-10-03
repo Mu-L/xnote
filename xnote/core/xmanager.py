@@ -267,8 +267,8 @@ class HandlerManager:
 
         # 重新加载HTTP处理器
         # 先全部卸载，然后全部加载，否则可能导致新的module依赖旧的module
-        self.load_model_dir(dirname=xconfig.HANDLERS_DIR, unload=True, mod_name="handlers")
-        self.load_model_dir(dirname=xconfig.HANDLERS_DIR, load=True, mod_name="handlers")
+        self.load_model_dir(dirname=xconfig.HANDLERS_DIR, unload=True, mod_name="xnote_handlers")
+        self.load_model_dir(dirname=xconfig.HANDLERS_DIR, load=True, mod_name="xnote_handlers")
 
         # 重新加载定时任务
         self.load_tasks()
@@ -294,7 +294,7 @@ class HandlerManager:
             mod = getattr(mod, name)
         return mod
 
-    def load_model_dir(self, unload=False, load=False, mod_name="handlers", dirname=""):
+    def load_model_dir(self, unload=False, load=False, mod_name="xnote_handlers", dirname=""):
         dirname = os.path.abspath(dirname)
         if not os.path.exists(dirname):
             err_msg = f"model_dir not found: {dirname}"
