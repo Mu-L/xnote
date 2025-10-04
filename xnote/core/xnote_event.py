@@ -6,8 +6,56 @@ class EventTypeEnum(BaseEnum):
     sys_reload = EnumItem("系统重新加载", "sys.reload")
     sys_init = EnumItem("系统初始化", "sys.init")
 
-class FileUploadEvent(Storage):
+class FieldDesc:
+
+    def __init__(self, field_name: str, field_type: str, *, not_empty = False):
+        self.field_name = field_name
+        self.field_type = field_type
+        self.not_empty = not_empty
+
+    def _is_empty(self, value):
+        if self.field_type == "int":
+            return value == 0
+        if self.field_type == "str":
+            return value == ""
+        raise Exception(f"unknown type {self.field_type}")
+
+    def validate(self, obj):
+        if self.not_empty is False:
+            return
+        
+        value = getattr(obj, self.field_name)
+        if self.not_empty and self._is_empty(value):
+            raise Exception(f"{self.field_name} is empty")
+            
+
+class BaseEvent(Storage):
+    event_type = ""
+
+    def __init__(self):
+        super().__init__()
+        self._fields = [] # type: list[FieldDesc]
+
+    def add_field_desc(self, field_name: str, field_type:str, *, not_empty = True):
+        field = FieldDesc(field_name=field_name, field_type=field_type, not_empty=not_empty)
+        self._fields.append(field)
+
+    def validate(self):
+        if self.event_type == "":
+            raise Exception("event_type is required")
+        
+        for field_desc in self._fields:
+            field_desc.validate(self)
+
+    def fire(self):
+        self.validate()
+        from xnote.core import xmanager
+        xmanager.fire(self.event_type, self)
+
+class FileUploadEvent(BaseEvent):
     """文件上传事件"""
+
+    event_type = "fs.upload"
 
     def __init__(self):
         super().__init__()
@@ -16,11 +64,17 @@ class FileUploadEvent(Storage):
         self.fpath = ""
         self.remark = ""
 
+        self.add_field_desc("user_id", "int", not_empty=True)
+        self.add_field_desc("fpath", "str", not_empty=True)
+
 class FileDeleteEvent(FileUploadEvent):
     """文件删除事件"""
-    pass
+    event_type = "fs.delete"
 
-class FileRenameEvent(Storage):
+class FileRenameEvent(BaseEvent):
+
+    event_type = "fs.rename"
+
     """文件重命名事件"""
     def __init__(self):
         super().__init__()
@@ -28,6 +82,10 @@ class FileRenameEvent(Storage):
         self.user_id = 0
         self.fpath = ""
         self.old_fpath = ""
+
+        self.add_field_desc("user_id", "int", not_empty=True)
+        self.add_field_desc("fpath", "str", not_empty=True)
+        self.add_field_desc("old_fpath", "str", not_empty=True)
 
 class NoteViewEvent(Storage):
     """笔记访问事件"""

@@ -513,8 +513,8 @@ class RenameAjaxHandler:
         event.old_fpath = old_path
         event.user_name = user_name
         event.user_id = user_info.id
+        event.fire()
 
-        xmanager.fire("fs.rename", event)
         return webutil.SuccessResult()
 
 class CutAjaxHandler:

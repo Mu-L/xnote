@@ -14,6 +14,8 @@ import re
 import os
 
 from xnote.core import xauth, xconfig
+from xnote.core import xnote_event
+from xnote.core import xmanager
 from xnote.plugin import PluginMetaKey
 from .plugin_page import load_plugin_file
 from xutils.webutil import SuccessResult, FailedResult
@@ -43,6 +45,11 @@ class PluginUploadHandler:
         plugin_path = os.path.join(xconfig.FileConfig.plugins_upload_dir, plugin_id + ".py")
         with open(plugin_path, "w+", encoding="utf-8") as fp:
             fp.write(content)
+        
+        event = xnote_event.FileUploadEvent()
+        event.fpath = plugin_path
+        event.user_id = xauth.current_user_id()
+        event.fire()
         
         # 加载插件
         try:

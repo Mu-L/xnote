@@ -428,7 +428,7 @@ class TableManagerFacade:
         self.table_info = TableInfo(tablename)
         self.table_info.pk_name = kw.get("pk_name", "id")
         self.table_info.db_type = kw.get("db_type", "")
-        self.table_info.is_plugin = kw.get("is_plugin", False)
+        self.table_info.is_plugin = is_plugin
         
         if db.dbname == "mysql":
             self.manager = MySQLTableManager(tablename, db = db, **kw)

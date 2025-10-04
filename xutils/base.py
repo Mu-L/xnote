@@ -32,10 +32,12 @@ class MyStorage(dict):
         >>> o.noSuchKey
         None
     """
-    def __init__(self, **kw):
-        # default_value会导致items等函数出问题
-        # self.default_value = default_value
-        super(MyStorage, self).__init__(**kw)
+    
+    # 普通Python访问属性的顺序是 (不包含数据描述符的情况)
+    # 1. obj.__dict__ 
+    # 2. type(obj).__dict__
+    # 3. __getattr__
+    # 如果新增一个default_value属性会导致items等函数出问题
 
     def __getattr__(self, key):
         try:

@@ -482,7 +482,7 @@ class CronTaskManager:
                 xutils.trace("RunTask",  task.url)
                 if task.tm_wday == "no-repeat":
                     # 一次性任务直接删除
-                    dbutil.delete(task.id)
+                    dbutil.delete(str(task.id))
                     self.do_load_tasks()
             except Exception as e:
                 xutils.log("run task [%s] failed, %s" % (task.url, e))

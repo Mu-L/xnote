@@ -344,7 +344,8 @@ class MarkdownImageParser(TextParserBase):
                     event.fpath = new_fpath
                     event.old_fpath = fpath
                     event.user_name = user_name
-                    xmanager.fire("fs.rename", event)
+                    event.fire()
+                    
                     fpath = new_fpath
 
         webpath = fsutil.get_safe_webpath(fpath=fpath)
