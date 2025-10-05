@@ -49,11 +49,11 @@
 {% end %}
 
 <script type="text/javascript">
-  var xnoteRole = '{{xconfig.WebConfig.node_role}}';
+  var xnoteRole = '{{xconfig.WebConfig.cluster_node_role}}';
   xnote.state.system.isAdmin = Boolean("{{_is_admin}}");
   xnote.config.serverHome = "{{_server_home}}";
   xnote.config.nodeRole = xnoteRole;
-  xnote.config.isMaster = (xnoteRole === "master" || xnoteRole === "leader");
+  xnote.config.isMaster = "{{xconfig.WebConfig.is_leader()}}";
 </script>
 
 <!-- 布局脚本 -->

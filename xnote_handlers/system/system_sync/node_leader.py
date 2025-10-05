@@ -93,7 +93,7 @@ class Leader(NodeManagerBase):
         return token
 
     def get_node_id(self):
-        return xconfig.get("system.node_id")
+        return xconfig.WebConfig.cluster_node_id
 
     def get_ip_whitelist(self):
         return ClusterConfigDao.get_follower_whitelist()

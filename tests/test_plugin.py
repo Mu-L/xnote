@@ -7,7 +7,9 @@
 from . import test_base
 from .test_base import json_request_return_dict
 from xnote.core import xauth
+from xnote.core import xtables
 from xnote_handlers.plugin.dao import add_visit_log, delete_visit_log
+from xnote.plugin import db as plugin_db
 
 app          = test_base.init()
 json_request = test_base.json_request
@@ -36,3 +38,14 @@ class TestMain(BaseTestCase):
     def test_plugin_manage(self):
         self.check_OK("/plugin_manage")
         
+    def test_plugin_db(self):
+        with plugin_db.create_plugin_table(table_name="plugin_test") as manager:
+            manager.add_column("name", "text", comment="name")
+            manager.add_column("age", "int", default_value=0)
+        
+        db = xtables.get_table_by_name("plugin_test")
+        db.insert(name = "test", age = 20)
+        results = db.select()
+        print(f"results={results}")
+        assert len(results) > 0
+

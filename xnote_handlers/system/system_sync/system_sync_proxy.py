@@ -86,13 +86,18 @@ class HttpClient:
         self.access_token = token_info.token
         self.token_info = token_info
 
-    def get_stat(self, params: dict):
+    def get_stat(self, port = "", fs_sync_offset = 0, cluster_node_id = ""):
         self.check_disk_space()
         self.handle_token()
 
         if self.check_failed():
             return None
 
+        params = {}
+        params["port"] = port
+        params["fs_sync_offset"] = str(fs_sync_offset)
+        params["node_id"] = cluster_node_id
+        params["cluster_node_id"] = cluster_node_id
         params["token"] = self.access_token
 
         url = "{host}/system/sync/leader?p=get_stat".format(host = self.host)

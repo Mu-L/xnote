@@ -63,7 +63,8 @@ class BaseTablePlugin(BasePlugin):
 </div>
 
 {% init page_max = 0 %}
-{% if page_max > 0 %}
+{% init page_total = 0 %}
+{% if page_max > 0 or page_total > 0 %}
     <div class="card">
         {% include common/pagination.html %}
     </div>

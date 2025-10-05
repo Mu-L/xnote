@@ -63,10 +63,11 @@ class ClipLogDao:
         
         current_time = dateutil.format_datetime()
         last = cls.find_last()
+        if last != None and last.content == log_content:
+            return
+
         old = cls.find_by_content(content=log_content)
         if old is not None:
-            if last != None and last.id == old.id:
-                return
             cls.db.update(where = dict(id = old.id), mtime = current_time)
             return
         
@@ -104,7 +105,7 @@ ClipLogDao.init()
 
 class Main(BaseTablePlugin):
 
-    title = "剪切板记录"
+    title = "剪切板日志"
     # 提示内容
     description = ""
     # 访问权限

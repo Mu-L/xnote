@@ -29,15 +29,12 @@ _binlog = dbutil.BinLog.get_instance()
 TEMP_FNAME_SET = set([".DS_Store", ".thumbnail", ".git"])
 
 def get_system_role():
-    return xconfig.WebConfig.node_role
+    return xconfig.WebConfig.cluster_node_role
 
 def print_debug_info(*args):
     new_args = [dateutil.format_time(), "[fs_sync_index]"]
     new_args += args
     print(*new_args)
-
-def convert_time_to_str(mtime):
-    return "%020d" % (mtime * 1000)
 
 def is_temp_file(fname):
     return fname in TEMP_FNAME_SET

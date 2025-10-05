@@ -73,7 +73,7 @@ class Follower(NodeManagerBase):
         return self.create_http_client()
 
     def get_node_id(self):
-        return xconfig.get_global_config("system.node_id", "unknown_node_id")
+        return xconfig.WebConfig.cluster_node_id
 
     def get_leader_node_id(self):
         if self.ping_result != None:
@@ -97,14 +97,13 @@ class Follower(NodeManagerBase):
     def do_ping_leader(self):
         port = self.get_current_port()
 
-        fs_sync_offset = str(self.get_fs_sync_last_id())
+        fs_sync_offset = self.get_fs_sync_last_id()
 
         leader_host = self.get_leader_url()
         if leader_host != "":
             client = self.get_client()
-            params = dict(port=port, fs_sync_offset=fs_sync_offset,
-                          node_id=self.get_node_id())
-            result_obj = client.get_stat(params)
+            cluster_node_id = self.get_node_id()
+            result_obj = client.get_stat(port = port, fs_sync_offset = fs_sync_offset, cluster_node_id = cluster_node_id)
             self.update_ping_result(result_obj)
             return result_obj
 

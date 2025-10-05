@@ -63,7 +63,7 @@ class SyncConfig:
         return xconfig.WebConfig.is_leader()
 
 def get_system_role():
-    return xconfig.WebConfig.node_role
+    return xconfig.WebConfig.cluster_node_role
 
 
 def print_debug_info(*args):

@@ -353,7 +353,7 @@ class WebConfig:
     sync_interval_seconds = 3
     sync_db_from_leader = False
     sync_files_from_leader = False
-    leader_roles = ("master", "leader")
+    leader_roles = ("master", "leader", "primary")
 
     # 定时任务开关
     cron_enabled = True
@@ -382,8 +382,8 @@ class WebConfig:
         cls.ui_show_translate_js = SystemConfig.get_bool("ui_show_translate_js")
         
         # 数据同步相关
-        cls.node_id = SystemConfig.get_str("node_id")
-        cls.node_role = SystemConfig.get_str("node_role")
+        cls.cluster_node_id = SystemConfig.get_str("cluster_node_id")
+        cls.cluster_node_role = SystemConfig.get_str("cluster_node_role")
         cls.sync_interval_seconds = SystemConfig.get_int("sync_interval_seconds", 3)
         cls.sync_db_from_leader = SystemConfig.get_bool("sync_db_from_leader", False)
         cls.sync_files_from_leader = SystemConfig.get_bool("sync_files_from_leader", False)
@@ -423,7 +423,7 @@ class WebConfig:
     
     @classmethod
     def is_leader(cls):
-        return cls.node_role in cls.leader_roles
+        return cls.cluster_node_role in cls.leader_roles
     
     @classmethod
     def resolve_path(cls, path: str):
@@ -1013,7 +1013,7 @@ class SystemConfig:
     def get_str(cls, name, default_value=""):
         value = get_system_config(name, default_value)
         return str(value)
-
+    
     @classmethod
     def get_bool(cls, name, default_value=False):
         value = get_system_config(name, default_value)
