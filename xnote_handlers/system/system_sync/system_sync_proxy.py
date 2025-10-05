@@ -49,7 +49,7 @@ class HttpClient:
         self.access_token = "" # 临时访问令牌
         self.token_info: typing.Optional[SystemSyncToken] = None
         self.debug = True
-        self.node_id = xconfig.get_global_config("system.node_id", "unknown_node_id")
+        self.node_id = xconfig.WebConfig.cluster_node_id
         self.port = xconfig.get_global_config("system.port")
         self.fs_sync_failed_msg = ""
 
@@ -93,7 +93,7 @@ class HttpClient:
         if self.check_failed():
             return None
 
-        params = {}
+        params = {} # type: dict[str, str]
         params["port"] = port
         params["fs_sync_offset"] = str(fs_sync_offset)
         params["node_id"] = cluster_node_id
