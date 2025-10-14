@@ -145,6 +145,7 @@ link2:https://abc.com/test?name=1&age=2 text after link
         assert len(tokens) == 1
         assert tokens[0].type == TokenType.img_list
         assert isinstance(tokens[0], ImageListToken)
+        assert len(tokens[0].value) > 0
         img_tokens = tokens[0].tokens
         assert img_tokens[0] == ImageToken("file:///data/temp/1.png", "/data/temp/1.png")
         assert img_tokens[1] == ImageToken("\nfile:///data/temp/2.png", "/data/temp/2.png")

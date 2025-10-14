@@ -378,6 +378,8 @@ class ImageListToken(TextToken):
     def __init__(self, tokens: typing.List[ImageToken]):
         self.type = TokenType.img_list
         self.tokens = tokens
+        values = [x.value for x in tokens]
+        self.value = "".join(values)
     
     def get_html(self):
         html = '<div class="row">'
