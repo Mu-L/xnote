@@ -572,6 +572,22 @@ def init_msg_history_index():
         manager.add_column("msg_version", "bigint", 0)
         manager.add_index(["msg_id"])
 
+def init_msg_template_table():
+    """随手记模板"""
+    table_name = "msg_template"
+    comment = "随手记模板"
+    pk_name = "template_id"
+    with create_default_table_manager(table_name, comment=comment, pk_name=pk_name) as manager:
+        # 展示创建时间
+        manager.add_column("ctime", "datetime", DEFAULT_DATETIME)
+        manager.add_column("mtime", "datetime", DEFAULT_DATETIME)
+        manager.add_column("user_id", "bigint", 0)
+        manager.add_column("name", "varchar(100)", default_value="")
+        manager.add_column("version", "int", 0)
+        manager.add_column("content", "text", default_value="")
+        manager.add_column("sort_num", "int", default_value=0, comment="排序字段")
+        manager.add_index("user_id")
+
 def init_kv_store_table():
     kw = dict()
     kw["pk_name"] = "key"
@@ -811,6 +827,7 @@ def init():
     # 随手记
     init_msg_index_table()
     init_msg_history_index()
+    init_msg_template_table()
     
     # 笔记索引
     init_note_index_table()

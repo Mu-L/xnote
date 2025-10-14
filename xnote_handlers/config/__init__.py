@@ -14,6 +14,7 @@ class LinkConfig:
     taglist = TextLink(text="标签列表", href="/note/taglist")
     tag_manage = TextLink(text="标签管理", href="/note/tag_manage")
     dict_list = TextLink(text="词典", href="/note/dict")
+    message = TextLink(text="随手记", href="/message")
 
 
 class TabConfig:

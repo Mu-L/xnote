@@ -306,7 +306,7 @@ def get_tags_from_message_list(
     return tag_list
 
 
-def filter_default_content(content):
+def filter_default_content(content: str):
     if content == "":
         return content
 

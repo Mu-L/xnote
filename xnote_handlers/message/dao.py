@@ -140,7 +140,7 @@ def add_message_history(message: MessageDO):
     _msg_history_db.insert(history_obj.__dict__)
 
 
-def get_words_from_key(key):
+def get_words_from_key(key: str):
     words = []
     for item in key.split():
         if item == "":
@@ -280,13 +280,6 @@ get_message_by_id = get_message_by_key
 def check_param_user(user_name):
     if user_name is None or user_name == "":
         raise Exception("[query] invalid user_name:%s" % user_name)
-
-
-def check_param_id(id):
-    if id is None:
-        raise Exception("param id is None")
-    if not id.startswith(VALID_MESSAGE_PREFIX_TUPLE):
-        raise Exception("param id invalid: %s" % id)
 
 
 @xutils.timeit(name="kv.message.list", logfile=True, logargs=True)

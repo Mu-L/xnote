@@ -4,8 +4,17 @@
 {% init default_content = "" %}
 {% init filter_default_content = xutils.get_func_by_name("message.filter_default_content") %}
 {% init create_tag = tag %}
+{% init message_template_tab = None %}
 
 <div class="message-input-box card">
+    {% if message_template_tab %}
+        <div class="row btn-line-height">
+            {% render message_template_tab %}
+            <div class="float-right">
+                <a href="/message/template">编辑模板</a>
+            </div>
+        </div>
+    {% end %}
     <textarea class="col-md-12 input-box" rows=3 autoHeight=true 
         placeholder="{{message_placeholder}}">{{filter_default_content(default_content)}}</textarea>
 

@@ -7,7 +7,7 @@
 import xutils
 import typing
 
-from xutils import Storage
+from xutils import Storage, BaseDataRecord
 from xutils import dateutil
 from xutils.functions import del_dict_key, delete_None_values
 from xnote.core.xtemplate import T
@@ -365,3 +365,18 @@ class MessageHistory:
         self.content = ""
         self.ctime = dateutil.format_datetime()
 
+
+class MessageTemplateRecord(BaseDataRecord):
+
+    _pk_name = "template_id"
+
+    def __init__(self):
+        now = dateutil.format_datetime()
+        self.template_id = 0
+        self.ctime = now
+        self.mtime = now
+        self.user_id = 0
+        self.name = ""
+        self.content = ""
+        self.sort_num = 0
+        self.version = 0

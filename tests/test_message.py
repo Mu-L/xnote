@@ -373,3 +373,7 @@ class TestMain(BaseTestCase):
         result = json_request_return_dict("/message/parse", method="POST", data=data)
         assert result.get("success")
         tokens = result.get
+
+    def test_message_template(self):
+        self.check_OK("/message/template")
+        

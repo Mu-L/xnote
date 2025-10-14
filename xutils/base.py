@@ -155,6 +155,7 @@ class BaseEnum:
     
 
 class BaseDataRecord(Storage):
+    _pk_name = None
 
     def handle_from_dict(self):
         pass
@@ -176,6 +177,15 @@ class BaseDataRecord(Storage):
     def from_dict_list(cls, dict_list):
         return [cls.from_dict(item) for item in dict_list]
 
-    def to_save_dict(self):
-        return dict(**self)
+    def to_save_dict(self, remove_pk_name = True):
+        """
+        转换成字典用于保存操作(insert or update)
+        
+        :param remove_pk_name: 默认为True, 对于自增主键, insert的时候需要移除主键字段, update的时候也无需更新主键
+        """
+        result = dict(**self)
+        if remove_pk_name and self._pk_name:
+            result.pop(self._pk_name, None)
+        return result
+
 

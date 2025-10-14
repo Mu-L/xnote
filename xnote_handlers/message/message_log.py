@@ -9,9 +9,11 @@ from xutils import netutil
 from xnote.core import xauth
 from xnote.core import xtemplate
 from xnote.core.xtemplate import T
+from xnote.plugin import TabBox
 from xnote_handlers.message import message_utils
 from xnote_handlers.message import message_tag
 from xnote_handlers.message.message_utils import filter_key
+from .dao_template import MessageTemplateDao
 
 class LogPageHandler:
 
@@ -38,6 +40,28 @@ class LogPageHandler:
         kw.search_ext_dict = dict(tag="log.search")
         kw.message_left_class = "hide"
         kw.message_right_class = "row"
+        self.handle_template_tab(kw, default_content)
         
         return xtemplate.render("message/page/message_list_view.html", **kw)
     
+    def handle_template_tab(self, kw: Storage, default_content: str):
+        template_content = ""
+        user_id = xauth.current_user_id()
+        template_id = xutils.get_argument_int("template_id")
+        template_list = MessageTemplateDao.list_by_user(user_id=user_id)
+        template_tab = TabBox(tab_key = "template_id", tab_default="0", css_class="btn-style")
+        if len(template_list) == 0:
+            template_tab.add_item(title="默认", value="0")
+        else:
+            template_content = template_list[0].content
+            template_tab.tab_default = str(template_list[0].template_id)
+
+            for template in template_list:
+                template_tab.add_item(title=template.name, value=str(template.template_id))
+                if template.template_id == template_id:
+                    template_content = template.content
+                    template_tab.tab_default = str(template_list[0].template_id)
+        
+        kw.message_template_tab = template_tab
+        if default_content == "":
+            kw.default_content = template_content
