@@ -15,7 +15,7 @@ from xutils import dateutil
 from xutils import fsutil
 from xutils import mem_util
 from xutils import Storage
-from xnote.plugin import LinkConfig
+from xnote_handlers.config import LinkConfig
 
 try:
     import sqlite3
@@ -130,10 +130,6 @@ class InfoHandler:
     @xauth.login_required("admin")
     def GET(self):
         p = xutils.get_argument("p", "")
-        if p == "config_dict":
-            text = xconfig.get_config_dict()
-            text = xutils.tojson(text, format=True)
-            return xtemplate.render("system/page/system_info_text.html", text=text)
         if p == "sys_info_detail":
             sys_info = get_sys_info_detail()
             text = xutils.tojson(sys_info, format=True)
@@ -157,7 +153,7 @@ class InfoHandler:
             SystemInfoItem("操作系统", platform.system()),
             SystemInfoItem("操作系统版本", platform.version()),
             SystemInfoItem("系统启动时间", get_startup_time()),
-            SystemInfoItem("系统配置", "查看", link = "/system/info?p=config_dict"),
+            SystemInfoItem("系统配置", "查看", link = "/system/info/boot_config"),
             SystemInfoItem("Python第三方库", "查看", link = "/system/info?p=python_lib"),
             SystemInfoItem("详细系统信息", "查看", link="/system/info?p=sys_info_detail"),
             SystemInfoItem("浏览器信息", "查看", link = "/tools/browser_info"),
@@ -189,7 +185,19 @@ class InfoHandler:
             item_list=item_list,
         )
 
+class BootConfigHandler:
+
+    @xauth.admin_required()
+    def GET(self):
+        text = xconfig.get_config_dict()
+        text = xutils.tojson(text, format=True)
+        kw = Storage()
+        kw.title = "启动配置"
+        kw.text = text
+        kw.parent_link = LinkConfig.system_info
+        return xtemplate.render("system/page/system_info_text.html", **kw)
 
 xurls = (
-    r"/system/info", InfoHandler
+    r"/system/info", InfoHandler,
+    r"/system/info/boot_config", BootConfigHandler,
 )

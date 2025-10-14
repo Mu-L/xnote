@@ -204,7 +204,7 @@ def get_int_by_sys_arg(value):
 
 def handle_args_and_init_config(boot_config_kw=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default=DEFAULT_CONFIG_FILE)
+    parser.add_argument("--config", default="", required=True)
     parser.add_argument("--data", default="")
     parser.add_argument("--delay", default="0")
     parser.add_argument("--debug", default="yes")
@@ -220,6 +220,10 @@ def handle_args_and_init_config(boot_config_kw=None):
 
     if args.data != "":
         logging.error("--data配置已经废弃，请使用--config配置")
+        sys.exit(1)
+
+    if xutils.is_same_file(args.config, DEFAULT_CONFIG_FILE):
+        logging.error("can not use default config file")
         sys.exit(1)
 
     # 处理Data目录，创建各种目录

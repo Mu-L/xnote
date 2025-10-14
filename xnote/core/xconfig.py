@@ -526,6 +526,9 @@ class DatabaseConfig:
         cls.ssdb_host = SystemConfig.get_str("ssdb_host", "127.0.0.1")
         cls.ssdb_port = SystemConfig.get_int("ssdb_port", 8888)
 
+        if cls.db_driver == "":
+            raise Exception("db_driver config is empty")
+
         if cls.db_driver_sql == "":
             if cls.db_driver == "mysql":
                 cls.db_driver_sql = "mysql"
@@ -597,6 +600,8 @@ def init(boot_config_file=None, boot_config_kw = None):
     if boot_config_file != None:
         # 初始化启动配置
         init_boot_config(boot_config_file, boot_config_kw=boot_config_kw)
+    
+    set_system_config("boot_config_file", boot_config_file)
 
     path = get_system_config("data")
     assert isinstance(path, str)
