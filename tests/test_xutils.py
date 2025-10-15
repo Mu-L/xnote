@@ -465,7 +465,7 @@ class TestMain(unittest.TestCase):
         parser = TextParser()
         tokens = parser.parse(text)
         self.assertEqual(tokens[0], "test")
-        self.assertEqual(tokens[1], "<span class=\"msg-strong\">mark</span>")
+        self.assertEqual(tokens[1], "<span class=\"msg-strong level-2\">mark</span>")
         self.assertEqual(tokens[2], "end")
 
     def test_random_int64(self):

@@ -55,7 +55,7 @@ class TestTextParser(unittest.TestCase):
         tokens = parser.parse(text)
         print(tokens)
         assert tokens[0] == "test"
-        assert tokens[1] == "<span class=\"msg-strong\">mark</span>"
+        assert tokens[1] == "<span class=\"msg-strong level-2\">mark</span>"
         assert tokens[2] == "end"
 
         struct_tokens = parser.parse_to_tokens(text)
@@ -80,8 +80,7 @@ class TestTextParser(unittest.TestCase):
         tokens = parser.parse(text)
         print(tokens)
         assert tokens[0] == "test"
-        assert tokens[1] == "**"
-        assert tokens[2] == "*"
+        assert tokens[1] == "***"
 
     def test_image(self):
         text = "图片file:///data/temp/1.png"

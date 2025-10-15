@@ -104,6 +104,10 @@ class TextParserBase(object):
 
         # 循环分析
         self.profile_dict = dict()
+
+    @property
+    def pos(self):
+        return self.i
     
     def escape(self, text):
         return escape_html(text)
@@ -113,6 +117,9 @@ class TextParserBase(object):
         if self.i < self.length:
             return self.text[self.i]
         return None
+    
+    def has_next(self):
+        return self.i < self.length
     
     def read(self, count=1):
         """往后读取 {count} 个字符"""
@@ -327,15 +334,17 @@ class SearchToken(TopicToken):
         self.value = value
 
 class StrongToken(TextToken):
-    def __init__(self, value=""):
+    def __init__(self, value="", tag = "**"):
         super().__init__(value=value)
         self.type = TokenType.strong
         self.value = value
+        self.tag = tag
         
     def get_html(self):
         value = self.value.strip("*")
         value = escape_html(value)
-        return f'<span class="msg-strong">{value}</span>'
+        level = len(self.tag)
+        return f'<span class="msg-strong level-{level}">{value}</span>'
 
 class LinkToken(TextToken):
     def __init__(self, value="", href="", name = ""):
@@ -411,9 +420,6 @@ class TextParser(TextParserBase):
 
     def build_search_link(self, keyword):
         return SearchToken(keyword)
-    
-    def build_strong_tag(self, keyword):
-        return StrongToken(keyword)
 
     def translate_topic(self, key):
         return TopicToken(value=key)
@@ -508,7 +514,7 @@ class TextParser(TextParserBase):
             self.tokens.append(TextToken(key))
         else:
             # key = key[0:len(key)-tag_len]
-            token = self.build_strong_tag(key)
+            token = StrongToken(key, tag=tag)
             self.tokens.append(token)
 
     def mark_book_single(self):
@@ -594,41 +600,76 @@ class TextParser(TextParserBase):
             token = LinkToken(value=value, href=href, name = name)
             self.tokens.append(token)
 
+    def _get_strong_start(self):
+        start = self.pos
+        size = 0
+        for pos in range(start, self.length):
+            c = self.text[pos]
+            if c != "*":
+                break
+            size += 1
+
+        return self.text[start: start + size]
+
+    def _next_token(self):
+        c = self.current()
+        if c is None:
+            return
+        
+        if c == '#':
+            self.mark_topic()
+            return
+        
+        if c == '《':
+            self.mark_book()
+            return
+        
+        if c == '@':
+            self.mark_at()
+            return
+        
+        tag = self._get_strong_start()
+        if len(tag) >= 2:
+            self.mark_strong(tag)
+            return
+        
+        if self.mark_book_single_flag and c == '<':
+            self.mark_book_single()
+            return
+        
+        if self.mark_number_flag and c.isdigit():
+            self.mark_number()
+            return
+        
+        if self.startswith("http://"):
+            self.mark_http()
+            return
+        
+        if self.startswith("https://"):
+            self.mark_https()
+            return
+        
+        if self.startswith("file://"):
+            self.mark_file()
+            return
+        
+        if c == '\n':
+            self.str_token_append(c)
+            self.save_str_token()
+            self.read_next()
+            return
+        
+        # 未命中规则，保存并且往下读取一个字符
+        self.str_token_append(c)
+        self.read_next()
+
     def parse_to_tokens(self, text):
         self.init(text)
         self.init_ext(text)
 
-        c = self.current()
-        while c != None:
-            if c == '#':
-                self.mark_topic()
-            elif c == '《':
-                self.mark_book()
-            elif c == '@':
-                self.mark_at()
-            elif self.startswith("**"):
-                self.mark_strong()
-            elif self.mark_book_single_flag and c == '<':
-                self.mark_book_single()
-            elif self.mark_number_flag and c.isdigit():
-                self.mark_number()
-            elif self.startswith("http://"):
-                self.mark_http()
-            elif self.startswith("https://"):
-                self.mark_https()
-            elif self.startswith("file://"):
-                self.mark_file()
-            elif c == '\n':
-                self.str_token_append(c)
-                self.save_str_token()
-                self.read_next()
-            else:
-                # 未命中规则，保存并且往下读取一个字符
-                self.str_token_append(c)
-                self.read_next()
-
+        while self.has_next():
+            self._next_token()
             # 前面都读取了一个字符，这里不需要再读取
-            c = self.current()
 
         self.save_str_token()
         return self.tokens

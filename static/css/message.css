@@ -173,6 +173,14 @@
     font-weight: bold;
 }
 
+.msg-strong.level-3 {
+    color: orange;
+}
+
+.msg-strong.level-4 {
+    /** darkcyan **/
+    color: #009f95;
+}
 
 /* 侧边栏的tab样式 */
 .sidebar-btn-style>.x-tab-item {
