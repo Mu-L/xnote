@@ -9,6 +9,7 @@ from xnote_handlers.config import LinkConfig
 class TemplateHandler(BaseTablePlugin):
 
     require_login = True
+    require_admin = False
     title = "模板"
     parent_link = LinkConfig.message
 
