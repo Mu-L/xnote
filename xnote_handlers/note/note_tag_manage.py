@@ -156,21 +156,30 @@ class TagManageHandler(BaseTagManageHandler):
         offset = (page-1) * page_size
 
         category_id = None
+        filter_amount = None
         if filter_type == 1:
             category_id = 0
+        if filter_type == 2:
+            filter_amount = 0
 
         category_dict = TagCategoryService.get_name_dict(user_id=user_id)
         rows, count = TagInfoService.get_page(
-            user_id=user_id, offset=offset, tag_type=tag_type, category_id=category_id, limit=page_size)
+            user_id=user_id, offset=offset, tag_type=tag_type, category_id=category_id, 
+            limit=page_size, amount=filter_amount)
+        
         for row in rows:
             row["edit_url"] = f"?action=edit&tag_id={row.tag_id}"
             row["category_name"] = category_dict.get(row.category_id, "")
             row["tag_type_str"] = row.tag_type_name
+            if row.amount == 0:
+                row["delete_url"] = f"?action=delete&tag_id={row.tag_id}"
+                row["delete_msg"] = f"确认删除标签[{row.tag_name}]吗?"
             table.add_row(row)
 
         filter_tab = TabBox(tab_key="filter_type", css_class="btn-style", tab_default="0", title="过滤条件")
         filter_tab.add_item(title="全部", value="0")
         filter_tab.add_item(title="未分类", value="1")
+        filter_tab.add_item(title="空标签", value="2")
 
         kw = Storage()
         kw.table = table
@@ -217,6 +226,15 @@ class TagManageHandler(BaseTagManageHandler):
         
         tag_info.category_id = params.get_int("category_id")
         TagInfoService.update(tag_info)
+        return webutil.SuccessResult()
+    
+    def handle_delete(self):
+        user_id = xauth.current_user_id()
+        tag_id = xutils.get_argument_int("tag_id")
+        tag_info = TagInfoService.get_by_id(tag_id, user_id=user_id)
+        if tag_info is None:
+            return webutil.FailedResult(message="标签不存在")
+        TagInfoService.delete(tag_info)
         return webutil.SuccessResult()
 
 xurls = (

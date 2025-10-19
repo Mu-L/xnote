@@ -242,7 +242,10 @@ class TagInfoServiceImpl:
         return text
     
     def get_page(self, user_id=0, tag_type=0, target_id_list=[], offset=0, limit=20, 
-                 skip_count=False, skip_tag_type=False, category_id:typing.Optional[int]=None, order=None):
+                 skip_count=False, skip_tag_type=False, 
+                 category_id:typing.Optional[int]=None, 
+                 amount: typing.Optional[int] = None, 
+                 order=None):
         where_sql = "user_id=$user_id"
         tag_type = self.handle_tag_type(tag_type)
 
@@ -252,7 +255,10 @@ class TagInfoServiceImpl:
             where_sql += " AND target_id IN $target_id_list"
         if category_id != None:
             where_sql += " AND category_id = $category_id"
-        vars = dict(user_id=user_id, tag_type=tag_type, target_id_list=target_id_list, category_id=category_id)
+        if amount != None:
+            where_sql += " AND amount = $amount"
+        vars = dict(user_id=user_id, tag_type=tag_type, target_id_list=target_id_list, 
+                    category_id=category_id, amount = amount)
         result = self.db.select(where=where_sql, vars=vars, offset=offset, limit=limit, order=order)
         if skip_count:
             count = 0
