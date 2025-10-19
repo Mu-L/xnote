@@ -3,9 +3,10 @@
 {% if show_tab %}
 
 {% init message_stat = xutils.call("message.get_current_message_stat") %}
+{% init tab_default = "log" %}
 
 <!-- 桌面版菜单 -->
-<div class="card x-tab-box message-tab" data-tab-key="tag" data-tab-default="{{tag}}">
+<div class="card x-tab-box message-tab" data-tab-key="tag" data-tab-default="{{tab_default}}">
     <a class="x-tab" data-tab-value="log" href="{{_server_home}}/message?tag=log">
         记事(<span class="log-count">{{message_stat.log_count}}</span>)
     </a>

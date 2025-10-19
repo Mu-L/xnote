@@ -14,6 +14,7 @@ from xutils import Storage
 from xutils import dbutil
 from xutils import dateutil, dbutil
 from xutils import logutil
+from xutils import dateutil
 from xnote.core.models import SearchContext
 from urllib.parse import quote
 
@@ -241,7 +242,9 @@ class TestMain(BaseTestCase):
         assert data.tag == "task"
 
     def test_message_dairy(self):
+        date = dateutil.format_date()
         self.check_OK("/message/dairy")
+        self.check_OK(f"/message/date_detail?date={date}")
 
     def do_test_search(self, content="", tag="", tag_name=""):
         delete_all_messages()

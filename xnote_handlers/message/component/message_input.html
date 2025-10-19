@@ -5,6 +5,7 @@
 {% init filter_default_content = xutils.get_func_by_name("message.filter_default_content") %}
 {% init create_tag = tag %}
 {% init message_template_tab = None %}
+{% init create_date = "" %}
 
 <div class="message-input-box card">
     {% if message_template_tab %}
@@ -36,6 +37,12 @@
             data-default-content="{{default_content}}"
             onclick="xnote.action.message.createMessage(this);">
     </div>
+
+    {% if create_date %}
+        <div class="row orange">
+            创建日期 {{create_date}}
+        </div>
+    {% end %}
 
 </div>
 

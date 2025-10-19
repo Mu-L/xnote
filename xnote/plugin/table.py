@@ -33,13 +33,30 @@ class LinkTargetType:
     parent = "_parent"
     top = "_top"
 
+class _TypeInfo:
+    def __init__(self, name="", min_width=""):
+        self.name = name
+        self.min_width = min_width
+
+class TableRowType:
+    date = _TypeInfo(name="date", min_width="120px")
+    datetime = _TypeInfo(name="datetime", min_width="200px")
+
+    _types = [date, datetime]
+
+    @classmethod
+    def get_by_name(cls, name=""):
+        for type_ in cls._types:
+            if type_.name == name:
+                return type_
+        return None
+
 
 def _get_px_value(value: str):
     """获取像素px的数字值,内部函数,请勿使用"""
     if value.endswith("px"):
         return int(value.strip("px"))
     return 0
-
 
 class DefaultHeadStyle:
     def __init__(self):
@@ -103,6 +120,10 @@ class TableHead:
     def _get_min_width(self) -> typing.Optional[str]:
         if self.min_width != "":
             return self.min_width
+        
+        type_info = TableRowType.get_by_name(self.type)
+        if type_info:
+            return type_info.min_width
         
         default_style = self.default_style
         if default_style.min_width != "":

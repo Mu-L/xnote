@@ -7,11 +7,15 @@ from xutils import Storage
 from xutils import dateutil
 from xnote.core import xauth
 from xnote.core import xtemplate
+from xnote.plugin import TabBox
+from xnote.core.xtemplate import T
 from xnote_handlers.message.message_utils import MAX_LIST_LIMIT
 from xnote_handlers.message.message_utils import filter_msg_list_by_key
 from xnote_handlers.message.message_utils import do_split_date
 from xnote_handlers.message.message_utils import convert_message_list_to_day_folder
 from xnote_handlers.message.message_utils import count_month_size
+from . import message_tag
+from . import message_template_service
 
 class MessageDateHandler:
 
@@ -63,3 +67,74 @@ class MessageListByDayHandler():
                                 show_back_btn=True,
                                 month_size=count_month_size(message_list),
                                 **kw)
+
+
+class CalendarHandler:
+
+    @xauth.login_required()
+    def GET(self):
+        user_id = xauth.current_user_id()
+        date = xutils.get_argument("date")
+
+        year, month, mday = do_split_date(date)
+
+        date = "%s-%02d" % (year, month)
+
+        filter_tab = TabBox(tab_key="filterKey", tab_default="", title="标签", css_class="btn-style")
+        filter_tab.add_tab(title="全部", value="", href=f"/message/calendar?date={date}")
+
+        tag_list = message_tag.get_tag_list_by_month(user_id=user_id, month=date, tag="log")
+        for tag_info in tag_list:
+            filter_tab.add_tab(title=tag_info.name, value=tag_info.name)
+
+        kw = Storage()
+        kw.tag = "log.date"
+        kw.year = year
+        kw.month = month
+        kw.date = date
+        kw.html_title = T("随手记")
+        kw.search_type = "message"
+        kw.filter_tab = filter_tab
+        
+        # 实际数据从 /message/date 接口获取
+
+        return xtemplate.render("message/page/message_calendar.html", **kw)
+
+
+class DateDetailHandler:
+    
+    @xauth.login_required()
+    def GET(self):
+        date = xutils.get_argument_str("date")
+        kw = Storage()
+        kw.message_placeholder = f"补充{date}发生的事情"
+
+        filter_key = xutils.get_argument_str("filterKey", "")
+        if filter_key != "":
+            kw.show_input_box = False
+        
+        kw.message_left_class = "hide"
+        kw.message_right_class = "row"
+        kw.show_side_tags = False
+        kw.tab_default = "log.date"
+        kw.tag = "log"
+        kw.message_tag = "log.date"
+        kw.create_date = date
+
+        message_template_service.handle_template_tab(kw, default_content="")
+
+        return xtemplate.render("message/page/message_list_view.html",
+                                search_type="message",
+                                show_system_tag=False,
+                                show_sub_link=False,
+                                html_title=T("随手记"),
+                                show_back_btn=True,
+                                **kw)
+
+xurls = (
+    # 日记
+    r"/message/dairy", MessageListByDayHandler,
+    r"/message/list_by_day", MessageListByDayHandler,
+    r"/message/calendar", CalendarHandler,
+    r"/message/date_detail", DateDetailHandler,
+)

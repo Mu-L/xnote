@@ -130,14 +130,14 @@ class TextParserBase(object):
         return self.text[pos+1:newpos+1]
 
     def read_next(self):
-        """往后读取一个字符，返回读取的字符，如果已经读完了，返回None，改变索引下标"""
+        """往后读取一个字符，返回读取的字符，如果已经读完了，返回空字符串，改变索引下标"""
         return self.read(1)
 
     def predict_next(self):
-        """读取下一个字符，如果没有返回None，不改变当前索引下标"""
+        """读取下一个字符，如果没有返回空字符串，不改变当前索引下标"""
         if self.i < self.max_index:
             return self.text[self.i+1]
-        return None
+        return ""
 
     def get(self, index=0):
         if index < self.max_index:

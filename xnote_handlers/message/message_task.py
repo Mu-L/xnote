@@ -122,9 +122,6 @@ class TaskHandler:
         if page_name == "create":
             return TaskListHandler.get_task_create_page()
 
-        if page_name == "done":
-            return TaskListHandler.get_task_done_page()
-
         if page_name == "taglist":
             return TaskListHandler.get_task_taglist_page()
 
@@ -133,6 +130,12 @@ class TaskHandler:
         else:
             # 任务的首页
             return TaskListHandler.get_task_create_page()
+
+
+class TaskDoneHandler:
+    @xauth.login_required()
+    def GET(self):
+        return TaskListHandler.get_task_done_page()
 
 class TaskListAjaxHandler:
 
@@ -172,6 +175,7 @@ class TaskListAjaxHandler:
 
 xurls = (
     r"/message/task", TaskHandler,
+    r"/message/task/done", TaskDoneHandler,
     r"/message/task/list_ajax", TaskListAjaxHandler,
     r"/message/task/tag_list", TaskTagListPage,
 )

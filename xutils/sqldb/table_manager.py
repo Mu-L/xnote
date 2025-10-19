@@ -191,8 +191,6 @@ class BaseTableManager:
         return quote_name(colname)
 
 class MySQLTableManager(BaseTableManager):
-    # TODO 待实现测试
-
     def connect(self):
         pass
 
@@ -310,12 +308,12 @@ class SqliteTableManager(BaseTableManager):
 
     def generate_migrate_sql(self, dropped_names):
         """生成迁移字段的SQL（本质上是迁移）"""
-        columns = self.execute("pragma table_info('%s')" % self.tablename)
+        columns = self.desc_columns()
         new_names = []
         old_names = []
         for column in columns: # type:ignore
-            name = column["name"]
-            type = column["type"]
+            name = column.name
+            type = column.type
             old_names.append(name)
             if name not in dropped_names:
                 new_names.append(name)
@@ -340,7 +338,7 @@ class SqliteTableManager(BaseTableManager):
 
     def desc_columns(self):
         columns = self.execute(f"pragma table_info('{self.tablename}')")
-        result = []
+        result:typing.List[ColumnInfo] = []
         for col in columns: # type:ignore
             item = ColumnInfo()
             item.type = col["type"]

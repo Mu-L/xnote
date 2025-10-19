@@ -145,12 +145,13 @@ class ListAjaxHandler:
         chatlist = parser.get_message_list()
 
         if format == "html":
-            return self.do_get_html(chatlist, page, page_max, tag)
+            return self.do_get_html(chatlist, page, page_total=amount, tag=tag, page_size=pagesize)
         
         result = webutil.SuccessResult(data=chatlist)
         result.keywords = parser.get_keywords()
         result.amount = amount
         result.page_max = page_max
+        result.page_total = amount
         result.pagesize = pagesize
         result.current_user = xauth.current_name()
         return result
@@ -176,7 +177,7 @@ class ListAjaxHandler:
         
         return msg_dao.list_by_tag(user_name, tag, offset, pagesize)
 
-    def do_get_html(self, msg_list, page: int, page_max: int, tag="task"):
+    def do_get_html(self, msg_list, page: int, page_total: int, tag="task", page_size = 20):
         show_todo_check = True
         show_edit_btn = True
         show_to_log_btn = False
@@ -222,7 +223,8 @@ class ListAjaxHandler:
             show_to_log_btn=show_to_log_btn,
             page=page,
             page_url=page_url,
-            page_max=page_max,
+            page_total = page_total,
+            page_size = page_size,
             item_list=msg_list
         )
 
@@ -554,9 +556,6 @@ class MessagePageHandler:
         if tag == "month_tags":
             return MonthTagsPage().do_get()
 
-        if tag in ("date", "log.date"):
-            return self.do_view_by_date(date)
-
         if tag == "api.tag_list":
             return self.get_tag_list()
 
@@ -573,28 +572,6 @@ class MessagePageHandler:
 
     def get_tag_list(self):
         return message_tag.get_tag_list()
-
-    def do_view_by_date(self, date):
-        kw = Storage()
-        kw.message_placeholder = "补充%s发生的事情" % date
-
-        filter_key = xutils.get_argument_str("filterKey", "")
-        if filter_key != "":
-            kw.show_input_box = False
-        
-        kw.message_left_class = "hide"
-        kw.message_right_class = "row"
-        kw.show_side_tags = False
-
-        return xtemplate.render("message/page/message_list_view.html",
-                                tag="date",
-                                message_tag="date",
-                                search_type="message",
-                                show_system_tag=False,
-                                show_sub_link=False,
-                                html_title=T("随手记"),
-                                show_back_btn=True,
-                                **kw)
 
     def GET(self):
         tag = xutils.get_argument_str("tag")
@@ -632,38 +609,6 @@ class MessageCreateDialogHandler:
             detail = detail,
             submitBtnText="创建",
         )
-
-class CalendarHandler:
-
-    @xauth.login_required()
-    def GET(self):
-        user_id = xauth.current_user_id()
-        date = xutils.get_argument("date")
-
-        year, month, mday = do_split_date(date)
-
-        date = "%s-%02d" % (year, month)
-
-        filter_tab = TabBox(tab_key="filterKey", tab_default="", title="标签", css_class="btn-style")
-        filter_tab.add_tab(title="全部", value="", href=f"/message/calendar?date={date}")
-
-        tag_list = message_tag.get_tag_list_by_month(user_id=user_id, month=date, tag="log")
-        for tag_info in tag_list:
-            filter_tab.add_tab(title=tag_info.name, value=tag_info.name)
-
-        kw = Storage()
-        kw.tag = "log.date"
-        kw.year = year
-        kw.month = month
-        kw.date = date
-        kw.html_title = T("随手记")
-        kw.search_type = "message"
-        kw.filter_tab = filter_tab
-        
-        # 实际数据从 /message/date 接口获取
-
-        return xtemplate.render("message/page/message_calendar.html", **kw)
-
 
 class StatAjaxHandler:
 
@@ -818,14 +763,9 @@ class UpdateTagAjaxHandler:
 
 xurls = (
     r"/message", MessagePageHandler,
-    r"/message/calendar", CalendarHandler,
     r"/message/log", MessageLogHandler,
     r"/message/edit_dialog", MessageEditDialogHandler,
     r"/message/create_dialog", MessageCreateDialogHandler,
-
-    # 日记
-    r"/message/dairy", MessageListByDayHandler,
-    r"/message/list_by_day", MessageListByDayHandler,
 
     r"/message/refresh", MessageRefreshHandler,
     

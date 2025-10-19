@@ -43,6 +43,11 @@ class ParamDict:
     
     def __str__(self) -> str:
         return str(self._dict)
+    
+    def check_not_empty(self, key: str):
+        value = self.get(key)
+        if value == None or value == "":
+            raise Exception(f"{key} can not be empty")
 
 class BaseTablePlugin(BasePlugin):
     rows = 0

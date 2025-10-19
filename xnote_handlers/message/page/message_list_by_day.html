@@ -40,7 +40,7 @@
         {% end %}
 
         {% for folder in message_list %}
-            <a href="{{_server_home}}/message?tag=log.date&date={{folder.date}}" class="list-link {{folder.css_class}}">
+            <a href="{{_server_home}}/message/date_detail?date={{folder.date}}" class="list-link {{folder.css_class}}">
                 <span>{{folder.title}}</span>
                 <div class="float-right">
                     <span class="list-item-badge">{{ len(folder.item_list) }}</span>

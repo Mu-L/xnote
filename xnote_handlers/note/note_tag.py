@@ -49,6 +49,7 @@ class TagInfoHandler:
         tag_code = xutils.get_argument_str("tag_code")
         page = xutils.get_argument_int("page", 1)
         limit = xutils.get_argument_int("limit", xconfig.PAGE_SIZE)
+        tag_code = tag_code.lower()
 
         offset = (page-1) * limit
         assert offset >= 0
