@@ -7,6 +7,7 @@ from xutils import SearchResult, u, Storage, functions
 from xnote.core import xmanager, xconfig, xauth, xtemplate
 from xnote.core.models import SearchContext
 from xnote_handlers.message import dao, message_utils
+from xnote.service import TagInfoService
 
 
 @xmanager.searchable()
@@ -78,6 +79,12 @@ class SearchHandler:
         key = xutils.get_argument_str("key", "")
         tag = xutils.get_argument_str("tag", "search")
 
+        user_id = xauth.current_user_id()
+        tag_id = 0
+        tag_info = TagInfoService.get_first(user_id=user_id, tag_code=key)
+        if tag_info:
+            tag_id = tag_info.tag_id
+
         kw = Storage()
         kw.tag = tag
         kw.key = key
@@ -90,6 +97,7 @@ class SearchHandler:
         kw.is_task_tag = message_utils.is_task_tag(tag)
         kw.search_type = message_utils.TagHelper.get_search_type(tag)
         kw.search_ext_dict = dict(tag = tag)
+        kw.tag_id = tag_id
 
         return xtemplate.render("message/page/message_search.html", **kw)
 

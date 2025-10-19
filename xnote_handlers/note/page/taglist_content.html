@@ -1,0 +1,7 @@
+{% for tag_category in tag_category_list %}
+    <div class="split-title">
+        {{tag_category.name}}
+    </div>
+    {% set tag_info_list = tag_category.tag_list %}
+    {% include note/page/taglist_row.html %}
+{% end %}

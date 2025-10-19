@@ -2,13 +2,17 @@
 {% init show_create_on_tag = True %}
 {% init is_task_tag = False %}
 {% init date = "" %}
+{% init tag_id = 0 %}
+
+{% include common/table/table_script.html %}
 
 {% if keyword != "" %}
 <div class="card btn-line-height">
-    <span class="tag info">标签</span>
+    <!-- <span class="tag info">标签</span> -->
+    <a href="/message/tag/list">标签列表</a>
+    <span>/</span>
     <span class="keyword-span">{{keyword}}</span>
     <div class="float-right">
-
         {% if is_task_tag %}
         <button class="btn-default" 
             data-keyword="{{keyword}}"
@@ -22,13 +26,11 @@
             data-title="创建随手记"
             onclick="xnote.action.message.createMessageOnTag(this);">+随手记</button>
         {% end %}
-    
-        {% if is_keyword_marked %}
-            <button class="btn-default mark-btn" data-action="unmark"
-                onclick="xnote.action.message.markTagLevel(event);">取消置顶</button>
-        {% else %}
-            <button class="btn-default mark-btn" data-action="mark" 
-                onclick="xnote.action.message.markTagLevel(event);">置顶</button>
+
+        {% if tag_id > 0 %}
+        <button class="btn btn-default" data-title="编辑标签"
+                data-url="{{_server_home}}/note/tag_manage?action=edit&tag_id={{tag_id}}"
+                onclick="xnote.table.handleEditForm(this)">编辑标签</button>
         {% end %}
     </div>
 </div>

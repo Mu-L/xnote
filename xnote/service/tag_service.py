@@ -83,7 +83,7 @@ class TagInfoDO(BaseDataRecord):
     def url(self):
         if self.tag_type == TagTypeEnum.msg_tag.int_value:
             if SystemTagEnum.is_sys_tag(self.tag_code):
-                return f"/message/tag/list?tag=log.tags&sys_tag={self.tag_code}"
+                return f"/message/system_tag?tag_code={self.tag_code}"
             return f"/message?tag=search&key={quote(self.tag_code)}"
         return f"/note/taginfo?tag_code={quote(self.tag_code)}"
     

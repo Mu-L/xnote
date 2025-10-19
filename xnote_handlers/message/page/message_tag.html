@@ -1,0 +1,22 @@
+{% extends base %}
+
+{% block body_left %}
+    {% include message/component/message_title.html %}
+
+    {% include message/component/message_tab_log.html %}
+
+    <div class="card">
+        <!-- 内容区域 -->
+        {% include note/page/taglist_content.html %}
+    </div>
+
+{% end %}
+
+
+{% block body_right %}
+    <div class="desktop-only">
+        {% include common/sidebar/app_index.html %}
+        {% include note/component/group_special_folder.html %}
+        {% include message/component/right/tags.html %}
+    </div>
+{% end %}

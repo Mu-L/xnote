@@ -4,7 +4,8 @@ import typing
 import xutils
 import logging
 
-from xnote.core import xauth, xtemplate, xconfig
+from xnote.core import xauth, xtemplate, xconfig, xmanager
+from xnote.core.xtemplate import T
 from xutils import Storage, webutil, dateutil
 from xutils.textutil import quote
 from xutils.db.dbutil_helper import new_from_dict
@@ -14,6 +15,8 @@ from .message_model import MsgTagInfo, MessageTagEnum
 from xutils.text_parser import TokenType
 from xutils import netutil
 from xutils.functions import safe_list
+from xnote_handlers.note import dao_tag
+from xnote_handlers.note.dao_tag import TagTypeEnum
 
 
 """
@@ -189,27 +192,33 @@ class SearchDialogHandler:
         return xtemplate.render("message/page/message_tag_search_dialog.html", tag_list = tag_info_list)
 
 class ListTagPage:
-
-    def get_param_tag(self):
-        sys_tag = xutils.get_argument_str("sys_tag")
-        if sys_tag != "":
-            return sys_tag
-        return xutils.get_argument_str("tag")
     
     @xauth.login_required()
     def GET(self):
-        tag = self.get_param_tag()
-        if MessageTagEnum.is_system_tag_code(tag):
-            return self.get_system_tag_page(tag)
-        return self.get_log_tags_page()
-    
-    def create_kw(self):
+        user_info = xauth.current_user()
+        assert user_info != None
+        user_name = user_info.name
+        user_id = user_info.user_id
+        xmanager.add_visit_log(user_name, "/message/tag/list")
+        tag_category_list = dao_tag.list_tag_category_detail(user_id=user_id, tag_type=TagTypeEnum.msg_tag.int_value)
+        
         kw = Storage()
-        return kw
+        kw.html_title = T("随手记标签")
+        kw.tag_category_list = tag_category_list
+        kw.tab_default = "log.tags"
 
-    def get_system_tag_page(self, tag: str):
+        return xtemplate.render("message/page/message_tag.html", **kw)
+
+
+class SystemTagHandler:
+    
+    @xauth.login_required()
+    def GET(self):
         kw = self.create_kw()
-        kw.message_tag=tag
+        tag_code = xutils.get_argument_str("tag_code")
+        kw.tag = "log"
+        kw.tab_default = "log.tags"
+        kw.message_tag= tag_code
         kw.search_type="message"
         kw.show_input_box=False
         kw.show_side_tags=False
@@ -218,27 +227,9 @@ class ListTagPage:
 
         return xtemplate.render("message/page/message_list_view.html", **kw)
     
-    def get_log_tags_page(self):
-        """随手记的话题标签页面"""
-        orderby = xutils.get_argument_str("orderby", "")
-        kw = self.create_kw()
-        kw.list_ajax_url = "/message/tag/list_ajax"
-        kw.tag="key"
-        kw.search_type="message"
-        kw.show_tag_btn=False
-        kw.show_attachment_btn=False
-        kw.show_system_tag=True
-        kw.message_placeholder="添加标签/关键字/话题"
-        kw.show_side_tags=False
-        kw.show_input_box = False
-        kw.show_sub_link = False
-        kw.orderby = orderby
-        kw.search_ext_dict = dict(tag="search")
-        kw.show_left_tags = False
-        kw.message_left_class = "hide"
-        kw.message_right_class = "row"
 
-        return xtemplate.render("message/page/message_list_view.html", **kw)
+    def create_kw(self):
+        return Storage()
 
 
 class ListAjaxHandler:
@@ -301,5 +292,6 @@ xurls = (
     r"/message/tag/list", ListTagPage,
     r"/message/tag/list_ajax", ListAjaxHandler,
     r"/message/tag/search_dialog", SearchDialogHandler,
+    r"/message/system_tag", SystemTagHandler,
     r"/api/message/tag/list", ListTagAjaxHandler,
 )
