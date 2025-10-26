@@ -20,7 +20,7 @@ class StatInfo(Storage):
         super(StatInfo).__init__()
         self.title = title
         self.amount = amount
-        self.url = url
+        self.url = xconfig.WebConfig.resolve_path(url)
     
 class StatHandler(BaseTablePlugin):
 
@@ -57,13 +57,13 @@ class StatHandler(BaseTablePlugin):
         comment_count = note_stat.comment_count
         search_count = SearchHistoryService.count(user_id=user_id, search_type=SearchHistoryType.default)
 
-        stat_list.append(StatInfo("我的笔记本", group_count))
-        stat_list.append(StatInfo("我的笔记", note_count, f"{server_home}/note/group/year"))
-        stat_list.append(StatInfo("我的待办", message_stat.task_count))
-        stat_list.append(StatInfo("完成待办", message_stat.done_count))
-        stat_list.append(StatInfo("我的记事", message_stat.log_count))
-        stat_list.append(StatInfo("搜索记录", search_count, f"{server_home}/search/history"))
-        stat_list.append(StatInfo("我的评论", comment_count))
+        stat_list.append(StatInfo("我的笔记本", group_count, url="/note/group_list"))
+        stat_list.append(StatInfo("我的笔记", note_count, url="/note/group/year"))
+        stat_list.append(StatInfo("我的待办", message_stat.task_count, url="/message/task"))
+        stat_list.append(StatInfo("完成待办", message_stat.done_count, url="/message/task/done"))
+        stat_list.append(StatInfo("我的记事", message_stat.log_count, url="/message"))
+        stat_list.append(StatInfo("搜索记录", search_count, url="/search/history"))
+        stat_list.append(StatInfo("我的评论", comment_count, url="/note/comment/mine"))
         
         return stat_list
     
@@ -82,7 +82,7 @@ class StatHandler(BaseTablePlugin):
             if plugin.is_external:
                 external_plugin_count += 1
 
-        table.add_row(StatInfo("全部插件", plugin_count))
+        table.add_row(StatInfo("全部插件", plugin_count, url="/plugin_list"))
         table.add_row(StatInfo("第三方插件", external_plugin_count))
         return table
         

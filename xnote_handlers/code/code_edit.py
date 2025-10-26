@@ -18,6 +18,8 @@ from xutils import textutil
 from xutils import webutil
 from xutils import netutil
 from xnote.plugin import TextLink
+from xnote.service.system_info_service import SystemInfoService, SystemInfoEnum
+from xnote_handlers.config import LinkConfig
 
 def can_preview(path):
     name, ext = os.path.splitext(path)
@@ -188,9 +190,46 @@ class UpdateHandler(object):
             return webutil.SuccessResult()
 
 
+class EditConfigHandler:
+    @xauth.admin_required()
+    def GET(self):
+        config_key = xutils.get_argument_str("config_key")
+        sys_info = SystemInfoEnum.get_by_info_key(info_key=config_key)
+        kw = Storage()
+        kw.path = "init.py"
+        kw.content = ""
+        kw.post_action = "/code/edit/config"
+        kw.show_fs_path = False
+        kw.show_rename = False
+        kw.parent_link = LinkConfig.admin_settings
+        kw.code_type = "python"
+
+        if sys_info is None:
+            error = f"config not exists, config_key={config_key}"
+            kw.error = error
+        else:
+            kw.title = sys_info.info_name
+            kw.content = sys_info.value
+
+        return xtemplate.render("code/page/code_edit.html", **kw)
+
+
+    @xauth.admin_required()
+    def POST(self):
+        config_key = xutils.get_argument_str("config_key")
+        content = xutils.get_argument_str("content")
+
+        sys_info = SystemInfoEnum.get_by_info_key(info_key=config_key)
+        if sys_info is None:
+            return webutil.FailedResult("404", message="config_key not exists")
+        
+        sys_info.save_info(content)
+        return webutil.SuccessResult()
+
 xurls = (
     r"/code/view_source", ViewSourceHandler,
     r"/code/view_source/update", UpdateHandler,
     r"/code/update", UpdateHandler,
-    r"/code/edit", ViewSourceHandler
+    r"/code/edit", ViewSourceHandler,
+    r"/code/edit/config", EditConfigHandler,
 )

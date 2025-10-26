@@ -44,6 +44,12 @@ class TestMain(BaseTestCase):
         self.check_OK("/code/edit?path=./README.md")
         xconfig.MAX_TEXT_SIZE = old_config
 
+    def test_code_edit_config(self):
+        self.check_OK("/code/edit/config?config_key=config.init.script")
+        data = dict(config_key = "config.init.script", content = "# init script")
+        result = json_request_return_dict("/code/edit/config", method="POST", data = data)
+        assert result["success"] == True
+
     def test_fs_tools(self):
         self.check_OK("/fs_tools")
         self.check_OK("/fs_bookmark")

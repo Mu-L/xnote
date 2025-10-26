@@ -781,12 +781,16 @@ def reload():
 
 
 def load_init_script():
-    if xconfig.INIT_SCRIPT is not None and os.path.exists(xconfig.INIT_SCRIPT):
+    from xnote.service.system_info_service import SystemInfoEnum
+    init_script_code = SystemInfoEnum.init_script.value
+
+    if init_script_code:
         try:
-            xutils.exec_script(xconfig.INIT_SCRIPT)
+            logging.info("execute init script...")
+            xutils.exec_python_code(name="init.py", code=init_script_code)
         except:
             xutils.print_exc()
-            print("Failed to execute script %s" % xconfig.INIT_SCRIPT)
+            logging.error("Failed to execute script, code: >>>>>>\n%s\n------", init_script_code)
 
 
 def put_task(func, *args, **kw):

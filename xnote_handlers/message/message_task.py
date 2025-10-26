@@ -102,6 +102,7 @@ class TaskListHandler:
         kw.show_system_tag = False
         kw.show_input_box = False
         kw.message_tag = "done"
+        kw.default_tab = "done"
         cls.hide_side_tags(kw)
         return xtemplate.render("message/page/task_done_index.html", **kw)
 

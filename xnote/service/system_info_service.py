@@ -103,6 +103,7 @@ class SystemInfoEnum:
     fs_hide_files = SystemInfoEnumItem("隐藏系统文件", "config.fs.hide_files.bool")
     debug_html_box = SystemInfoEnumItem("调试HTML盒模型", "config.debug_html_box.bool")
     dev_mode = SystemInfoEnumItem("开发者模式", "config.dev_mode.bool")
+    init_script = SystemInfoEnumItem("启动脚本", "config.init.script")
 
     @classmethod
     def init(cls):

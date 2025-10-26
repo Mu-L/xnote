@@ -104,6 +104,13 @@ class SettingsHandler:
         d.add_option(name="开启", value="1")
         d.add_option(name="关闭", value="0")
         return d
+    
+    def add_text_config(self, list_view: ListView, info_enum: SystemInfoEnumItem):
+        list_view.add_item(ListViewItem(
+            text=info_enum.info_name, 
+            href=f"/code/edit/config?config_key={info_enum.info_key}",
+            css_class="list-item-black",
+            show_chevron_right=True))
 
     def get_admin_list_view(self):
         result = ListView()
@@ -131,6 +138,8 @@ class SettingsHandler:
         result.add_item(ListViewItem(text="自定义JavaScript", href="/code/edit?type=script&path=user.js", 
                                      css_class="list-item-black",
                                      show_chevron_right=True))
+        
+        self.add_text_config(result, SystemInfoEnum.init_script)
 
         return result
     

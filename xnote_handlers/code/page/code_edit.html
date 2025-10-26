@@ -4,57 +4,57 @@
 
 {% include common/script/load_codemirror.html %}
 
-    {% if path.endswith(".py") %}
-        <script type="text/javascript" src="{{_server_home}}/_static/lib/codemirror/mode/python.js"></script>
-    {% end %}
-    {% if path.endswith(".js") %}
-        <script type="text/javascript" src="{{_server_home}}/_static/lib/codemirror/mode/javascript.js"></script>
-    {% end %}
-    {% if path.endswith(".php") %}
-        <script type="text/javascript" src="{{_server_home}}/_static/lib/codemirror/mode/php.js"></script>
-    {% end %}
-    {% if path.endswith(".css") %}
-        <script type="text/javascript" src="{{_server_home}}/_static/lib/codemirror/mode/css.min.js"></script>
-    {% end %}
+{% if path.endswith(".py") %}
+    <script type="text/javascript" src="{{_server_home}}/_static/lib/codemirror/mode/python.js"></script>
+{% end %}
+{% if path.endswith(".js") %}
+    <script type="text/javascript" src="{{_server_home}}/_static/lib/codemirror/mode/javascript.js"></script>
+{% end %}
+{% if path.endswith(".php") %}
+    <script type="text/javascript" src="{{_server_home}}/_static/lib/codemirror/mode/php.js"></script>
+{% end %}
+{% if path.endswith(".css") %}
+    <script type="text/javascript" src="{{_server_home}}/_static/lib/codemirror/mode/css.min.js"></script>
+{% end %}
 
-    <style type="text/css">
-        .search-key {
-            background-color: #FF8000;
-            color: #000;
-        }
+<style type="text/css">
+    .search-key {
+        background-color: #FF8000;
+        color: #000;
+    }
 
-        #result {
-            border: 1px solid #ccc;
-            padding: 4px;
-            background-color: #eee;
-        }
+    #result {
+        border: 1px solid #ccc;
+        padding: 4px;
+        background-color: #eee;
+    }
 
-        #editorArea {
-            border: 1px solid #ccc;
-        }
+    #editorArea {
+        border: 1px solid #ccc;
+    }
 
-        #editor {
-            width: 100%;
-            height: 100%;
-        }
+    #editor {
+        width: 100%;
+        height: 100%;
+    }
 
-        .CodeMirror-search-match {
-          background: gold;
-          border-top: 1px solid orange;
-          border-bottom: 1px solid orange;
-          -moz-box-sizing: border-box;
-          box-sizing: border-box;
-          opacity: .5;
-        }
+    .CodeMirror-search-match {
+        background: gold;
+        border-top: 1px solid orange;
+        border-bottom: 1px solid orange;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        opacity: .5;
+    }
 
-        .CodeMirror {
-            font-family: Fira Code,Menlo,Monaco,Consolas,Liberation Mono,Courier New,Courier,monospace;
-        }
+    .CodeMirror {
+        font-family: Fira Code,Menlo,Monaco,Consolas,Liberation Mono,Courier New,Courier,monospace;
+    }
 
-        .global-warn {
-            display: none;
-        }
-    </style>
+    .global-warn {
+        display: none;
+    }
+</style>
 {% end %}
 
 {% block body_left %}
@@ -66,10 +66,21 @@
 {% init show_preview = False %}
 {% init embed = False %}
 {% init file_too_large = False %}
+{% init post_action = "/code/update" %}
+{% init show_fs_path = True %}
+{% init title = "文本编辑" %}
+{% init parent_link = None %}
+{% init show_rename = True %}
 
 <div class="card editor-title">
     <h3 class="card-title btn-line-height">
-        <span>文本编辑</span>
+        {% if parent_link %}
+            <a class="link2 path-link" href="{{parent_link.href}}">{{parent_link.text}}</a>
+            <span>/</span>
+        {% end %}
+
+        <span>{{title}}</span>
+
         <div class="float-right">
             {% if show_preview %}
                 <a class="btn" href="{{_server_home}}/code/wiki/{{path}}?embed={{embed}}">{{T("Preview")}}</a>
@@ -81,7 +92,9 @@
 
 <div class="card">
 
-    {% include "mod_fs_path.html" %}
+    {% if show_fs_path %}
+        {% include "mod_fs_path.html" %}
+    {% end %}
 
     {% if error != "" %}
         <div class="col-md-12 error">
@@ -104,7 +117,7 @@
     </div>
     {% end %}
 
-    <form method="POST" action="/code/update">
+    <form method="POST" action="{{post_action}}">
         <input name="path" class="hide" value="{{path}}"/>
         <input name="basename" class="hide" value="{{os.path.basename(path)}}"/>
         <input name="dirname" class="hide" value="{{os.path.dirname(path)}}"/>
@@ -115,8 +128,12 @@
         <div class="row top-offset-1">
             {% if not readonly %}
                 <input type="button" value="保存" class="btn save-btn">
+            {% end %}
+
+            {% if not readonly and show_rename %}
                 <input type="button" id="rename" class="btn rename-btn" value="重命名"/>
             {% end %}
+
             <input id="execute" type="button" class="btn hide" value="执行"/>
             {% if show_preview %}
                 <a class="btn" href="{{_server_home}}/code/wiki/{{path}}?embed={{embed}}">{{T("Preview")}}</a>
@@ -145,10 +162,17 @@
 
 
     $(function () {
+        function getParamPath() {
+            var path = xnote.getUrlParam("path");
+            if (path) {
+                return path;
+            }
+            return $("[name=path]").val();
+        }
         var editorHeight = adjustHeight("#editorArea", 50);
         $("#editorArea").css("overflow-y", "hidden");
         var editor = initCodeMirror("#editor", {
-            filename: getUrlParams().path,
+            filename: getParamPath(),
             height: editorHeight
         });
         window.codeEditor = editor;
@@ -176,7 +200,8 @@
             var params = {};
             params.path = $("[name=path]").val();
             params.content = $("[name=content]").val();
-            xnote.http.post("/code/update", params, function (resp) {
+            params.config_key = xnote.getUrlParam("config_key")
+            xnote.http.post("{{post_action}}", params, function (resp) {
                 if (resp.success) {
                     xnote.toast("保存成功");
                 } else {
