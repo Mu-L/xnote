@@ -42,6 +42,7 @@ import inspect
 import sys
 import traceback
 import base64
+import typing
 
 from xutils import dateutil
 from xutils import textutil
@@ -50,8 +51,8 @@ from xutils import interfaces, Storage
 from xutils.db.dbutil_cache import DatabaseCache
 from xutils.base import is_str
 
-_cache_dict = dict() # type: dict[str, CacheObj]
-_cache_queue = deque() # type: deque[CacheObj]
+_cache_dict = dict() # type: dict[str, _InternalCacheObj]
+_cache_queue = deque() # type: deque[_InternalCacheObj]
 
 class CacheConfig:
     """缓存配置"""
@@ -282,7 +283,45 @@ class MultiLevelCache(interfaces.CacheInterface):
         self.database_cache.delete(key)
         self.mem_cache.delete(key)
 
-class CacheObj:
+
+class LocalCacheObject:
+
+    def __init__(self, expire_seconds = 60, load_func = None):
+        self.expire_seconds = expire_seconds
+        self.expire_time = time.time() + expire_seconds
+        self.value = ""
+        self.loaded = False
+        self.load_func = load_func
+
+    def get(self):
+        if not self.loaded:
+            self.value = None
+            return self._load()
+        if time.time() > self.expire_time:
+            self.value = None
+            return self._load()
+        return self.value
+    
+    def get_bool(self):
+        value = self.get()
+        return value in ("true", "1")
+    
+    def _load(self):
+        if self.load_func is None:
+            return None
+        value = self.load_func()
+        self.update(value)
+        return value
+    
+    def update(self, value: typing.Optional[str]):
+        self.value = value
+        self.expire_time = time.time() + self.expire_seconds
+        self.loaded = True
+
+    def expire(self):
+        self.expire_time = 0
+
+class _InternalCacheObj:
     """缓存对象，包含缓存的key和value，有一个公共的缓存队列
     每次生成一个会从缓存队列中取出一个检查是否失效，同时把自己放入队列
     TODO 提供按照大小过滤的规则
@@ -533,7 +572,7 @@ def lpush(key, value):
         obj.value.insert(0, value)
         obj.save()
     else:
-        obj = CacheObj(key, [value], type="list")
+        obj = _InternalCacheObj(key, [value], type="list")
         obj.save()
 
 
@@ -543,7 +582,7 @@ def rpush(key, value):
         obj.value.append(value)
         obj.save()
     else:
-        obj = CacheObj(key, [value], type="list")
+        obj = _InternalCacheObj(key, [value], type="list")
         obj.save()
 
 
@@ -609,7 +648,7 @@ def zadd(key, score, member):
         obj.type = "zset"
         obj.save()
     else:
-        obj = CacheObj(key, OrderedDict(), type="zset")
+        obj = _InternalCacheObj(key, OrderedDict(), type="zset")
         obj.value[member] = score
         obj.save()
 
@@ -706,7 +745,7 @@ def hset(key, field, value, expire=-1):
             obj.type = "hash"
             obj.save("hset")
         else:
-            obj = CacheObj(key, dict(), type="hash", expire=expire)
+            obj = _InternalCacheObj(key, dict(), type="hash", expire=expire)
             obj.value[field] = value
             obj.save("hset")
     except:

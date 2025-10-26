@@ -32,7 +32,7 @@ from xutils import webutil
 from xutils import XnoteException
 
 from .fs_mode import get_fs_page_by_mode
-from .fs_helper import sort_files_by_size
+from .fs_helper import sort_files_by_size, is_hidden_file
 from . import fs_image
 from . import fs_helper
 from . import fs_checker
@@ -106,8 +106,14 @@ def check_file_auth(path, user_name):
 def process_file_list(pathlist, parent = None):
     filelist = [FileItem(fpath, parent, merge = False) for fpath in pathlist]
     filelist.sort()
-    for item in filelist:
+
+    def filter_func(item: FileItem):
+        if is_hidden_file(item):
+            return False
         fs_helper.handle_file_item(item)
+        return True
+
+    filelist = list(filter(filter_func, filelist))
 
     user_name = xauth.current_name()
     fs_order = xauth.get_user_config(user_name, "fs_order")

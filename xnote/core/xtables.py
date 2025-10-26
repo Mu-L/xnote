@@ -807,6 +807,7 @@ def init():
     init_job_table()
     # 分布式锁表
     init_lock_table()
+
     # 数据同步
     init_system_sync_token_table()
     init_system_info_table()

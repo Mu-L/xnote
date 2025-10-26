@@ -156,6 +156,30 @@ class TextTag(BaseComponent):
     def render(self):
         text = escape_html(self.text)
         return f"""<span class="tag {self.css_class}">{text}</span>"""
+    
+class DropdownOption(BaseComponent):
+    def __init__(self, name="", value=""):
+        self.name = name
+        self.value = value
+    
+class Dropdown(BaseContainer):
+    _template = xtemplate.compile_template("""
+<select>
+    {% for item in self.chidren %}
+        {% render item %}
+    {% end %}
+</select>
+""", name="xnote.plugin.dropdown")
+    
+
+    def __init__(self):
+        pass
+
+    def add_option(self, name="", value=""):
+        self.children.append(DropdownOption(name=name, value=value))
+
+    def render(self):
+        return self._template.generate(children = self.children)
 
 class LinkConfig:
     """废弃了, 请到 handlers/config 模块进行配置"""

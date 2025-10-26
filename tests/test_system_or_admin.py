@@ -14,6 +14,8 @@ import web.utils
 from . import test_base
 from xnote.core import xconfig, xmanager, xauth
 from xnote.service import JobService
+from xnote.service.system_info_service import SystemInfoEnum
+from .test_base import json_request_return_dict
 
 app = test_base.init()
 
@@ -116,3 +118,12 @@ class TestMain(test_base.BaseTestCase):
 
     def test_system_log(self):
         self.check_OK("/system/clipboard-monitor?log_type=clip")
+
+    def test_system_config_update(self):
+        data = dict(key = SystemInfoEnum.dev_mode.info_key, value = "1")
+        result = json_request_return_dict("/system/config", method="POST", data=data)
+        assert result["success"] == True
+
+        data = dict(key = "config.sys.no_such_key", value = "1")
+        result = json_request_return_dict("/system/config", method="POST", data=data)
+        assert result["success"] == False

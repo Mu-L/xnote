@@ -47,6 +47,7 @@ import logging
 from xutils import textutil
 from xutils import fsutil
 from xutils.base import Storage
+from xutils.cacheutil import LocalCacheObject
 
 __version__ = "1.0"
 __author__ = "xupingmao (578749341@qq.com)"
@@ -72,11 +73,11 @@ errors = []
 ##################################
 
 # 开发者模式,会展示更多的选项和信息,会开启实验性功能
-DEV_MODE = False
+DEV_MODE = LocalCacheObject(expire_seconds=60)
 # 开启调试
 DEBUG = False
 # 调试盒子模型，针对某些不方便调试的浏览器
-DEBUG_HTML_BOX = False
+DEBUG_HTML_BOX = LocalCacheObject(expire_seconds=60)
 
 PORT = "1234"
 port = PORT
@@ -183,8 +184,6 @@ MAX_FILE_SIZE = 10 * 1024 ** 2
 MAX_TEXT_SIZE = 100 * 1024
 # 文件系统列分隔符，文件名保留符号参考函数 xutils.get_safe_file_name(filename)
 FS_COL_SEP = "$"
-# 是否隐藏系统文件
-FS_HIDE_FILES = True
 # 文件管理扩展的选项,类型Storage
 FS_LINK = "/fs_list"
 # 文件浏览模式 list/grid/sidebar
@@ -742,13 +741,9 @@ def init_boot_config(fpath, boot_config_kw=None):
 
     global PORT
     global DEBUG
-    global DEV_MODE
 
     PORT = get_system_config("port")
     DEBUG = get_system_config("debug")
-
-    if DEBUG:
-        DEV_MODE = True
 
 
 def init_http_port():

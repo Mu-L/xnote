@@ -23,6 +23,8 @@ from xutils.dbutil import LdbTable
 from xutils.fsutil import FileItem
 from xutils.sqldb import TableProxy
 from xutils import Storage, BaseDataRecord
+from xnote.service.system_info_service import SystemInfoEnum
+
 
 class FileInfo(BaseDataRecord):
 
@@ -256,6 +258,17 @@ def sort_files_by_size(filelist: typing.List[FileItem]):
     filelist.sort(key = key_func, reverse = True)
 
 
+def is_hidden_file(item: FileItem):
+    if not SystemInfoEnum.fs_hide_files.bool_value:
+        return
+    
+    if item.name.startswith("."):
+        return True
+    
+    return item.name.endswith((".class", ".pyc"))
+
 xutils.register_func("fs.get_file_thumbnail", get_file_thumbnail)
 xutils.register_func("fs.get_file_download_link", get_file_download_link)
 xutils.register_func("fs.get_index_dirs", get_index_dirs)
+
+

@@ -149,10 +149,6 @@
     <div class="fs-left">
         <table class="col-md-12 no-border-table fs-table">
             {% for item in filelist %}
-            {# 隐藏文件 #}
-            {% if xconfig.FS_HIDE_FILES and (item.name[0] == "." or item.name.endswith((".pyc", ".class"))) %}
-            {% continue %}
-            {% end %}
             <tr>
                 <td class="checkboxTd"><input type="checkbox" data-path="{{item.path}}" data-name="{{item.name}}">
                 </td>

@@ -21,9 +21,7 @@
         {% include settings/page/settings_search.html %}
 
     {% elif category == "admin" %}
-
-        {% include settings/page/settings_admin.html %}
-
+        {% render list_view %}
     {% else %}
 
         {% include settings/page/settings_note.html %}

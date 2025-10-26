@@ -9,7 +9,7 @@
  #} -->
 {% init _cost_time = -1 %}
 
-{% if xconfig.DEV_MODE %}
+{% if xconfig.DEV_MODE.get_bool() %}
 <div class="x-center">
     <div class="dev-info">
         <div class="card sql-info">

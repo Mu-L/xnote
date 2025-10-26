@@ -40,7 +40,6 @@ def init():
     xauth.TestEnv.login_admin()
     
     xconfig.port = "1234"
-    xconfig.DEV_MODE = True
     var_env = dict()
     xutils.remove_file("./testdata/data.db", hard=True)
     xtables.init()

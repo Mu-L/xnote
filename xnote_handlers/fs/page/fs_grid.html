@@ -83,15 +83,6 @@
 
     <div class="file-list">
         {% for item in filelist %}
-            {# 隐藏文件 #}
-            {% if item.name == "" %}
-                {% continue %}
-            {% end %}
-            
-            {% if xconfig.FS_HIDE_FILES and (item.name[0] == "." or item.name.endswith((".pyc", ".class"))) %}
-                {% continue %}
-            {% end %}
-
             {% if not item.name.startswith("._") %}
                 <div class="gallery-item">
                     <div class="checkbox-box">

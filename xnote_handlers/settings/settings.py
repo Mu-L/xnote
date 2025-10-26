@@ -20,9 +20,10 @@ from xnote.core import xmanager
 from xutils import sqlite3, Storage, cacheutil
 from xnote.core.xtemplate import T
 from xutils import logutil, webutil
-from xnote.service.system_info_service import SystemInfoEnum
+from xnote.service.system_info_service import SystemInfoEnum, SystemInfoEnumItem
 from xnote_handlers.config import LinkConfig
 from xnote.plugin import TextLink
+from xnote.plugin.list import ListView, ListViewItem
 
 try:
     import psutil
@@ -87,11 +88,61 @@ class SettingsHandler:
 
         if category == "search":
             kw.html_title = T("搜索设置")
+            kw.list_view = self.get_search_list_view()
 
         if category == "admin":
             kw.html_title = T("管理员设置")
+            kw.list_view = self.get_admin_list_view()
 
         return xtemplate.render("settings/page/settings.html", **kw)
+
+    def add_dropdown_config(self, list_view: ListView, info_enum: SystemInfoEnumItem):
+        return list_view.add_dropdown(text=info_enum.info_name, name=info_enum.info_key, value=info_enum.info_value)
+    
+    def add_bool_config(self, list_view: ListView, info_enum: SystemInfoEnumItem):
+        d = self.add_dropdown_config(list_view, info_enum)
+        d.add_option(name="开启", value="1")
+        d.add_option(name="关闭", value="0")
+        return d
+
+    def get_admin_list_view(self):
+        result = ListView()
+        d = self.add_dropdown_config(result, SystemInfoEnum.page_size)
+        d.add_option(name="20", value="20")
+        d.add_option(name="30", value="30")
+        d.add_option(name="50", value="50")
+        d.add_option(name="100", value="100")
+        d.add_option(name="200", value="200")
+
+        d = self.add_dropdown_config(result, SystemInfoEnum.trash_expire_seconds)
+        d.add_option(name="30天", value=str(3600*24*30))
+        d.add_option(name="90天", value=str(3600*24*90))
+        d.add_option(name="180天", value=str(3600*24*180))
+        d.add_option(name="360天", value=str(3600*24*360))
+
+        self.add_bool_config(result, SystemInfoEnum.fs_hide_files)
+        self.add_bool_config(result, SystemInfoEnum.debug_html_box)
+        self.add_bool_config(result, SystemInfoEnum.dev_mode)
+        self.add_bool_config(result, SystemInfoEnum.trace_malloc_enabled)
+
+        result.add_item(ListViewItem(text="自定义CSS", href="/code/edit?type=script&path=user.css", 
+                                     css_class="list-item-black",
+                                     show_chevron_right=True))
+        result.add_item(ListViewItem(text="自定义JavaScript", href="/code/edit?type=script&path=user.js", 
+                                     css_class="list-item-black",
+                                     show_chevron_right=True))
+
+        return result
+    
+    def get_search_list_view(self):
+        # TODO
+        result = ListView()
+        d = result.add_dropdown(text="自动展开记事详情", name="", )
+        d.add_option(name="展开", value="1")
+        d.add_option(name="不展开", value="0")
+
+        return result
+
 
 DEFAULT_SETTINGS = '''
 
@@ -172,16 +223,17 @@ def update_user_config(key, value):
     xauth.update_user_config_dict(user_name, config_dict)
 
 @xauth.login_required("admin")
-def update_sys_config(key, value):
-    info_enum = getattr(SystemInfoEnum, key)
+def update_sys_config(key: str, value: str):
+    info_enum = SystemInfoEnum.get_by_info_key(key)
     if info_enum:
         info_enum.save_info(value)
         return
-    setattr(xconfig, key, value)
+    else:
+        raise Exception(f"info_key not exists: {key}")
 
 class ConfigHandler:
 
-    def parse_value(self, type: str, value: str):
+    def check_value(self, type: str, value: str):
         if type == "int":
             return int(value)
 
@@ -190,6 +242,9 @@ class ConfigHandler:
         
         return value
     
+    def parse_bool(self, value: str):
+        return value in ("1", "yes", "true")
+
     @xauth.login_required()
     def POST(self):
         key   = xutils.get_argument_str("key")
@@ -200,15 +255,11 @@ class ConfigHandler:
         update_msg = "%s,%s,%s" % (type, key, value)
         logging.info(update_msg)
         xutils.info("UpdateConfig", update_msg)
-        value = self.parse_value(type, value)
+        self.check_value(type, value)
 
         if key in ("DEV_MODE", "DEBUG"):
             xconfig.DEBUG = value
-            xconfig.DEV_MODE = value
-            web.config.debug = value
-
-        if key in ("RECENT_SEARCH_LIMIT", "RECENT_SIZE", "PAGE_SIZE", "TRASH_EXPIRE"):
-            value = int(value)
+            web.config.debug = self.parse_bool(value)
 
         try:
             if p == "user" or key in USER_CONFIG_KEY_SET:

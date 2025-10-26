@@ -5,7 +5,7 @@ from xnote.core import xtemplate
 from .component import ConfirmButton, TextTag, escape_html
 from xnote.core import xconfig
 
-class ListItem(BaseComponent):
+class ListViewItem(BaseComponent):
     # 是否展示右箭头
     show_chevron_right = False
     # 操作按钮
@@ -60,6 +60,58 @@ class ListItem(BaseComponent):
     def render(self):
         return self._code.generate(item = self)
 
+class _ListViewOption:
+
+    def __init__(self, name="", value=""):
+        self.name = name
+        self.value = value
+
+class ListViewDropdown(BaseComponent):
+
+    _code = xtemplate.compile_template("""
+<div class="list-item {{item.css_class}}">
+
+{% if item.icon_class %}
+    <i class="{{item.icon_class}}"></i>
+{% end %}
+
+    <span>{{ item.text }}</span>
+                                       
+{% for tag in item.tags %} {% render tag %} {% end %}
+<div class="float-right">
+    <select name="{{item.name}}" data-type="{{item.data_type}}" value="{{item.value}}">
+        {% for option in item.options %}
+            <option value="{{option.value}}">{{option.name}}</option>
+        {% end %}
+    </select>
+    {% if item.show_chevron_right %}
+        <i class="fa fa-chevron-right"></i>
+    {% end %}
+</div>
+
+</div>
+""")
+    
+    show_chevron_right = False
+    # 标签列表
+    tags: typing.List[TextTag]
+
+    icon_class = ""
+    css_class = ""
+    
+    def __init__(self, text="", name="", data_type="int", value=""):
+        self.text = text
+        self.name = name
+        self.data_type = data_type
+        self.value = value
+        self.tags = []
+        self.options = []
+
+    def add_option(self, name="", value=""):
+        self.options.append(_ListViewOption(name=name, value=value))
+
+    def render(self):
+        return self._code.generate(item = self)
 
 class ListView(BaseContainer):    
     _code = xtemplate.compile_template("""
@@ -71,12 +123,18 @@ class ListView(BaseContainer):
     {% render item %}
 {% end %}
 """)
-
-    def add_item(self, item: ListItem):
+    
+    def add_item(self, item: ListViewItem):
         self.add(item)
 
     def render(self):
         return self._code.generate(item_list = self.children)
+    
+    def add_dropdown(self, text="", name="", data_type="int", value=""):
+        dropdown = ListViewDropdown(text=text, name=name, data_type=data_type, value=value)
+        self.add(dropdown)
+        return dropdown
 
 
 ItemList = ListView
+ListItem = ListViewItem

@@ -36,7 +36,7 @@
 </style>
 {% end %}
 
-{% if xconfig.DEBUG_HTML_BOX %}
+{% if xconfig.DEBUG_HTML_BOX.get_bool() %}
 <!-- 用于移动端或者其他不方便调试设备的样式调试 -->
 <style type="text/css">
   * {

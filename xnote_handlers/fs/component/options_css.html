@@ -89,7 +89,7 @@
         text-align: right;
     }
 
-    {% if not xconfig.DEV_MODE %}
+    {% if not xconfig.DEV_MODE.get_bool() %}
         .advanced-opt {
             display: none;
         }

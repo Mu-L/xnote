@@ -71,7 +71,7 @@ xnote.execute(function () {
                 {% continue %}
             {% end %}
             
-            {% if xconfig.FS_HIDE_FILES and (item.name[0] == "." or item.name.endswith((".pyc", ".class"))) %}
+            {% if is_hidden_file(item) %}
                 {% continue %}
             {% end %}
 
