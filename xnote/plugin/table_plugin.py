@@ -24,10 +24,16 @@ class ParamDict:
         self._dict = dict_value
 
     def get_int(self, key: str, default_value=0):
-        return int(self._dict.get(key, default_value))
+        value = self.get(key)
+        if value == "" or value == None:
+            return default_value
+        return int(value)
     
     def get_float(self, key: str, default_value=0.0):
-        return float(self._dict.get(key, default_value))
+        value = self.get(key)
+        if value == "" or value == None:
+            return default_value
+        return float(value)
     
     def get_str(self, key: str, default_value="", strip = True):
         result = str(self._dict.get(key, default_value))
@@ -38,8 +44,8 @@ class ParamDict:
     def get_bool(self, key: str, default_value=False):
         return bool(self._dict.get(key, default_value))
 
-    def get(self, key: str):
-        return self._dict.get(key)
+    def get(self, key: str, default_value = None):
+        return self._dict.get(key, default_value)
     
     def __str__(self) -> str:
         return str(self._dict)

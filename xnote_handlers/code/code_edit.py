@@ -208,6 +208,7 @@ class EditConfigHandler:
             error = f"config not exists, config_key={config_key}"
             kw.error = error
         else:
+            sys_info.expire_cache()
             kw.title = sys_info.info_name
             kw.content = sys_info.value
 

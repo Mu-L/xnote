@@ -91,6 +91,9 @@ class SystemInfoEnumItem:
     @property
     def info_value_int(self):
         return int(self.info_value)
+    
+    def expire_cache(self):
+        self._cache.expire()
 
 class SystemInfoEnum:
     # 运行状态

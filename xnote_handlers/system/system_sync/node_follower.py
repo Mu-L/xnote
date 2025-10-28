@@ -519,14 +519,10 @@ class DBSyncer:
             table.delete(where=where)
 
         if optype == BinLogOpType.sql_upsert:
-            old = table.select_first(where=where)
             value = table.filter_record(value)
-            # TODO 使用replace解决冲突的问题?
+            # 使用replace解决冲突的问题?
             try:
-                if old == None:
-                    table.insert(**value)
-                else:
-                    table.update(where=where, **value)
+                table.replace(**value)
             except Exception as err:
                 xutils.print_exc()
                 print(f"error value={value}")
