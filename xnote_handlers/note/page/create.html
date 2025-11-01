@@ -18,6 +18,7 @@ label {
 {% include common/script/load_select2.html %}
 {% init type = "md" %}
 {% init heading = T("创建笔记") %}
+{% init create_btn_text = T("创建") %}
 
 <div class="card">
     {% include note/component/create_note_header.html %}
@@ -62,9 +63,15 @@ label {
 
         <div class="tag-box"></div>
 
+        <div class="input-group-row">
+            <label>名称检测</label>
+            <div class="input-group-value" id="checkResult"></div>
+        </div>
+
         <div class="row top-offset-1">
             <label>&nbsp;</label>
-            <input type="button" class="btn mid-text create-btn" value="{{T("创建")}}">
+            <input type="button" class="btn mid-text create-btn" value="{{create_btn_text}}" 
+                onclick="xnote.note.clickCreate()">
         </div>
     </form>
 </div>
@@ -102,6 +109,9 @@ label {
     });
 
     $(function () {
+        var noteView = xnote.note;
+        noteView.inputName = "";
+
         var groupSelectBox = $(".group-select-box");
         var noteTypeSelect = $(".note-type-select");
         var createBtn = $(".create-btn");
@@ -144,7 +154,22 @@ label {
             reloadPage();
         });
 
-        createBtn.click(function (e) {
+        noteView.checkName = function() {
+            var name = $("[name=name]").val();
+            if (name === noteView.inputName) {
+                return;
+            }
+            var params = {};
+            params.name = name;
+            xnote.http.post("/note/create/check", params, function (html) {
+                $("#checkResult").html(html);
+                noteView.inputName = name;
+            });
+        }
+
+        setInterval(xnote.note.checkName, 500);
+
+        xnote.note.clickCreate = function() {
             var params = createForm.formData();
             params._format = "json";
             params.tags = getTagsText();
@@ -159,7 +184,7 @@ label {
             }).fail(function (err) {
                 xnote.alert(err);
             });
-        });
+        };
 
         $("body").on("click", ".tag", function (e) {
             $(e.target).toggleClass("active");

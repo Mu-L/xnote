@@ -12,7 +12,6 @@ import logging
 import web.db
 import time
 
-from xutils.mem_util import log_mem_info_deco
 from xutils import interfaces
 
 class FreeLock:
@@ -93,7 +92,6 @@ class SqliteKV(interfaces.DBInterface):
             raw_sql = self.db.query(sql, vars=vars, _test=True)
             self.sql_logger.append(f"{prefix} {raw_sql}")
 
-    @log_mem_info_deco("db.Get")
     def Get(self, key):
         sql = "SELECT value FROM kv_store WHERE `key` = $key;"
         vars = dict(key=key)
@@ -298,7 +296,6 @@ class SqliteKV(interfaces.DBInterface):
     def CreateSnapshot(self):
         return self
 
-    @log_mem_info_deco("db.Write")
     def Write(self, batch, sync=False):
         """执行批量操作"""
         assert isinstance(batch, interfaces.BatchInterface)

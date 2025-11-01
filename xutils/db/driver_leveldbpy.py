@@ -5,11 +5,12 @@
 # @filename driver_leveldbpy.py
 
 import leveldbpy
+import typing
 from xutils import interfaces
 
 class LevelDBProxy(interfaces.DBInterface):
 
-    def __init__(self, path=None, snapshot=None,
+    def __init__(self, path: typing.Optional[str] = None, snapshot=None,
                  max_open_files=1000,
                  block_cache_size=8 * (2 << 20),
                  write_buffer_size=2 * (2 << 20),

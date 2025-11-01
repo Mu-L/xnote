@@ -918,9 +918,33 @@ class NoteAliasEditHandler(BaseTablePlugin):
         except Exception as e:
             return webutil.FailedResult(code="500", message=str(e))
 
+
+class CheckCreateHandler:
+
+    _template = """
+{% for note in notes %}
+    <a href="{{note.url}}">{{note.name}}</a>
+{% end %}
+"""
+    _code = xtemplate.compile_template(_template, "note.check")
+
+    @xauth.login_required()
+    def POST(self):
+        name = xutils.get_argument_str("name")
+        if name == "":
+            return ""
+        user_id = xauth.current_user_id()
+        name_like = "%" + name + "%"
+        notes = NoteIndexDao.list(creator_id=user_id, name_like=name_like, limit=5)
+        if len(notes) == 0:
+            return ""
+        return self._code.generate(notes = notes)
+
+
 xurls = (
     r"/note/add"         , CreateHandler,
     r"/note/create"      , CreateHandler,
+    r"/note/create/check", CheckCreateHandler,
     r"/note/remove"      , RemoveAjaxHandler,
     r"/note/rename"      , RenameAjaxHandler,
     r"/note/recover"     , RecoverAjaxHandler,

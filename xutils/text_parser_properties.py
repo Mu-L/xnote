@@ -4,6 +4,7 @@
 # @modified 2022/03/06 11:35:51
 # @filename text_parser_properties.py
 
+import typing
 
 """properties文件解析
 
@@ -18,6 +19,20 @@ parse_prop_text_to_dict(text: str) -> dict
 parse_prop_text(text:str, ret_type="dict") -> {dict|list}
     * 解析properties文件
 """
+
+class PropertyItem:
+    __slots__ = ["key", "value"]
+
+    def __init__(self, key = "", value = "") -> None:
+        self.key = key
+        self.value = value
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    def get(self, key, default_value=None):
+        return getattr(self, key, default_value)
+
 
 class PropertyFile:
     """property文件
@@ -48,12 +63,12 @@ class PropertyFile:
         """
         return default_value
 
-def parse_prop_text_to_pairs(text: str) -> list:
+def parse_prop_text_to_pairs(text: str) -> typing.List[PropertyItem]:
     """解析key/value格式的配置文本
     @param {string} text 配置文本内容
     @param {string} ret_type 返回的格式，包含list, dict
     """
-    config = [] # type: list[dict[str,str]]
+    config = [] # type: list[PropertyItem]
 
     if text == None or text == "":
         return config
@@ -86,7 +101,7 @@ def parse_prop_text_to_pairs(text: str) -> list:
         key = key.strip()
         value = value.strip()
 
-        config.append(dict(key=key, value=value))
+        config.append(PropertyItem(key=key, value=value))
 
     return config
 
@@ -101,7 +116,7 @@ def parse_prop_text_to_dict(text):
     pairs = parse_prop_text_to_pairs(text)
     result = dict()
     for item in pairs:
-        key = item.get("key")
-        value = item.get("value")
+        key = item.key
+        value = item.value
         result[key] = value
     return result
