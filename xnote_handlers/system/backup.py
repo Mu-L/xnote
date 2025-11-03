@@ -107,7 +107,7 @@ class DBBackup:
 
     @staticmethod
     def total():
-        return DBBackup._total
+        return SystemInfoEnum.db_backup_count.info_value_int
 
     def clean(self):
         db_backup_file = self.db_backup_file
@@ -217,6 +217,7 @@ class DBBackup:
             db2.Close()
 
             logger.log("backup done, total:(%d), cost_time:(%.2fs)", count, time.time()-start_time)
+            SystemInfoEnum.db_backup_count.save_info(str(total_count))
         except:            
             stack_info = xutils.print_exc()
             logger.log("backup failed, err:%s", stack_info)

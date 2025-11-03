@@ -90,6 +90,8 @@ class SystemInfoEnumItem:
     
     @property
     def info_value_int(self):
+        if self.info_value == "":
+            return 0
         return int(self.info_value)
     
     def expire_cache(self):
@@ -98,6 +100,7 @@ class SystemInfoEnumItem:
 class SystemInfoEnum:
     # 运行状态
     db_backup_file = SystemInfoEnumItem("数据库备份文件", "db.backup.file")
+    db_backup_count = SystemInfoEnumItem("数据总量", "db.backup.rows")
 
     # 配置信息
     trace_malloc_enabled = SystemInfoEnumItem("trace_malloc开关", "config.trace_malloc.enabled")
