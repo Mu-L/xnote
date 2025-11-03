@@ -419,3 +419,5 @@ def is_empty_datetime(value: typing.Union[str, datetime.datetime]):
         return value == DEFAULT_DATETIME_OBJ
     return False
     
+def timestamp_ms():
+    return int(time.time() * 1000)

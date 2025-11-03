@@ -532,6 +532,27 @@ def init_system_info_table():
         manager.add_column("version", "int", default_value=0, comment="版本号")
         manager.add_index("info_key", is_unique=True)
 
+def init_id_generator_table():
+    """
+    ID生成器
+    @since 2025/11/03
+    """
+    table_name = "id_generator"
+    comment = "ID生成器"
+    with create_default_table_manager(table_name=table_name, comment=comment) as manager:
+        manager.add_column("biz_name", "varchar(100)", default_value="")
+        manager.add_column("current_max_id", "bigint", default_value=1)
+        manager.add_column("range_start", "bigint", default_value=1)
+        manager.add_column("range_end", "bigint", default_value=0)
+        manager.add_column("step", "int", default_value=1)
+        manager.add_column("create_time", "bigint", default_value=0)
+        manager.add_column("update_time", "bigint", default_value=0)
+        manager.add_column("version", "int", default_value=0)
+        manager.add_index("biz_name", is_unique=True)
+    
+    TableConfig.disable_binlog(table_name)
+    TableConfig.disable_profile(table_name)
+
 def init_msg_index_table():
     """随手记索引"""
     table_name = "msg_index"
@@ -598,6 +619,21 @@ def init_kv_store_table():
     with create_table_manager_with_dbpath("kv_store", dbpath=dbpath, **kw) as manager:
         manager.add_column("value", "longblob", default_value="")
         manager.add_column("version", "int", default_value=0)
+
+def init_kv_cache_table():
+    """
+    共享缓存
+    @since 2025/11/01
+    """
+    table_name = "kv_cache"
+    dbpath = xconfig.FileConfig.kv_db_file
+    with create_default_table_manager(table_name=table_name, dbpath=dbpath) as manager:
+        manager.add_column("cache_key", "varchar(100)", default_value="")
+        manager.add_column("cache_value", "text", default_value="")
+        manager.add_column("expire_time", "bigint", default_value=0, comment="失效时间戳")
+        manager.add_column("user_id", "bigint", default_value=0, comment="用户ID，可选字段")
+        manager.add_index("cache_key", is_unique=True)
+        manager.add_index("expire_time")
 
 def init_kv_zset_table(db=None):
     """使用关系型数据库模拟redis的zset结构"""
@@ -808,13 +844,15 @@ def init():
     # 分布式锁表
     init_lock_table()
 
-    # 数据同步
+    # 系统相关的表
     init_system_sync_token_table()
     init_system_info_table()
+    init_id_generator_table()
     
     # 统计信息
     init_site_visit_log()
     init_page_visit_log()
+    init_search_history_table()
     
     # 标签相关
     init_note_tag_rel_table() # 已删除, 占位防止冲突
@@ -846,5 +884,4 @@ def init():
     
     # KV表
     init_kv_store_table()
-    init_search_history_table()
-
+    init_kv_cache_table()

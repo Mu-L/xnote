@@ -2,14 +2,14 @@ import typing
 
 from .base import BaseComponent, BaseContainer
 from xnote.core import xtemplate
-from .component import ConfirmButton, TextTag, escape_html
+from .component import ConfirmButton, ActionButton, TextTag, escape_html
 from xnote.core import xconfig
 
 class ListViewItem(BaseComponent):
     # 是否展示右箭头
     show_chevron_right = False
     # 操作按钮
-    action_btn : typing.Optional[ConfirmButton] = None
+    action_btn : typing.Optional[ActionButton] = None
     # 标签列表
     tags: typing.List[TextTag]
     # 默认链接在外部
@@ -134,7 +134,6 @@ class ListView(BaseContainer):
         dropdown = ListViewDropdown(text=text, name=name, data_type=data_type, value=value)
         self.add(dropdown)
         return dropdown
-
 
 ItemList = ListView
 ListItem = ListViewItem

@@ -25,6 +25,7 @@ from xnote.core import xtables
 from xnote.service import JobService, SysJob, JobStatusEnum, DatabaseLockService
 from xnote.plugin import LinkConfig
 from xnote.service.system_info_service import SystemInfoEnum
+from xnote.plugin.list import ListView, ListViewItem, ActionButton
 
 config = xconfig
 
@@ -411,6 +412,19 @@ def import_db(db_file):
 
 class BackupHandler:
 
+    def create_list_view(self):
+        view = ListView()
+        item = ListViewItem(text="备份数据库", css_class="list-item-black")
+        item.action_btn = ActionButton(text="备份", onclick="xnote.admin.backup()", css_class="btn-default")
+        view.add_item(item)
+        view.add_item(ListViewItem(text="数据库目录", css_class="list-item-black", href="/fs_link/db", show_chevron_right=True))
+        view.add_item(ListViewItem(text="备份目录", css_class="list-item-black", href="/fs_link/backup/db", show_chevron_right=True))
+        view.add_item(ListViewItem(text="数据总量", css_class="list-item-black", badge_info=str(DBBackup.total())))
+        view.add_item(ListViewItem(text="备份进度", css_class="list-item-black", badge_info=DBBackup.progress()))
+        view.add_item(ListViewItem(text="运行时间", css_class="list-item-black", badge_info=DBBackup.run_time()))
+        view.add_item(ListViewItem(text="剩余时间", css_class="list-item-black", badge_info=DBBackup.rest_time()))
+        return view
+
     @xauth.login_required("admin")
     def GET(self):
         """触发备份事件"""
@@ -423,6 +437,7 @@ class BackupHandler:
             kw.rest_time = DBBackup.rest_time()
             kw.progress = DBBackup.progress()
             kw.parent_link = LinkConfig.app_index
+            kw.list_view = self.create_list_view()
             return xtemplate.render("system/page/db/db_backup.html", **kw)
 
         if p == "db":

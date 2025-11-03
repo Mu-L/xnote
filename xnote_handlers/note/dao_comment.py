@@ -126,13 +126,19 @@ def _get_order(order=""):
         return "pin_level desc, ctime asc"
     return "pin_level desc, ctime desc"
 
+def _get_order_by_user(order=""):
+    if order == "oldest":
+        return "ctime asc"
+    
+    return "ctime desc"
+
 def list_comments(note_id=0, offset=0, limit=100, user_name="", order="latest"):
     assert note_id > 0
     index_list = comment_service.list(target_id=note_id, offset=offset,limit=limit, order = _get_order(order))
     return list_comments_by_idx_list(index_list, user_name=user_name)
 
-def list_comments_by_user(user_id=0, date="", offset=0, limit=0):
-    idx_list = comment_service.list(user_id=user_id,date=date,offset=offset,limit=limit,order="ctime desc")
+def list_comments_by_user(user_id=0, date="", offset=0, limit=0, order=""):
+    idx_list = comment_service.list(user_id=user_id,date=date,offset=offset,limit=limit, order=_get_order_by_user(order))
     return list_comments_by_idx_list(idx_list)
 
 

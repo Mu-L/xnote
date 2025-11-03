@@ -62,11 +62,22 @@ class SubmitButton:
 class ActionButton(BaseComponent):
     """查询后的操作行为按钮，不需要确认就能安全执行的, 比如刷新等"""
 
-    def __init__(self, text="", url=""):
-        pass
+    _code = """
+<button class="{{item.css_class}}" onclick="{{item.onclick}}">{{item.text}}</button>
+"""
+
+    _template = xtemplate.compile_template(_code, "xnote.plugin.action_button")
+
+    def __init__(self, text="", onclick="", css_class=""):
+        self.text = text
+        self.onclick = onclick
+        self.css_class = css_class
+    
+    def render(self):
+        return self._template.generate(item = self)
 
 
-class ConfirmButton(BaseComponent):
+class ConfirmButton(ActionButton):
     """确认按钮"""
     def __init__(self, text="", url="", message="确认执行吗?", method="GET", reload_url="", css_class=""):
         self.text = text

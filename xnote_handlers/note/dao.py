@@ -124,6 +124,12 @@ class NoteIndexDao:
     @classmethod
     def update_level(cls, note_id=0, level=0):
         return cls.db.update(where=dict(id=note_id), level=level, mtime=xutils.format_datetime())
+    
+    @classmethod
+    def touch(cls, note_id=0):
+        if note_id == 0:
+            return
+        return cls.db.update(where=dict(id=note_id), mtime = dateutil.format_datetime())
 
     @classmethod
     def get_by_id(cls, note_id=0, creator_id=0, check_user=False):
@@ -995,13 +1001,7 @@ def put_note_to_db(note_id, note):
     update_index(note)
 
 def touch_note(note_id: int):
-    if is_root_id(note_id):
-        return
-
-    note = get_by_id(note_id)
-    if note != None:
-        note.mtime = dateutil.format_datetime()
-        update_index(note)
+    NoteIndexDao.touch(note_id)
 
 
 

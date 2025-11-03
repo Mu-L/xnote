@@ -9,11 +9,14 @@
 @Description  : 描述
 """
 import time
+import threading
+
 from . import test_base
 from xnote.core import xtables
 from xnote.service import DatabaseLockService
 from xnote.service import TagBindServiceImpl
 from xnote.service import TagTypeEnum
+from xnote.service.id_service import IdGenerator, IdGeneratorRecord, IdService
 
 app = test_base.init()
 
@@ -103,3 +106,28 @@ class TestMain(test_base.BaseTestCase):
         assert bindlist[0].second_type == type1
         assert bindlist[1].tag_code == "tag2"
         assert bindlist[1].second_type == type1
+
+    def run_id_test(self, biz_name="test", step = 1):
+        IdService.init_biz(biz_name, current_max_id=0, range_start=1, step=step)
+        id_gen = IdGenerator(biz_name)
+
+        assert id_gen.next_id() == 1
+        assert id_gen.next_id() == 2
+
+        def gen_id_func():
+            id_gen.next_id()
+
+        plist = [threading.Thread(target=gen_id_func) for x in range(10)]
+        for p in plist:
+            p.start()
+
+        for p in plist:
+            p.join()
+
+        assert id_gen.next_id() == 2 + 10 + 1
+
+    def test_id_service(self):
+        self.run_id_test(biz_name="test1", step = 1)
+        self.run_id_test(biz_name="test5", step = 5)
+
+

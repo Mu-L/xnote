@@ -148,7 +148,7 @@ class CommentListAjaxHandler:
             count  = dao_comment.count_comments_by_user(user_id, list_date)
             comments = dao_comment.list_comments_by_user(user_id=user_id, 
                 date = list_date, offset = offset, 
-                limit = page_size)
+                limit = page_size, order = comment_order)
         elif list_type == "search":
             comments = self.search_comments(user_name)
             count = len(comments)

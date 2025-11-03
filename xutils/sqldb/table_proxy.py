@@ -118,7 +118,7 @@ class TableProxy(SQLDBInterface):
             return self.select_first(what="COUNT(1) AS amount", where=where, vars=vars).amount # type:ignore
         return self.db.query(sql, vars=vars).first().amount # type: ignore
 
-    def update(self, where, vars=None, _test=False, _skip_binlog=False, _skip_profile=False, **values):
+    def update(self, where, vars=None, _test=False, _skip_binlog=False, _skip_profile=False, **values) -> int:
         assert len(values) > 0
         self.check_write_state()
         where = self.fix_sql_keywords(where)
