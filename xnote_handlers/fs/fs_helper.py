@@ -23,7 +23,7 @@ from xutils.dbutil import LdbTable
 from xutils.fsutil import FileItem
 from xutils.sqldb import TableProxy
 from xutils import Storage, BaseDataRecord
-from xnote.service.system_info_service import SystemInfoEnum
+from xnote.service.system_meta_service import SystemMetaEnum
 
 
 class FileInfo(BaseDataRecord):
@@ -259,7 +259,7 @@ def sort_files_by_size(filelist: typing.List[FileItem]):
 
 
 def is_hidden_file(item: FileItem):
-    if not SystemInfoEnum.fs_hide_files.bool_value:
+    if not SystemMetaEnum.fs_hide_files.bool_value:
         return
     
     if item.name.startswith("."):

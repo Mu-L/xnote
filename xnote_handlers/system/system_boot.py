@@ -16,7 +16,7 @@ from xnote.core import xauth
 from tracemalloc import Snapshot
 from xnote.plugin import BasePlugin
 from xnote_handlers.config import LinkConfig
-from xnote.service.system_info_service import SystemInfoEnum
+from xnote.service.system_meta_service import SystemMetaEnum
 from xutils import mem_util
 
 _boot_snapshot = None
@@ -36,7 +36,7 @@ if xconfig.WebConfig.open_browser:
     thread = OpenThread()
     thread.start()
 
-if SystemInfoEnum.trace_malloc_enabled.bool_value:
+if SystemMetaEnum.trace_malloc_enabled.bool_value:
     tracemalloc.start()
     _boot_snapshot = tracemalloc.take_snapshot()
     _boot_mem_info = mem_util.get_mem_info()

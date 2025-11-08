@@ -11,7 +11,7 @@ from xnote.core import xconfig
 from xnote.core import xauth
 from xutils import dateutil
 from xutils.db.binlog import BinLog
-from xnote.service.system_info_service import SystemInfoEnum
+from xnote.service.system_meta_service import SystemMetaEnum
 
 MAX_DEPTH = 3
 NOTE_DAO  = xutils.DAO("note")
@@ -83,7 +83,7 @@ class handler:
         rm_expired_files(xconfig.LOG_DIR, xconfig.LOG_EXPIRE, hard=True)
 
         # 回收站和临时文件
-        rm_expired_files(xconfig.TRASH_DIR, SystemInfoEnum.trash_expire_seconds.info_value_int)
+        rm_expired_files(xconfig.TRASH_DIR, SystemMetaEnum.trash_expire_seconds.meta_value_int)
         rm_expired_files(xconfig.TMP_DIR, xconfig.TMP_EXPIRE, hard=True)
 
         # 删除回收站过期的笔记

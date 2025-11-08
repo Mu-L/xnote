@@ -20,7 +20,7 @@ from xnote.core import xmanager
 from xutils import sqlite3, Storage, cacheutil
 from xnote.core.xtemplate import T
 from xutils import logutil, webutil
-from xnote.service.system_info_service import SystemInfoEnum, SystemInfoEnumItem
+from xnote.service.system_meta_service import SystemMetaEnum, SystemMetaEnumItem
 from xnote_handlers.config import LinkConfig
 from xnote.plugin import TextLink
 from xnote.plugin.list import ListView, ListViewItem
@@ -77,7 +77,7 @@ class SettingsHandler:
         kw.show_admin_btn = False
         kw.show_back_btn = True
         kw.get_user_config = get_user_config
-        kw.SystemInfoEnum = SystemInfoEnum
+        kw.SystemInfoEnum = SystemMetaEnum
 
         if category == "":
             kw.show_back_btn = False
@@ -96,41 +96,41 @@ class SettingsHandler:
 
         return xtemplate.render("settings/page/settings.html", **kw)
 
-    def add_dropdown_config(self, list_view: ListView, info_enum: SystemInfoEnumItem):
-        return list_view.add_dropdown(text=info_enum.info_name, name=info_enum.info_key, value=info_enum.info_value)
+    def add_dropdown_config(self, list_view: ListView, info_enum: SystemMetaEnumItem):
+        return list_view.add_dropdown(text=info_enum.meta_name, name=info_enum.meta_key, value=info_enum.meta_value)
     
-    def add_bool_config(self, list_view: ListView, info_enum: SystemInfoEnumItem):
+    def add_bool_config(self, list_view: ListView, info_enum: SystemMetaEnumItem):
         d = self.add_dropdown_config(list_view, info_enum)
         d.add_option(name="开启", value="1")
         d.add_option(name="关闭", value="0")
         return d
     
-    def add_text_config(self, list_view: ListView, info_enum: SystemInfoEnumItem):
+    def add_text_config(self, list_view: ListView, info_enum: SystemMetaEnumItem):
         list_view.add_item(ListViewItem(
-            text=info_enum.info_name, 
-            href=f"/code/edit/config?config_key={info_enum.info_key}",
+            text=info_enum.meta_name, 
+            href=f"/code/edit/config?config_key={info_enum.meta_key}",
             css_class="list-item-black",
             show_chevron_right=True))
 
     def get_admin_list_view(self):
         result = ListView()
-        d = self.add_dropdown_config(result, SystemInfoEnum.page_size)
+        d = self.add_dropdown_config(result, SystemMetaEnum.page_size)
         d.add_option(name="20", value="20")
         d.add_option(name="30", value="30")
         d.add_option(name="50", value="50")
         d.add_option(name="100", value="100")
         d.add_option(name="200", value="200")
 
-        d = self.add_dropdown_config(result, SystemInfoEnum.trash_expire_seconds)
+        d = self.add_dropdown_config(result, SystemMetaEnum.trash_expire_seconds)
         d.add_option(name="30天", value=str(3600*24*30))
         d.add_option(name="90天", value=str(3600*24*90))
         d.add_option(name="180天", value=str(3600*24*180))
         d.add_option(name="360天", value=str(3600*24*360))
 
-        self.add_bool_config(result, SystemInfoEnum.fs_hide_files)
-        self.add_bool_config(result, SystemInfoEnum.debug_html_box)
-        self.add_bool_config(result, SystemInfoEnum.dev_mode)
-        self.add_bool_config(result, SystemInfoEnum.trace_malloc_enabled)
+        self.add_bool_config(result, SystemMetaEnum.fs_hide_files)
+        self.add_bool_config(result, SystemMetaEnum.debug_html_box)
+        self.add_bool_config(result, SystemMetaEnum.dev_mode)
+        self.add_bool_config(result, SystemMetaEnum.trace_malloc_enabled)
 
         result.add_item(ListViewItem(text="自定义CSS", href="/code/edit?type=script&path=user.css", 
                                      css_class="list-item-black",
@@ -139,7 +139,7 @@ class SettingsHandler:
                                      css_class="list-item-black",
                                      show_chevron_right=True))
         
-        self.add_text_config(result, SystemInfoEnum.init_script)
+        self.add_text_config(result, SystemMetaEnum.init_script)
 
         return result
     
@@ -233,9 +233,9 @@ def update_user_config(key, value):
 
 @xauth.login_required("admin")
 def update_sys_config(key: str, value: str):
-    info_enum = SystemInfoEnum.get_by_info_key(key)
+    info_enum = SystemMetaEnum.get_by_meta_key(key)
     if info_enum:
-        info_enum.save_info(value)
+        info_enum.save_meta(value)
         return
     else:
         raise Exception(f"info_key not exists: {key}")

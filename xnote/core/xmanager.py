@@ -781,8 +781,8 @@ def reload():
 
 
 def load_init_script():
-    from xnote.service.system_info_service import SystemInfoEnum
-    init_script_code = SystemInfoEnum.init_script.value
+    from xnote.service.system_meta_service import SystemMetaEnum
+    init_script_code = SystemMetaEnum.init_script.value
 
     if init_script_code:
         try:

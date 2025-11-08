@@ -24,7 +24,7 @@ from xutils import webutil
 from xnote.core import xauth
 from xnote.core import xconfig
 from xnote.core import xnote_event
-from xnote.service.system_info_service import SystemInfoService
+from xnote.service.system_meta_service import SystemMetaService
 
 from . import test_base
 from xnote_handlers.system.system_sync.node_follower import DBSyncer
@@ -376,11 +376,11 @@ class TestSystemSync(BaseTestCase):
         check_manager = FileIndexCheckManager()
         check_manager.run_step()
 
-    def test_system_info(self):
+    def test_system_meta(self):
         info_key = "config.test"
-        SystemInfoService.save_info(info_key, "1")
-        value = SystemInfoService.get_info_value(info_key)
+        SystemMetaService.save_meta(info_key, "1")
+        value = SystemMetaService.get_meta_value(info_key)
         assert value == "1"
-        SystemInfoService.save_info(info_key, "2")
-        value = SystemInfoService.get_info_value(info_key)
+        SystemMetaService.save_meta(info_key, "2")
+        value = SystemMetaService.get_meta_value(info_key)
         assert value == "2"

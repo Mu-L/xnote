@@ -526,13 +526,25 @@ def init_system_info_table():
     """系统信息表"""
     table_name = "system_info"
     comment = "系统信息"
-    with create_default_table_manager(table_name, comment=comment) as manager:
+    with create_default_table_manager(table_name, comment=comment, is_deleted = True) as manager:
         manager.add_column("ctime", "datetime", default_value=DEFAULT_DATETIME)
         manager.add_column("mtime", "datetime", default_value=DEFAULT_DATETIME)
         manager.add_column("info_key", "varchar(100)", default_value="", comment="")
         manager.add_column("info_value", "text", comment="")
         manager.add_column("version", "int", default_value=0, comment="版本号")
         manager.add_index("info_key", is_unique=True)
+
+def init_system_meta_table():
+    """系统信息表"""
+    table_name = "system_meta"
+    comment = "系统元信息"
+    with create_default_table_manager(table_name, comment=comment) as manager:
+        manager.add_column("create_time", "bigint", default_value=0)
+        manager.add_column("update_time", "bigint", default_value=0)
+        manager.add_column("meta_key", "varchar(100)", default_value="", comment="")
+        manager.add_column("meta_value", "text", comment="")
+        manager.add_column("version", "int", default_value=0, comment="版本号")
+        manager.add_index("meta_key", is_unique=True)
 
 def init_id_generator_table():
     """
@@ -850,7 +862,8 @@ def init():
 
     # 系统相关的表
     init_system_sync_token_table()
-    init_system_info_table()
+    init_system_info_table() # 已删除, 占位
+    init_system_meta_table()
     init_id_generator_table()
     
     # 统计信息

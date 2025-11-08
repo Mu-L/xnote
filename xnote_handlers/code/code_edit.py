@@ -18,7 +18,7 @@ from xutils import textutil
 from xutils import webutil
 from xutils import netutil
 from xnote.plugin import TextLink
-from xnote.service.system_info_service import SystemInfoService, SystemInfoEnum
+from xnote.service.system_meta_service import SystemMetaEnum
 from xnote_handlers.config import LinkConfig
 
 def can_preview(path):
@@ -194,7 +194,7 @@ class EditConfigHandler:
     @xauth.admin_required()
     def GET(self):
         config_key = xutils.get_argument_str("config_key")
-        sys_info = SystemInfoEnum.get_by_info_key(info_key=config_key)
+        sys_info = SystemMetaEnum.get_by_meta_key(meta_key=config_key)
         kw = Storage()
         kw.path = "init.py"
         kw.content = ""
@@ -209,7 +209,7 @@ class EditConfigHandler:
             kw.error = error
         else:
             sys_info.expire_cache()
-            kw.title = sys_info.info_name
+            kw.title = sys_info.meta_name
             kw.content = sys_info.value
 
         return xtemplate.render("code/page/code_edit.html", **kw)
@@ -220,11 +220,11 @@ class EditConfigHandler:
         config_key = xutils.get_argument_str("config_key")
         content = xutils.get_argument_str("content")
 
-        sys_info = SystemInfoEnum.get_by_info_key(info_key=config_key)
+        sys_info = SystemMetaEnum.get_by_meta_key(meta_key=config_key)
         if sys_info is None:
             return webutil.FailedResult("404", message="config_key not exists")
         
-        sys_info.save_info(content)
+        sys_info.save_meta(content)
         return webutil.SuccessResult()
 
 xurls = (

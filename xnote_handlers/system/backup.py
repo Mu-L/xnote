@@ -24,7 +24,7 @@ from xutils.db.driver_sqlite import SqliteKV
 from xnote.core import xtables
 from xnote.service import JobService, SysJob, JobStatusEnum, DatabaseLockService
 from xnote.plugin import LinkConfig
-from xnote.service.system_info_service import SystemInfoEnum
+from xnote.service.system_meta_service import SystemMetaEnum
 from xnote.plugin.list import ListView, ListViewItem, ActionButton
 
 config = xconfig
@@ -107,7 +107,7 @@ class DBBackup:
 
     @staticmethod
     def total():
-        return SystemInfoEnum.db_backup_count.info_value_int
+        return SystemMetaEnum.db_backup_count.meta_value_int
 
     def clean(self):
         db_backup_file = self.db_backup_file
@@ -217,7 +217,7 @@ class DBBackup:
             db2.Close()
 
             logger.log("backup done, total:(%d), cost_time:(%.2fs)", count, time.time()-start_time)
-            SystemInfoEnum.db_backup_count.save_info(str(total_count))
+            SystemMetaEnum.db_backup_count.save_meta(str(total_count))
         except:            
             stack_info = xutils.print_exc()
             logger.log("backup failed, err:%s", stack_info)
@@ -265,7 +265,7 @@ class DBBackup:
                 fsutil.rmfile(destfile)
 
             fsutil.mvfile(self.db_backup_file, destfile)
-            SystemInfoEnum.db_backup_file.save_info(destfile)
+            SystemMetaEnum.db_backup_file.save_meta(destfile)
 
             # 再次清理
             self.clean()
