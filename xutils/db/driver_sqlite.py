@@ -50,6 +50,8 @@ class SqliteKV(interfaces.DBInterface):
     
     sql_logger = interfaces.SqlLoggerInterface()
 
+    table_name = "kv_store"
+
     def __init__(self, db_file, snapshot=None,
                  config_dict={},
                  debug=True, **kw):
@@ -59,29 +61,10 @@ class SqliteKV(interfaces.DBInterface):
         self.debug = debug
         self.config_dict = config_dict
         self.is_snapshot = False
-        self.init_journal_mode()
 
         if snapshot != None:
             # sqlite并不支持快照，这里模拟下
             self.is_snapshot = True
-
-    def init_journal_mode(self):
-        # db_holder是threadlocal对象，这里是线程安全的
-        logging.info("init_journal_mode")
-        config_dict = self.config_dict
-
-        with self._lock:
-            # 设置 isolation_level=None 开启自动提交
-            # db = sqlite3.connect(self.db_file, isolation_level=None)
-            journal_mode = config_dict.get("sqlite_journal_mode", "").lower()
-            if config_dict != None and journal_mode == "wal":
-                # WAL模式，并发度更高
-                self.db.query("PRAGMA journal_mode = WAL;")
-            else:
-                self.db.query("PRAGMA journal_mode = DELETE;")
-
-            # db_execute(self.db_holder.db, "PRAGMA journal_mode = DELETE;") # 默认模式
-            self.db.query("CREATE TABLE IF NOT EXISTS `kv_store` (`key` blob primary key, value blob);")
 
     def _commit(self):
         """PEP 249要求 Python 数据库驱动程序默认以手动提交模式运行"""
@@ -93,7 +76,7 @@ class SqliteKV(interfaces.DBInterface):
             self.sql_logger.append(f"{prefix} {raw_sql}")
 
     def Get(self, key):
-        sql = "SELECT value FROM kv_store WHERE `key` = $key;"
+        sql = f"SELECT value FROM {self.table_name} WHERE `key` = $key;"
         vars = dict(key=key)
         r_iter = self.db.query(sql, vars=vars)
         result = list(r_iter) # type: ignore
@@ -114,7 +97,7 @@ class SqliteKV(interfaces.DBInterface):
         vars = dict(key_list=key_list)
         try:
             result = dict()
-            sql = "SELECT `key`, value FROM kv_store WHERE `key` IN $key_list"
+            sql = f"SELECT `key`, value FROM {self.table_name} WHERE `key` IN $key_list"
             result_iter = self.db.query(sql, vars=vars)
             for item in result_iter: # type: ignore
                 key = item.key
@@ -128,7 +111,7 @@ class SqliteKV(interfaces.DBInterface):
                 self.sql_logger.append(f"[BatchGet {cost_time:.2f}ms] {raw_sql}")
     
     def _exists(self, key, cursor=None):
-        sql = "SELECT `key` FROM kv_store WHERE `key` = $key;"
+        sql = f"SELECT `key` FROM {self.table_name} WHERE `key` = $key;"
         vars = dict(key=key)
         result = list(self.db.query(sql, vars=vars)) # type: ignore
         if self.debug:
@@ -152,9 +135,9 @@ class SqliteKV(interfaces.DBInterface):
                 # 不使用 REPLACE INTO, 因为 REPLACE INTO 会直接删除数据重新插入, rowid会一直增加
                 # UPSERT语法比较晚支持，暂时不用
                 if self._exists(key, cursor=cursor):
-                    sql = "UPDATE kv_store SET value = $value WHERE `key` = $key;"
+                    sql = f"UPDATE {self.table_name} SET value = $value WHERE `key` = $key;"
                 else:
-                    sql = "INSERT INTO kv_store (`key`, value) VALUES ($key, $value);"
+                    sql = f"INSERT INTO {self.table_name} (`key`, value) VALUES ($key, $value);"
                 vars = dict(key=key, value=value)
                 self.db.query(sql, vars=vars)
                 self.log_sql(sql, vars=vars, prefix="[Put]")
@@ -162,7 +145,7 @@ class SqliteKV(interfaces.DBInterface):
                 raise e
 
     def Insert(self, key=b'', value=b''):
-        insert_sql = "INSERT INTO kv_store (`key`, value) VALUES ($key, $value)"
+        insert_sql = f"INSERT INTO {self.table_name} (`key`, value) VALUES ($key, $value)"
         vars = dict(key=key,value=value)
         self.db.query(insert_sql, vars=vars)
 
@@ -170,7 +153,7 @@ class SqliteKV(interfaces.DBInterface):
         return self.doDelete(key, sync)
 
     def doDelete(self, key, sync=False, cursor=None):
-        sql = "DELETE FROM kv_store WHERE `key` = $key;"
+        sql = f"DELETE FROM {self.table_name} WHERE `key` = $key;"
         vars = dict(key=key)
         
         if self.debug:
@@ -191,10 +174,10 @@ class SqliteKV(interfaces.DBInterface):
         sql_builder = []
 
         if include_value:
-            sql_builder.append("SELECT `key`, value FROM kv_store")
+            sql_builder.append(f"SELECT `key`, value FROM {self.table_name}")
         else:
             # 只包含key
-            sql_builder.append("SELECT `key` FROM kv_store")
+            sql_builder.append(f"SELECT `key` FROM {self.table_name}")
 
         sql_builder.append("WHERE `key` >= $key_from AND `key` <= $key_to")
 
@@ -255,10 +238,10 @@ class SqliteKV(interfaces.DBInterface):
         sql_builder = []
 
         if include_value:
-            sql_builder.append("SELECT `key`, value FROM kv_store")
+            sql_builder.append(f"SELECT `key`, value FROM {self.table_name}")
         else:
             # 只包含key
-            sql_builder.append("SELECT `key` FROM kv_store")
+            sql_builder.append(f"SELECT `key` FROM {self.table_name}")
 
         vars = dict()
 
@@ -319,7 +302,7 @@ class SqliteKV(interfaces.DBInterface):
 
 
     def Count(self, key_from=b'', key_to=b'\xff'):
-        sql = "SELECT COUNT(*) AS amount FROM kv_store WHERE `key` >= $key_from AND `key` <= $key_to"
+        sql = f"SELECT COUNT(*) AS amount FROM {self.table_name} WHERE `key` >= $key_from AND `key` <= $key_to"
         start_time = time.time()
         vars = dict(key_from=key_from, key_to=key_to)
         try:

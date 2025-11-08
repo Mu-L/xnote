@@ -32,6 +32,7 @@ class MySQLKV(interfaces.DBInterface):
     lock = threading.RLock()
     max_value_length = 1024 * 1024 * 5 # 5MB
     long_value_length = 1024 * 10 # 10K
+    table_name = "kv_store"
 
     def __init__(self, *, host=None, port=3306, user=None,
                  password=None, database=None, pool_size=5, 
@@ -70,14 +71,7 @@ class MySQLKV(interfaces.DBInterface):
         # 但是如果索引前缀是相同的，会报主键冲突的错误
         # 比如索引长度为5, 存在12345A，插入12345B会报错，插入12346A可以成功
         # 一个CHAR占用3个字节，索引最多用1000个字节
-        
-        self.db.query("""CREATE TABLE IF NOT EXISTS `kv_store` (
-            `key` varbinary(100) not null comment '键值对key', 
-            value longblob comment '键值对value',
-            version int not null default 0 comment '版本',
-            PRIMARY KEY (`key`)
-        ) COMMENT '键值对存储';
-        """)
+        pass
 
     def get_with_version(self, key):
         # type: (bytes) -> tuple[bytes|None, int]
@@ -89,7 +83,7 @@ class MySQLKV(interfaces.DBInterface):
         assert isinstance(key, bytes)
         
         start_time = time.time()
-        sql = "SELECT value, version FROM kv_store WHERE `key`=$key"
+        sql = f"SELECT value, version FROM {self.table_name} WHERE `key`=$key"
         vars = dict(key=key)
         
         try:
@@ -133,7 +127,7 @@ class MySQLKV(interfaces.DBInterface):
         vars = dict(key_list=key_list)
         try:
             result = dict()
-            sql = "SELECT `key`, value FROM kv_store WHERE `key` IN $key_list"
+            sql = f"SELECT `key`, value FROM {self.table_name} WHERE `key` IN $key_list"
             # mysql.connector不支持传入列表,需要自己处理下
             # sql_args = ["%s" for i in key_list]
             # sql = sql % ",".join(sql_args)
@@ -168,12 +162,12 @@ class MySQLKV(interfaces.DBInterface):
 
     def put_long_value(self, key, value, sync=False, cursor=None):
         vars = dict(key=key, value=value)
-        update_sql = "UPDATE kv_store SET value = $value, version=version+1 WHERE `key` = $key;"
+        update_sql = f"UPDATE {self.table_name} SET value = $value, version=version+1 WHERE `key` = $key;"
         rows = self.db.query(update_sql, vars=vars)
         self.log_sql(update_sql, vars=vars, key="[Put:Update]")
         assert isinstance(rows, int)
         if rows == 0:
-            insert_sql = "INSERT INTO kv_store (`key`, value, version) VALUES ($key,$value,1);"
+            insert_sql = f"INSERT INTO {self.table_name} (`key`, value, version) VALUES ($key,$value,1);"
             self.db.query(insert_sql, vars=vars)
             self.log_sql(insert_sql, vars=vars, key="[Put:Insert]")
             
@@ -186,8 +180,8 @@ class MySQLKV(interfaces.DBInterface):
             return self.put_long_value(key, value)
 
         start_time = time.time()
-        upsert_sql = "INSERT INTO kv_store (`key`, value, version) VALUES ($key, $value, 1) ON DUPLICATE KEY UPDATE value=$value, version=version+1";
-        # update_sql = "UPDATE kv_store SET value=$value, version=version+1 WHERE `key` = $key"
+        upsert_sql = f"INSERT INTO {self.table_name} (`key`, value, version) VALUES ($key, $value, 1) "\
+            "ON DUPLICATE KEY UPDATE value=$value, version=version+1"
         vars = dict(key=key,value=value)
 
         rowcount = self.db.query(upsert_sql, vars=vars)
@@ -216,8 +210,9 @@ class MySQLKV(interfaces.DBInterface):
         start_time = time.time()
         if len(value) > self.max_value_length:
             raise interfaces.DatabaseException(code=400, message="value too long")
-        update_sql = "UPDATE kv_store SET value=$value, version=version+1 WHERE `key` = $key AND version=$version"
-        insert_sql = "INSERT INTO kv_store (`key`, value, version) VALUES ($key, $value, 1)"
+        update_sql = f"UPDATE {self.table_name} SET value=$value, version=version+1 "\
+            "WHERE `key` = $key AND version=$version"
+        insert_sql = f"INSERT INTO {self.table_name} (`key`, value, version) VALUES ($key, $value, 1)"
         vars = dict(key=key,value=value,version=version)
         rowcount = self.db.query(update_sql, vars=vars)
         assert isinstance(rowcount, int), "expect int rowcount"
@@ -240,8 +235,8 @@ class MySQLKV(interfaces.DBInterface):
         start_time = time.time()
         if len(value) > self.max_value_length:
             raise interfaces.DatabaseException(code=400, message="value too long")
-        update_sql = "UPDATE kv_store SET value=$value, version=version+1 WHERE `key` = $key AND value=$old_value"
-        insert_sql = "INSERT INTO kv_store (`key`, value, version) VALUES ($key, $value, 1)"
+        update_sql = f"UPDATE {self.table_name} SET value=$value, version=version+1 WHERE `key` = $key AND value=$old_value"
+        insert_sql = f"INSERT INTO {self.table_name} (`key`, value, version) VALUES ($key, $value, 1)"
         vars = dict(key=key,value=value,old_value=old_value)
         
         if old_value == None:
@@ -258,7 +253,7 @@ class MySQLKV(interfaces.DBInterface):
         start_time = time.time()
         if len(value) > self.max_value_length:
             raise interfaces.DatabaseException(code=400, message="value too long")
-        insert_sql = "INSERT INTO kv_store (`key`, value, version) VALUES ($key, $value, 0)"
+        insert_sql = f"INSERT INTO {self.table_name} (`key`, value, version) VALUES ($key, $value, 0)"
         vars = dict(key=key,value=value,version=version)
         try:
             self.db.query(insert_sql, vars=vars)
@@ -271,7 +266,7 @@ class MySQLKV(interfaces.DBInterface):
         @param {bytes} key
         """
         start_time = time.time()
-        sql = "DELETE FROM kv_store WHERE `key` = $key;"
+        sql = f"DELETE FROM {self.table_name} WHERE `key` = $key;"
         vars = dict(key=key)
 
         if self.debug:
@@ -298,7 +293,7 @@ class MySQLKV(interfaces.DBInterface):
         :param {list} keys: 键集合
         """
         start_time = time.time()
-        sql = "DELETE FROM kv_store WHERE `key` in $keys;"
+        sql = f"DELETE FROM {self.table_name} WHERE `key` in $keys;"
         vars = dict(keys=keys)
 
         if self.debug:
@@ -335,10 +330,10 @@ class MySQLKV(interfaces.DBInterface):
         sql_builder = []
 
         if include_value:
-            sql_builder.append("SELECT `key`, value FROM kv_store")
+            sql_builder.append(f"SELECT `key`, value FROM {self.table_name}")
         else:
             # 只包含key
-            sql_builder.append("SELECT `key` FROM kv_store")
+            sql_builder.append(f"SELECT `key` FROM {self.table_name}")
 
         sql_builder.append("WHERE `key` >= $key_from AND `key` <= $key_to")
         if reverse:
@@ -413,7 +408,7 @@ class MySQLKV(interfaces.DBInterface):
                 self.doDelete(key)
 
     def Count(self, key_from=b'', key_to=b'\xff'):
-        sql = "SELECT COUNT(*) AS amount FROM kv_store WHERE `key` >= $key_from AND `key` <= $key_to"
+        sql = f"SELECT COUNT(*) AS amount FROM {self.table_name} WHERE `key` >= $key_from AND `key` <= $key_to"
         start_time = time.time()
         vars = dict(key_from=key_from, key_to=key_to)
         try:

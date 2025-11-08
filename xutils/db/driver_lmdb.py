@@ -8,6 +8,7 @@ import lmdb
 import logging
 import threading
 import warnings
+from typing import Optional
 from xutils import interfaces
 from xutils.db.encode import convert_bytes_dict_to_bytes, convert_bytes_to_dict
 
@@ -17,8 +18,8 @@ _lock = threading.RLock()
 
 class LmdbKV(interfaces.DBInterface):
 
-    def __init__(self, db_dir, debug=True, map_size=1024**3, config_dict=None):
-        self.env = lmdb.open(db_dir, map_size=map_size)
+    def __init__(self, db_dir: str, debug=True, map_size=1024**3, config_dict=None):
+        self.env = lmdb.Environment(db_dir, map_size=map_size)
         self.debug = debug
         self.config_dict = config_dict
         self.driver_type = "lmdb"
@@ -145,7 +146,7 @@ class LmdbKV(interfaces.DBInterface):
     def CreateSnapshot(self):
         return self
 
-    def Write(self, batch_proxy, sync=False):
+    def Write(self, batch_proxy: interfaces.BatchInterface, sync=False):
         with self.env.begin(write=True) as tx:
             for key in batch_proxy._puts:
                 value = batch_proxy._puts[key]
@@ -176,18 +177,17 @@ class LmdbEnhancedKV(interfaces.DBInterface):
         self.kv = LmdbKV(*args, **kw)
         self.max_key_size = self.kv.env.max_key_size()
 
-    def get_large_key_prefix(self, key):
-        # type: (bytes)->bytes
+    def get_large_key_prefix(self, key: bytes):
         return key[:self.max_key_size]
 
-    def get_value_dict(self, prefix, tx=None):
+    def get_value_dict(self, prefix, tx:Optional[lmdb.Transaction]=None):
         if tx != None:
             value = tx.get(prefix)
         else:
             value = self.kv.Get(prefix)
         return convert_bytes_to_dict(value)
 
-    def save_value_dict(self, tx, prefix, value_dict):
+    def save_value_dict(self, tx: lmdb.Transaction, prefix: bytes, value_dict):
         if len(value_dict) == 0:
             tx.delete(prefix)
             return
@@ -206,8 +206,7 @@ class LmdbEnhancedKV(interfaces.DBInterface):
         with self.kv.env.begin(write=True) as tx:
             return self.doPut(tx, key, value, sync)
 
-    def doPut(self, tx, key, value, sync=False): 
-        # type: (object, bytes, bytes, bool) -> object
+    def doPut(self, tx: lmdb.Transaction, key: bytes, value: bytes, sync=False): 
         if len(key) >= self.max_key_size:
             logging.warning("key长度(%d)超过限制(%d)", len(key), self.max_key_size)
             prefix = self.get_large_key_prefix(key)
@@ -218,8 +217,7 @@ class LmdbEnhancedKV(interfaces.DBInterface):
                 return
         return tx.put(key, value)
 
-    def doDelete(self, tx, key, sync=False):
-        # type: (object, bytes, bool) -> object
+    def doDelete(self, tx: lmdb.Transaction, key: bytes, sync=False):
         if len(key) >= self.max_key_size:
             prefix = self.get_large_key_prefix(key)
             with _lock:
@@ -260,7 +258,7 @@ class LmdbEnhancedKV(interfaces.DBInterface):
                 else:
                     yield key
 
-    def Write(self, batch_proxy, sync=False):
+    def Write(self, batch_proxy: interfaces.BatchInterface, sync=False):
         with self.kv.env.begin(write=True) as tx:
             for key in batch_proxy._puts:
                 value = batch_proxy._puts[key]

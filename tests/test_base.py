@@ -44,9 +44,8 @@ def init():
     xutils.remove_file("./testdata/data.db", hard=True)
     xtables.init()
 
-    db_file = os.path.join(xconfig.DB_DIR, "sqlite", "test.db")
-    db_instance = SqliteKV(db_file)
-    dbutil.init(xconfig.DB_DIR, db_instance=db_instance, binlog_max_size=1000)
+    db_instance = SqliteKV(xconfig.FileConfig.kv_db_file)
+    dbutil.init(db_instance=db_instance, binlog_max_size=1000)
     xtables_kv.init()
 
     xutils.init(xconfig)

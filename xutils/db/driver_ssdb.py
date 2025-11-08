@@ -10,6 +10,7 @@
 """
 
 import logging
+import pyssdb
 
 from xutils import interfaces
 
@@ -21,7 +22,6 @@ class SSDBKV(interfaces.DBInterface):
         """ssdb代理"""
         host = kw.get("host", "127.0.0.1")
         port = kw.get("port", 8888)
-        import pyssdb
         self.db = pyssdb.Client(host=host, port=port)
         self.driver_type = "ssdb"
 

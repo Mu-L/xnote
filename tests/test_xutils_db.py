@@ -272,7 +272,7 @@ class TestMain(BaseTestCase):
 
     def test_dbutil_sqlite(self):
         from xutils.db.driver_sqlite import SqliteKV
-        db_file = os.path.join(xconfig.DB_DIR, "sqlite", "test.db")
+        db_file = xconfig.FileConfig.kv_db_file
         db = SqliteKV(db_file)
         run_test_db_engine(self, db)
 

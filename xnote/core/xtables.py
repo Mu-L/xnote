@@ -14,6 +14,7 @@ from xutils import dbutil
 from xutils.dbutil import interfaces
 from xutils.sqldb import TableManagerFacade as TableManager
 from xutils.sqldb import TableProxy, TableConfig
+from xutils.sqldb.table_manager import TableHelper
 from xutils import fsutil
 from xutils.dateutil import DEFAULT_DATE, DEFAULT_DATETIME
 
@@ -110,6 +111,7 @@ def is_table_exists(table_name=""):
     """判断表是否存在"""
     table_info = TableManager.get_table_info(table_name)
     return table_info != None
+
 
 def get_table_by_name(table_name=""):
     # type: (str) -> TableProxy
@@ -615,8 +617,9 @@ def init_kv_store_table():
     kw["pk_type"] = "varbinary(100)"
     kw["debug"] = xconfig.DatabaseConfig.db_debug
     kw["comment"] = "kv存储"
+    table_name = "kv_store"
     dbpath = xconfig.FileConfig.kv_db_file
-    with create_table_manager_with_dbpath("kv_store", dbpath=dbpath, **kw) as manager:
+    with create_table_manager_with_dbpath(table_name, dbpath=dbpath, **kw) as manager:
         manager.add_column("value", "longblob", default_value="")
         manager.add_column("version", "int", default_value=0)
 
@@ -627,7 +630,8 @@ def init_kv_cache_table():
     """
     table_name = "kv_cache"
     dbpath = xconfig.FileConfig.kv_db_file
-    with create_default_table_manager(table_name=table_name, dbpath=dbpath) as manager:
+    comment = "KV缓存"
+    with create_default_table_manager(table_name=table_name, dbpath=dbpath, comment=comment) as manager:
         manager.add_column("cache_key", "varchar(100)", default_value="")
         manager.add_column("cache_value", "text", default_value="")
         manager.add_column("expire_time", "bigint", default_value=0, comment="失效时间戳")

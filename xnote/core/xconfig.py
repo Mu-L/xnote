@@ -426,6 +426,8 @@ class WebConfig:
     
     @classmethod
     def resolve_path(cls, path: str):
+        if path == "":
+            return ""
         if path.startswith(cls.server_home):
             return path
         return cls.server_home + path
@@ -718,7 +720,7 @@ def init_boot_config(fpath, boot_config_kw=None):
 
     # 加载用户配置覆盖
     text = fsutil.readfile(fpath)
-    user_config = textutil.parse_config_text(text, 'dict')
+    user_config = textutil.parse_config_text_to_dict(text)
 
     config_dict.update(user_config)
     if boot_config_kw != None:

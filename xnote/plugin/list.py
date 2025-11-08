@@ -48,7 +48,7 @@ class ListViewItem(BaseComponent):
 {% end %}
 """)
 
-    def __init__(self, text="", href="#", icon_class="", badge_info="", show_chevron_right = False, css_class="") -> None:
+    def __init__(self, text="", href="", icon_class="", badge_info="", show_chevron_right = False, css_class="") -> None:
         self.text = text
         self.css_class = css_class
         self.icon_class = icon_class
@@ -56,6 +56,9 @@ class ListViewItem(BaseComponent):
         self.badge_info = badge_info
         self.show_chevron_right = show_chevron_right
         self.tags = []
+
+        if href == "":
+            self.is_link_outside = False
 
     def render(self):
         return self._code.generate(item = self)

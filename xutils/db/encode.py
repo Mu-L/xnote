@@ -6,6 +6,8 @@
 
 import json
 import xutils
+import typing
+
 from xutils import Storage
 from xutils import jsonutil
 
@@ -251,8 +253,7 @@ def decode_id(id_str):
     num_part = id_str[1:]
     return int(num_part)
 
-def convert_bytes_to_dict(data_bytes):
-    # type: (bytes) -> dict[bytes, bytes]
+def convert_bytes_to_dict(data_bytes: bytes) -> typing.Dict[bytes, bytes]:
     if data_bytes is None:
         return dict()
     else:            

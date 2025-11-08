@@ -254,78 +254,84 @@ def init_sql_db():
     xtables.init()
 
 
+def init_db_instance():
+    block_cache_size = xconfig.DatabaseConfig.block_cache_size
+    write_buffer_size = xconfig.DatabaseConfig.write_buffer_size
+    max_open_files = xconfig.DatabaseConfig.max_open_files
+    leveldb_kw = dict(block_cache_size=block_cache_size,
+                        write_buffer_size=write_buffer_size,
+                        max_open_files=max_open_files)
+
+    db_driver = xconfig.DatabaseConfig.db_driver_kv
+
+    if db_driver == "sqlite":
+        from xutils.db.driver_sqlite import SqliteKV
+        db_file = os.path.join(xconfig.DB_DIR, "sqlite", "kv_store.db")
+        config_dict = Storage()
+        config_dict.sqlite_journal_mode = xconfig.DatabaseConfig.sqlite_journal_mode
+        db_instance = SqliteKV(db_file, config_dict=config_dict)
+        db_instance.sql_logger = xnote_trace.SqlLogger()
+        db_instance.debug = xconfig.DatabaseConfig.db_debug
+        return db_instance
+
+    if db_driver == "leveldbpy":
+        from xutils.db.driver_leveldbpy import LevelDBProxy
+        return LevelDBProxy(xconfig.DB_DIR, **leveldb_kw)
+
+    if db_driver == "lmdb":
+        from xutils.db.driver_lmdb import LmdbEnhancedKV
+        db_dir = os.path.join(xconfig.DB_DIR, "lmdb")
+        map_size = xconfig.get_system_config("lmdb_map_size")
+        return LmdbEnhancedKV(db_dir, map_size=map_size)
+
+    if db_driver == "mysql":
+        from xutils.db.driver_mysql import MySQLKV
+        sql_logger = xnote_trace.SqlLogger()
+        db_instance = MySQLKV(db_instance = xtables.get_db_instance(), sql_logger=sql_logger)
+        db_instance.init()
+        db_instance.log_debug = xconfig.DatabaseConfig.db_log_debug
+
+        dbutil.RdbSortedSet.init_class(db_instance=xtables.get_db_instance())
+        logging.info("use mysql as db engine")
+        return db_instance
+
+    if db_driver == "ssdb":
+        from xutils.db.driver_ssdb import SSDBKV
+        return SSDBKV(host=xconfig.DatabaseConfig.ssdb_host, port=xconfig.DatabaseConfig.ssdb_port)
+
+    # 使用leveldb驱动
+    if db_driver == "leveldb":
+        try:
+            from xutils.db.driver_leveldb import LevelDBImpl
+            db_instance = LevelDBImpl(xconfig.DB_DIR, **leveldb_kw)
+            db_instance.log_debug = xconfig.DatabaseConfig.db_log_debug
+            return db_driver
+        except ImportError:
+            if xutils.is_windows():
+                logging.warning("检测到Windows环境，自动切换到leveldbpy驱动")
+                from xutils.db.driver_leveldbpy import LevelDBProxy
+                db_instance = LevelDBProxy(xconfig.DB_DIR, **leveldb_kw)
+                # 更新驱动名称
+                xconfig.set_global_config("system.db_driver", "leveldbpy")
+                return db_instance
+            else:
+                logging.error("启动失败,请安装leveldb依赖")
+                sys.exit(1)
+
+    raise Exception(f"unknown db_driver {db_driver}")
+
 @log_mem_info_deco("init_kv_engine")
 def init_kv_engine():
     try:
-        block_cache_size = xconfig.DatabaseConfig.block_cache_size
-        write_buffer_size = xconfig.DatabaseConfig.write_buffer_size
-        max_open_files = xconfig.DatabaseConfig.max_open_files
-        leveldb_kw = dict(block_cache_size=block_cache_size,
-                          write_buffer_size=write_buffer_size,
-                          max_open_files=max_open_files)
-
-        db_instance = None
-        db_driver = xconfig.DatabaseConfig.db_driver_kv
-
-        if db_driver == "sqlite":
-            from xutils.db.driver_sqlite import SqliteKV
-            db_file = os.path.join(xconfig.DB_DIR, "sqlite", "kv_store.db")
-            config_dict = Storage()
-            config_dict.sqlite_journal_mode = xconfig.DatabaseConfig.sqlite_journal_mode
-            db_instance = SqliteKV(db_file, config_dict=config_dict)
-            db_instance.sql_logger = xnote_trace.SqlLogger()
-            db_instance.debug = xconfig.DatabaseConfig.db_debug
-
-        if db_driver == "leveldbpy":
-            from xutils.db.driver_leveldbpy import LevelDBProxy
-            db_instance = LevelDBProxy(xconfig.DB_DIR, **leveldb_kw)
-
-        if db_driver == "lmdb":
-            from xutils.db.driver_lmdb import LmdbEnhancedKV
-            db_dir = os.path.join(xconfig.DB_DIR, "lmdb")
-            map_size = xconfig.get_system_config("lmdb_map_size")
-            db_instance = LmdbEnhancedKV(db_dir, map_size=map_size)
-
-        if db_driver == "mysql":
-            from xutils.db.driver_mysql import MySQLKV
-            sql_logger = xnote_trace.SqlLogger()
-            db_instance = MySQLKV(db_instance = xtables.get_db_instance(), sql_logger=sql_logger)
-            db_instance.init()
-            db_instance.log_debug = xconfig.DatabaseConfig.db_log_debug
-
-            dbutil.RdbSortedSet.init_class(db_instance=xtables.get_db_instance())
-            logging.info("use mysql as db engine")
-
-        if db_driver == "ssdb":
-            from xutils.db.driver_ssdb import SSDBKV
-            db_instance = SSDBKV(host=xconfig.DatabaseConfig.ssdb_host, port=xconfig.DatabaseConfig.ssdb_port)
-
-        # 默认使用leveldb启动
-        if db_instance is None:
-            try:
-                from xutils.db.driver_leveldb import LevelDBImpl
-                db_instance = LevelDBImpl(xconfig.DB_DIR, **leveldb_kw)
-                db_instance.log_debug = xconfig.DatabaseConfig.db_log_debug
-            except ImportError:
-                if xutils.is_windows():
-                    logging.warning("检测到Windows环境，自动切换到leveldbpy驱动")
-                    from xutils.db.driver_leveldbpy import LevelDBProxy
-                    db_instance = LevelDBProxy(xconfig.DB_DIR, **leveldb_kw)
-                    # 更新驱动名称
-                    xconfig.set_global_config("system.db_driver", "leveldbpy")
-                else:
-                    logging.error("启动失败,请安装leveldb依赖")
-                    sys.exit(1)
-
-        dbutil.set_driver_name(db_driver)
+        db_instance = init_db_instance()
+        dbutil.set_driver_name(xconfig.DatabaseConfig.db_driver_kv)
 
         # 是否开启binlog
         binlog = xconfig.DatabaseConfig.binlog
         db_cache = cacheutil.MultiLevelCache()  # 多级缓存：内存+持久化
 
         # 初始化leveldb数据库
-        dbutil.init(xconfig.DB_DIR,
-                    db_instance=db_instance,
+        dbutil.init(db_instance=db_instance,
                     db_cache=db_cache,
                     binlog=binlog,
                     binlog_max_size=xconfig.DatabaseConfig.binlog_max_size)
