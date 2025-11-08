@@ -25,6 +25,7 @@ import logging
 
 from xnote.core import xtables, xconfig, xmanager
 from xnote.core import xnote_event
+from xnote.core.models import UserMetaRecord
 from xutils import textutil, dbutil, fsutil, dateutil
 from xutils import Storage
 from xutils import logutil
@@ -32,7 +33,10 @@ from xutils import cacheutil
 from xutils import six
 from xutils.sqldb.utils import safe_str
 from xutils import webutil
+from xutils import interfaces
 from xutils.base import BaseDataRecord
+from xutils import cacheutil
+from web.db import SQLLiteral
 
 session_cache = cacheutil.PrefixedCache(prefix="session:")
 user_cache = cacheutil.PrefixedCache(prefix="user:")
@@ -77,11 +81,6 @@ class TestEnv:
 
 def get_user_db():
     return UserDao._get_db()
-
-
-def get_user_config_db(user_name):
-    return UserConfigDao.get_db_by_name(user_name)
-
 
 class UserStatusEnum(enum.Enum):
     normal = 0
@@ -513,12 +512,14 @@ def find_by_name(name):
     return UserModel.get_by_name(name)
 
 
-class UserConfigDao:
+class UserMetaDao:
 
     USER_CONFIG_PROP = {}  # type: dict
+    cache = cacheutil.MemoryCache(max_size=100)
 
     @classmethod
     def init(cls):
+        cls.db = xtables.get_table_by_name("user_meta")
         user_config = xconfig.load_user_config_properties()
         # 检查配置项的有效性
         for key in user_config:
@@ -527,74 +528,89 @@ class UserConfigDao:
         cls.USER_CONFIG_PROP = user_config
 
     @classmethod
-    def get_db_by_name(cls, user_name: str):
-        assert user_name != None
-        assert user_name != ""
-        return dbutil.get_hash_table("user_config", user_name=user_name)
-    
-    @classmethod
     def check_config_key(cls, key: str):
         if key not in cls.USER_CONFIG_PROP:
             raise Exception(f"invalid user config: {key}")
+        
+    @classmethod
+    def build_cache_key(cls, user_id: int, meta_key: str):
+        return f"user_config:{user_id}:{meta_key}"
+        
+    @classmethod
+    def save(cls, user_id: int, meta_key: str, meta_value: str):
+        assert user_id > 0
+        assert len(meta_key) > 0
 
-@cacheutil.cache_deco(prefix="user_config_dict", expire=600)
-def get_user_config_dict(name):
-    if name is None or name == "":
-        return Storage(**UserConfigDao.USER_CONFIG_PROP)
+        now = dateutil.timestamp_ms()
+        rowcount = int(cls.db.update(where=dict(user_id=user_id, meta_key=meta_key), update_time = now, 
+                                     meta_value=meta_value, version = SQLLiteral("version+1")))
+        if rowcount > 0:
+            cache_key = cls.build_cache_key(user_id, meta_key)
+            cls.cache.delete(cache_key)
+            return
+        record = UserMetaRecord()
+        record.user_id = user_id
+        record.meta_key = meta_key
+        record.meta_value = meta_value
+        record.create_time = dateutil.timestamp_ms()
+        record.update_time = dateutil.timestamp_ms()
+        cls.db.insert(**record.to_save_dict())
+        cache_key = cls.build_cache_key(user_id, meta_key)
+        cls.cache.delete(cache_key)
 
-    db = get_user_config_db(name)
-    config_dict = Storage(**UserConfigDao.USER_CONFIG_PROP)
+    @classmethod
+    def get_by_meta_key(cls, user_id=0, meta_key = ""):
+        cache_key = cls.build_cache_key(user_id, meta_key)
 
-    db_records = db.dict(limit=-1)
-    if len(db_records) > 0:
-        config_dict.update(db_records)
-        return config_dict
-
-    return Storage(**UserConfigDao.USER_CONFIG_PROP)
-
+        def load_func():
+            record = cls.db.select_first(where = dict(user_id=user_id, meta_key=meta_key))
+            meta = UserMetaRecord.from_dict_or_None(record)
+            if meta is None:
+                return UserMetaRecord()
+            return meta
+    
+        cache_value = cls.cache.get_dict(cache_key, load_func=load_func)
+        assert cache_value != None
+        meta = UserMetaRecord.from_dict(cache_value)
+        if meta.id == 0:
+            return None
+        return meta
+        
+    @classmethod
+    def list_by_user_id(cls, user_id=0, limit=100):
+        records = cls.db.select(where = dict(user_id=user_id), limit=limit)
+        return UserMetaRecord.from_dict_list(records)
 
 def get_user_config_valid_keys():
-    return UserConfigDao.USER_CONFIG_PROP.keys()
-
+    return UserMetaDao.USER_CONFIG_PROP.keys()
 
 def check_user_config_key(key):
-    return UserConfigDao.check_config_key(key)
+    return UserMetaDao.check_config_key(key)
 
-
-def get_user_config(user_name, config_key, default_value=None):
-    default_value = UserConfigDao.USER_CONFIG_PROP.get(config_key)
-    config_dict = get_user_config_dict(user_name)
-    if config_dict is None:
+def get_user_config(user_id: int, config_key: str, default_value=None):
+    if user_id <= 0:
         return default_value
-    return config_dict.get(config_key, default_value)
+    assert user_id > 0
+    result = UserMetaDao.get_by_meta_key(user_id=user_id, meta_key = config_key)
+    if result:
+        return result.meta_value
+    return UserMetaDao.USER_CONFIG_PROP.get(config_key, default_value)
 
 
 @logutil.log_deco("update_user_config", log_args=True)
-def update_user_config(user_name, key, value):
+def update_user_config(user_id: int, key: str, value):
     check_user_config_key(key)
-
-    db = get_user_config_db(user_name)
-    result = db.put(key, value)
-    cacheutil.delete(prefix="user_config_dict", args=(user_name,))
-    return result
+    UserMetaDao.save(user_id=user_id, meta_key = key, meta_value = value)
 
 
-def update_user_config_dict(name, config_dict):
+def update_user_config_dict(user_id: int, config_dict):
     assert isinstance(config_dict, dict)
-    user = UserDao.get_by_name(name)
-    if user is None:
-        return
-
     for key in config_dict:
         check_user_config_key(key)
 
-    db = get_user_config_db(name)
-
     for key in config_dict:
-        value = config_dict.get(key)
-        db.put(key, value)
-
-    cacheutil.delete(prefix="user_config_dict", args=(name, ))
+        value = config_dict.get(key, "")
+        UserMetaDao.save(user_id=user_id, meta_key=key, meta_value=value)
 
 
 def get_user_from_token():
@@ -1079,12 +1095,10 @@ def init():
 
     INVALID_NAMES = xconfig.load_invalid_names()
     UserDao.init()
-    UserConfigDao.init()
+    UserMetaDao.init()
     SessionDao.init()
     UserOpLogDao.init()
 
     _create_temp_user("admin")
     _create_temp_user("test")
 
-xutils.register_func("user.get_config_dict", get_user_config_dict, "xauth")
-xutils.register_func("user.get_config",      get_user_config,      "xauth")

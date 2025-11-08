@@ -535,7 +535,7 @@ def init_system_info_table():
         manager.add_index("info_key", is_unique=True)
 
 def init_system_meta_table():
-    """系统信息表"""
+    """系统元信息表"""
     table_name = "system_meta"
     comment = "系统元信息"
     with create_default_table_manager(table_name, comment=comment) as manager:
@@ -707,6 +707,19 @@ def init_user_op_log():
         manager.add_column("ip", "varchar(64)", "")
         manager.add_index(["user_id", "ctime"])
 
+
+def init_user_meta_table():
+    table_name = "user_meta"
+    comment = "用户元信息"
+    with create_default_table_manager(table_name, comment=comment) as manager:
+        manager.add_column("create_time", "bigint", default_value=0)
+        manager.add_column("update_time", "bigint", default_value=0)
+        manager.add_column("user_id", "bigint", default_value=0)
+        manager.add_column("meta_key", "varchar(100)", default_value="", comment="")
+        manager.add_column("meta_value", "text", comment="")
+        manager.add_column("version", "int", default_value=0, comment="版本号")
+        manager.add_index(["user_id", "meta_key"], is_unique=True, index_name="uk_userMeta_userId_metaKey")
+
 def init_month_plan_index():
     """月度计划索引
     @since 2023/11/05
@@ -835,6 +848,10 @@ class DBProfileLogger(interfaces.ProfileLogger):
     def log(self, log):
         self.db.insert(log, id_type="timeseq")
 
+def next_id():
+    from xnote.core.id_generator import default_generator
+    return default_generator.next_id()
+
 
 @xutils.log_init_deco("xtables")
 def init():
@@ -851,8 +868,13 @@ def init():
     
     init_dict_table()    
     init_record_table()
+
+    # 用户相关表
     init_user_table()
     init_user_session()
+    init_user_note_log()
+    init_user_op_log()
+    init_user_meta_table()
     init_file_info()
     
     # 持久化任务表
@@ -890,8 +912,6 @@ def init():
     init_note_history_index()
     init_note_relation_table()
 
-    init_user_note_log()
-    init_user_op_log()
     init_month_plan_index()
     init_txt_info_index()
 

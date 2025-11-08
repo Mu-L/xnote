@@ -2,13 +2,13 @@ import threading
 from xnote.core import xtables
 from xutils.base import BaseDataRecord
 from xutils import dateutil
+from xutils import interfaces
 
-
-class IdGenerator:
+class IdGenerator(interfaces.IdGeneratorInterface):
     def __init__(self, biz_name: str):
         self.biz_name = biz_name
         self.lock = threading.RLock()
-        self.segment = IdService.next_segment(self.biz_name)
+        self.segment = IdManager.next_segment(self.biz_name)
         self.current_id = self.segment.start_id
 
     def next_id(self):
@@ -17,7 +17,7 @@ class IdGenerator:
                 self.current_id = self.segment.start_id
 
             if self.current_id > self.segment.end_id:
-                self.segment = IdService.next_segment(self.biz_name)
+                self.segment = IdManager.next_segment(self.biz_name)
 
             result_id = self.current_id
             self.current_id += 1
@@ -40,12 +40,12 @@ class Segment:
         self.start_id = start_id
         self.end_id = end_id
 
-class IdService:
+class IdManager:
 
     db = xtables.get_table_by_name("id_generator")
 
     @classmethod
-    def init_biz(cls, biz_name: str, current_max_id = 0, step = 1, range_start = 1, range_end = 0):
+    def init_biz(cls, biz_name: str, current_max_id = 0, step = 10, range_start = 1, range_end = 0):
         record = cls.db.select_first(where = dict(biz_name=biz_name))
         if record != None:
             return
@@ -93,5 +93,5 @@ class IdService:
         raise Exception("too many retries")
     
 
-IdService.init_biz("common")
+IdManager.init_biz("common", step=100)
 default_generator = IdGenerator("common")

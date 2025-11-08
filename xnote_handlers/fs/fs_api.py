@@ -27,9 +27,9 @@ class FileConfigHandler:
 
     def update_sort(self):
         order = xutils.get_argument("order", "")
-        user_name = xauth.current_name()
-        xauth.update_user_config(user_name, "fs_order", order)
-        return dict(code = "success")
+        user_id = xauth.current_user_id()
+        xauth.update_user_config(user_id, "fs_order", order)
+        return webutil.SuccessResult()
 
 
 class FileDetailHandler:

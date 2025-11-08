@@ -931,12 +931,9 @@ def get_user_config(user_name: str, config_key, default_value=None):
         return default_value
     
     from . import xauth
-    return xauth.get_user_config(user_name, config_key, default_value=default_value)
+    user_id = xauth.UserDao.get_id_by_name(user_name)
+    return xauth.get_user_config(user_id, config_key, default_value=default_value)
 
-
-def update_user_config(user_name, key, value):
-    from . import xauth
-    return xauth.update_user_config(user_name, key, value)
 
 def get_current_user_config(key, default_value=None):
     """默认值参考DEFAULT_USER_CONFIG"""
@@ -945,7 +942,7 @@ def get_current_user_config(key, default_value=None):
         return default_value
     
     from . import xauth
-    return xauth.get_user_config(xauth.current_name_str(), key, default_value)
+    return xauth.get_user_config(xauth.current_user_id(), key, default_value)
 
 
 def get_system_dir(name):

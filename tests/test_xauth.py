@@ -31,6 +31,7 @@ class TestXauth(BaseTestCase):
         self.assertFalse(xauth.is_valid_username("public"))
 
     def test_create_and_delete_user(self):
+        xauth.delete_user("u123456")
         old_count = xauth.count_user()
 
         # 创建用户
@@ -99,12 +100,13 @@ class TestXauth(BaseTestCase):
         result = xauth.create_user(user_name, user_name)
         print(result)
 
-        config = xauth.get_user_config_dict(user_name)
+        user_id = xauth.UserDao.get_id_by_name(user_name)
+        config = xnote_user_config.get_user_config_dict(user_name)
         self.assertEqual("false", config.show_comment_edit)
 
-        xauth.update_user_config(user_name, "show_comment_edit", "true")
+        xauth.update_user_config(user_id, "show_comment_edit", "true")
 
-        config = xauth.get_user_config_dict(user_name)
+        config = xnote_user_config.get_user_config_dict(user_name)
         self.assertEqual("true", config.show_comment_edit)
 
         xauth.delete_user(user_name)
@@ -137,12 +139,11 @@ class TestXauth(BaseTestCase):
 
     def test_user_config_2(self):
         from xnote.core.xnote_user_config import UserConfig
-        user_name = xauth.current_name_str()
-        config_dict = xnote_user_config.get_config_dict(user_name)
+        user_id = xauth.current_user_id()
         
-        assert config_dict[UserConfig.THEME.key] == "default"
-        assert config_dict[UserConfig.HOME_PATH.key] == "/note/group"
-        assert config_dict[UserConfig.nav_style.key] == "left"
+        assert UserConfig.THEME.get_str(user_id) == "default"
+        assert UserConfig.HOME_PATH.get_str(user_id) == "/note/group"
+        assert UserConfig.nav_style.get_str(user_id) == "left"
 
         
     def test_user_oplog_clean(self):

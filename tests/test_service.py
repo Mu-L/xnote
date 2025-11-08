@@ -16,7 +16,7 @@ from xnote.core import xtables
 from xnote.service import DatabaseLockService
 from xnote.service import TagBindServiceImpl
 from xnote.service import TagTypeEnum
-from xnote.service.id_service import IdGenerator, IdGeneratorRecord, IdService
+from xnote.core.id_generator import IdGenerator, IdManager
 
 app = test_base.init()
 
@@ -108,7 +108,7 @@ class TestMain(test_base.BaseTestCase):
         assert bindlist[1].second_type == type1
 
     def run_id_test(self, biz_name="test", step = 1):
-        IdService.init_biz(biz_name, current_max_id=0, range_start=1, step=step)
+        IdManager.init_biz(biz_name, current_max_id=0, range_start=1, step=step)
         id_gen = IdGenerator(biz_name)
 
         assert id_gen.next_id() == 1

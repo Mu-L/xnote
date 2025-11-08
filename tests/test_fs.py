@@ -95,8 +95,8 @@ class TestMain(BaseTestCase):
         print(resp)
         self.assertEqual("success", resp["code"])
         
-        user_name = xauth.current_name()
-        self.assertEqual("size", xauth.get_user_config(user_name, "fs_order"))
+        user_id = xauth.current_user_id()
+        self.assertEqual("size", xauth.get_user_config(user_id, "fs_order"))
     
     def test_fs_config_error(self):
         resp = json_request_return_dict("/fs_api/config", method = "POST", data = dict(action = "notfount", order = "size"))

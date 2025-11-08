@@ -2,50 +2,94 @@
 # @author xupingmao <578749341@qq.com>
 # @since 2020/04/06 11:55:29
 # @modified 2021/04/11 14:08:02
+
+import typing
+
 from xnote.core import xconfig, xauth
 from xutils import Storage
 
 
 class UserConfigItem:
 
-    def __init__(self, key="", label=""):
+    def __init__(self, key="", label="", default_value=""):
         self.key = key
         self.label = label
+        self.default_value = default_value
 
-    def get(self, user_name=""):
+    def get(self, user_name: str):
         return get_user_config(user_name, self.key)
     
     def get_bool(self, user_name=""):
         value = self.get(user_name)
         if isinstance(value, str):
-            return value.lower() == "true"
+            return value.lower() in ("true", "1")
         return bool(value)
     
-    def get_str(self, user_name=""):
-        value = self.get(user_name)
+    def get_str(self, user_id: int):
+        if user_id <= 0:
+            return self.default_value
+        
+        value = xauth.get_user_config(user_id=user_id, config_key=self.key)
         if value is None:
             return ""
         return str(value)
     
-    def set(self, user_name="", value=None):
-        xauth.update_user_config(user_name=user_name, key=self.key, value=value)
+    def set(self, user_id=0, value=None):
+        assert user_id > 0
+        xauth.update_user_config(user_id=user_id, key=self.key, value=value)
 
 class UserConfig:
     THEME = UserConfigItem("THEME", "主题") 
-    HOME_PATH = UserConfigItem("HOME_PATH", "家目录")
-    HOME_PATH_MOBILE = UserConfigItem("HOME_PATH_MOBILE", "移动端家目录")
-    LANG = UserConfigItem("LANG", "语言")
+    HOME_PATH = UserConfigItem("HOME_PATH", "桌面端首页")
+    HOME_PATH_MOBILE = UserConfigItem("HOME_PATH_MOBILE", "移动端首页")
+    LANG = UserConfigItem("LANG", "语言/Language")
     nav_style = UserConfigItem("nav_style", "导航风格")
+    show_md_preview = UserConfigItem("show_md_preview", "Markdown预览")
+    font_scale = UserConfigItem("FONT_SCALE", "字体大小", default_value="100")
     group_list_order_type = UserConfigItem("group_list_order_type", "笔记本排序方式")
-    show_comment_edit = UserConfigItem("show_comment_edit", "是否展示评论编辑")
+    show_comment_edit = UserConfigItem("show_comment_edit", "是否展示评论编辑", default_value="1")
+    note_table_width = UserConfigItem("note_table_width", "表格宽度", default_value="normal")
+    search_message_detail_show = UserConfigItem("search_message_detail_show", "自动展开记事详情", default_value="0")
+    search_plugin_detail_show = UserConfigItem("search_plugin_detail_show", "自动展开插件详情", default_value="0")
+
+    @classmethod
+    def init(cls):
+        items: typing.List[UserConfigItem] = []
+        for value in cls.__dict__.values():
+            if isinstance(value, UserConfigItem):
+                items.append(value)
+        cls._items = items
+
+    @classmethod
+    def get_by_config_key(cls, config_key: str):
+        for item in cls._items:
+            if item.key == config_key:
+                return item
+        return None
 
 ###### 获取指定用户信息
 def get_user_config(user_name, config_key):
     """默认值参考DEFAULT_USER_CONFIG"""
     return xconfig.get_user_config(user_name, config_key)
 
-def get_config_dict(user_name):
-    return xauth.get_user_config_dict(user_name)
+
+class UserConfigDict:
+
+    def __init__(self, user_id: int):
+        self.nav_style = UserConfig.nav_style.get_str(user_id)
+        self.show_md_preview = UserConfig.show_md_preview.get_str(user_id)
+        self.note_table_width = UserConfig.note_table_width.get_str(user_id)
+        self.show_comment_edit = UserConfig.show_comment_edit.get_str(user_id)
+
+def get_user_config_dict(user_name):
+    if user_name is None or user_name == "":
+        return UserConfigDict(0)
+
+    user_id = xauth.UserDao.get_id_by_name(user_name)
+    return UserConfigDict(user_id)
+
+
+get_config_dict = get_user_config_dict
 
 def get_theme(user_name):
     return UserConfig.THEME.get(user_name)
@@ -74,3 +118,4 @@ def get_current_home_path():
     return get_home_path(xauth.current_name())
 
 
+UserConfig.init()

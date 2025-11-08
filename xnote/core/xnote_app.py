@@ -253,7 +253,6 @@ def init_sql_db():
     # 初始化数据库
     xtables.init()
 
-
 def init_db_instance():
     block_cache_size = xconfig.DatabaseConfig.block_cache_size
     write_buffer_size = xconfig.DatabaseConfig.write_buffer_size

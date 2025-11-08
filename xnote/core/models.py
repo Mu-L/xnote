@@ -65,3 +65,15 @@ class CronJobRecord(BaseDataRecord):
         self.sound = 0
         self.webpage = 0
         self.update(kw)
+
+class UserMetaRecord(BaseDataRecord):
+    _ignore_save_fields = ["id"]
+    
+    def __init__(self):
+        self.id = 0
+        self.create_time = 0
+        self.update_time = 0
+        self.user_id = 0
+        self.meta_key = ""
+        self.meta_value = ""
+        self.version = 0

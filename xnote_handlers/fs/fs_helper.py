@@ -209,7 +209,8 @@ def get_parent_file_object(path: str, name = ""):
     return parent_file
 
 def get_index_dirs():
-    index_dirs = xauth.get_user_config("admin", "fs_index_dirs")
+    admin_user_id = xauth.UserDao.get_id_by_name("admin")
+    index_dirs = xauth.get_user_config(admin_user_id, "fs_index_dirs")
     assert isinstance(index_dirs, str)
     return index_dirs.split("\n")
 

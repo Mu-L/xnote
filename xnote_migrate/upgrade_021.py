@@ -16,10 +16,13 @@ from xutils.base import BaseDataRecord
 from xnote.core import xtables
 from xnote.core.xtables import DEFAULT_DATETIME
 from xutils import dateutil
+from xutils import dbutil
+from xnote.core import xauth
 
 def do_upgrade():
     # since v2.9.9
-    base.execute_upgrade("20251108_system_meta", fix_system_meta)
+    base.execute_upgrade("20251108_system_meta", migrate_system_meta)
+    base.execute_upgrade("20251108_user_meta", migrate_user_meta)
 
 class SystemInfoRecord(BaseDataRecord):
     def __init__(self, **kw):
@@ -40,8 +43,17 @@ class SystemMetaRecord(BaseDataRecord):
         self.meta_value = ""
         self.version = 0
 
+class UserMetaRecord(BaseDataRecord):
+    def __init__(self):
+        self.id = 0
+        self.create_time = 0
+        self.update_time = 0
+        self.user_id = 0
+        self.meta_key = ""
+        self.meta_value = ""
+        self.version = 0
 
-def fix_system_meta():
+def migrate_system_meta():
     old_db = xtables.get_table_by_name("system_info")
     new_db = xtables.get_table_by_name("system_meta")
     for item in old_db.iter():
@@ -55,3 +67,17 @@ def fix_system_meta():
         new_item.version = info.version
         new_db.replace(**new_item)
         
+def migrate_user_meta():
+    old_db = dbutil.get_hash_table("user_config")
+    new_db = xtables.get_table_by_name("user_meta")
+    for origin_key, value in old_db.iter(limit=-1):
+        user_name, config_key = origin_key.split(":")
+        user_id = xauth.UserDao.get_id_by_name(user_name)
+        meta_record = UserMetaRecord()
+        meta_record.user_id = user_id
+        meta_record.create_time = dateutil.timestamp_ms()
+        meta_record.update_time = dateutil.timestamp_ms()
+        meta_record.meta_key = config_key
+        meta_record.meta_value = value
+        meta_record.pop("id", None)
+        new_db.replace(**meta_record)

@@ -34,7 +34,7 @@ def init():
     dbutil.register_table("txt_info", "txt文件信息", index_db=txt_info_index)
     dbutil.register_table("fs_sync_index", "文件同步索引信息", is_deleted=True)
     
-    dbutil.register_table("user_config", "用户配置表")
+    dbutil.register_table("user_config", "用户配置表", is_deleted=True)
     db = dbutil.register_table("session", "用户会话信息", is_deleted=True)
     db.register_index("user", columns=["user_name"])
     dbutil.register_table("sys_config", "系统配置表", is_deleted=True)

@@ -16,6 +16,7 @@ import typing
 import web.db
 from .table_config import TableConfig
 from xutils.functions import list_replace
+from xutils.sqldb import table_validator
 
 empty_db = web.db.DB(None, {})
 
@@ -100,7 +101,7 @@ class TableHelper:
     def is_varchar_type(cls, coltype: str):
         name = cls.get_type_name(coltype)
         return name == "varchar"
-
+    
 class BaseTableManager:
     """检查数据库字段，如果不存在就自动创建"""
 
@@ -173,7 +174,7 @@ class BaseTableManager:
         sql = f"ALTER TABLE {self.tablename} RENAME {quote_name(old_name)} TO {quote_name(new_name)}"
         self.execute(sql)
 
-    def add_index(self, colname, is_unique=False, **kw):
+    def add_index(self, colname, is_unique=False, index_name="", **kw):
         raise Exception("not implemented")
 
     def drop_index(self, col_name, is_unique=False):
@@ -240,10 +241,11 @@ class MySQLTableManager(BaseTableManager):
             default_value = None
         super().add_column(colname, coltype, default_value, not_null)
     
-    def add_index(self, colname, is_unique=False, **kw):
+    def add_index(self, colname, is_unique=False, index_name="", **kw):
         """MySQL版创建索引"""
         helper = TableHelper()
-        index_name = helper.build_index_name(colname=colname, is_unique=is_unique)
+        if index_name == "":
+            index_name = helper.build_index_name(colname=colname, is_unique=is_unique)
         colname_str = helper.build_colname_tuple(colname=colname)
 
         if is_unique:
@@ -348,17 +350,18 @@ class SqliteTableManager(BaseTableManager):
             result.append(item)
         return result
 
-    def add_index(self, colname, is_unique=False, **kw):
+    def add_index(self, colname, is_unique=False, index_name="", **kw):
         # sqlite的索引和table是一个级别的schema
         # sqlite不支持前缀索引
         helper = TableHelper(skip_prefix_length=True)
-        idx_name = helper.build_index_name(colname=colname, is_unique=is_unique, table_name=self.tablename)
+        if index_name == "":
+            index_name = helper.build_index_name(colname=colname, is_unique=is_unique, table_name=self.tablename)
         colname_str = helper.build_colname_tuple(colname=colname)
                             
         if is_unique:
-            sql = f"CREATE UNIQUE INDEX IF NOT EXISTS {idx_name} ON `{self.tablename}` ({colname_str})"
+            sql = f"CREATE UNIQUE INDEX IF NOT EXISTS {index_name} ON `{self.tablename}` ({colname_str})"
         else:
-            sql = f"CREATE INDEX IF NOT EXISTS {idx_name} ON `{self.tablename}` ({colname_str})"
+            sql = f"CREATE INDEX IF NOT EXISTS {index_name} ON `{self.tablename}` ({colname_str})"
             
         self.execute(sql)
 
@@ -499,9 +502,10 @@ class TableManagerFacade:
         """只会打一个告警日志,不会实际删除,删除字段请使用rename_column或者重建表,更加安全"""
         logging.warning(f"drop column {colname}")
 
-    def add_index(self, colname, is_unique=False, **kw):
+    def add_index(self, colname, is_unique=False, index_name="", **kw):
+        table_validator.validate_index_name(index_name, is_unique)
         self.table_info.add_index(colname, is_unique)
-        self.manager.add_index(colname, is_unique, **kw)
+        self.manager.add_index(colname, is_unique, index_name=index_name, **kw)
 
     def drop_index(self, colname, is_unique=False, **kw):
         self.manager.drop_index(colname, is_unique, **kw)

@@ -286,6 +286,10 @@ class SQLDBInterface:
     
     def count(self, where=None, sql=None, vars=None):
         return 0
+    
+class IdGeneratorInterface:
+    def next_id(self) -> int:
+        raise NotImplementedError("next_id")
 
 empty_db = DBInterface()
 empty_cache = CacheInterface()

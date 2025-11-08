@@ -70,10 +70,6 @@ xnote.execute(function () {
             {% if item.name == "" %}
                 {% continue %}
             {% end %}
-            
-            {% if is_hidden_file(item) %}
-                {% continue %}
-            {% end %}
 
             {% if not item.name.startswith("._") %}
                 <div class="gallery-item context-menu-one">

@@ -234,7 +234,7 @@ class IndexHandler(BaseTablePlugin):
     
     def do_config(self):
         index_config = xutils.get_argument("index_config")
-        xauth.update_user_config(xauth.current_name(), "fs_index_dirs", index_config)
+        xauth.update_user_config(xauth.current_user_id(), "fs_index_dirs", index_config)
         return webutil.SuccessResult()
 
     def do_rebuild_index(self):

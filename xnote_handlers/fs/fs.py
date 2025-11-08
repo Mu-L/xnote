@@ -115,8 +115,8 @@ def process_file_list(pathlist, parent = None):
 
     filelist = list(filter(filter_func, filelist))
 
-    user_name = xauth.current_name()
-    fs_order = xauth.get_user_config(user_name, "fs_order")
+    user_id = xauth.current_user_id()
+    fs_order = xauth.get_user_config(user_id, "fs_order")
     if fs_order == "size":
         sort_files_by_size(filelist)
     return filelist

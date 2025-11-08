@@ -889,11 +889,11 @@ class ManagementHandler:
 class NoteIndexHandler:
 
     def find_class(self):
-        user_name = xauth.current_name_str()
+        user_id = xauth.current_user_id()
         if xutils.is_mobile_client():
-            home_path = UserConfig.HOME_PATH_MOBILE.get_str(user_name)
+            home_path = UserConfig.HOME_PATH_MOBILE.get_str(user_id)
         else:
-            home_path = UserConfig.HOME_PATH.get_str(user_name)
+            home_path = UserConfig.HOME_PATH.get_str(user_id)
         clazz = xutils.lookup_func("url:" + home_path)
         if clazz is None:
             return GroupListHandler

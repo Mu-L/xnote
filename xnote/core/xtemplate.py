@@ -22,6 +22,7 @@ import typing
 
 from xnote.core import xconfig, xauth, xnote_trace, xnote_hooks
 from xnote.core import xnote_user_config
+from xnote.core.xnote_user_config import UserConfig
 from xnote.core.xconfig import TemplateConfig
 from xutils.tornado.template import Template, Loader
 from xutils import dateutil, u
@@ -37,7 +38,6 @@ NAMESPACE = dict(
     quote=quote
 )
 
-_mobile_name_dict = dict() # type: dict[str, str]
 LOAD_TIME = int(time.time())
 
 def T(text: str, lang=None):
@@ -50,9 +50,10 @@ def T(text: str, lang=None):
     else:
         return mapping.get(text, text)
 
-class XnoteTemplateVars:
+class TemplateState:
     """xnote模板参数"""
     show_nav = True
+    mobile_name_dict = dict() # type: dict[str, str]
 
 class TemplateMapping:
 
@@ -194,9 +195,9 @@ def render_before_kw(kw: dict):
 
     # 用户配置
     kw["_user_config"] = xnote_user_config.get_config_dict(user_name)
-    kw["FONT_SCALE"] = xconfig.get_user_config(user_name, "FONT_SCALE")
-    kw["HOME_PATH"] = xconfig.get_user_config(user_name, "HOME_PATH")
-    kw["THEME"] = xconfig.get_user_config(user_name, "THEME")
+    kw["FONT_SCALE"] = UserConfig.font_scale.get_str(user_id)
+    kw["HOME_PATH"] = UserConfig.HOME_PATH.get_str(user_id)
+    kw["THEME"] = UserConfig.THEME.get_str(user_id)
     kw["_debug_info"] = xnote_trace.get_debug_info()
 
     if hasattr(web.ctx, "env"):
@@ -219,10 +220,9 @@ def render_after_kw(kw):
 
 
 def get_mobile_template(name: str):
-    global _mobile_name_dict
     global TEMPLATE_DIR
 
-    cached_name = _mobile_name_dict.get(name)
+    cached_name = TemplateState.mobile_name_dict.get(name)
     if cached_name != None:
         return cached_name
 
@@ -231,9 +231,9 @@ def get_mobile_template(name: str):
         mobile_name = textutil.remove_tail(name, ".html") + ".mobile.html"
         fpath = os.path.join(TEMPLATE_DIR, mobile_name)
         if os.path.exists(fpath):
-            _mobile_name_dict[name] = mobile_name
+            TemplateState.mobile_name_dict[name] = mobile_name
             return mobile_name
-    _mobile_name_dict[name] = name
+    TemplateState.mobile_name_dict[name] = name
     return name
 
 

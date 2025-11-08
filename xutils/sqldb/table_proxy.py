@@ -39,6 +39,7 @@ class TableProxy(SQLDBInterface):
         self.table_info = table_info
         self.db_type = table_info.db_type
         self.enable_binlog = TableConfig.enable_binlog and table_info.enable_binlog
+        self.pk_name = table_info.pk_name
 
     @property
     def tablename(self):
@@ -72,6 +73,10 @@ class TableProxy(SQLDBInterface):
 
     def insert(self, seqname=None, _test=False, **values):
         assert len(values) > 0
+        pk_value = values.get(self.pk_name)
+        if pk_value == 0:
+            raise Exception(f"{self.pk_name} can not be 0")
+        
         self.check_write_state()
         values = self.fix_sql_keywords(values)
         start_time = time.time()

@@ -152,6 +152,18 @@ class MemoryCache(interfaces.CacheInterface):
                 self.delete(key)
         return default_value
     
+    def get_dict(self, key, default_value = None, load_func = None):
+        result = self.get(key, default_value)
+        if result == None:
+            if load_func:
+                result = load_func()
+                assert isinstance(result, dict)
+                self.put(key, result)
+                return result
+            return None
+        assert isinstance(result, dict)
+        return result
+        
     def get_raw(self, key):
         return self.dict.get(key)
 
@@ -168,7 +180,7 @@ class MemoryCache(interfaces.CacheInterface):
         value = self.expire_dict.get(key, 60*5)
         return value > time.time()
     
-    def delete(self, key):
+    def delete(self, key: str):
         has_delete = False
         with self.lock:
             if key in self.dict:
@@ -448,11 +460,12 @@ def cache_deco(key=None, prefix=None, expire=600, expire_random=600):
 
     def deco(func):
         # 先不支持keywords参数
-        def handle(*args):
+        def handle(*args, **kw):
             if key is not None:
                 cache_key = key
             elif prefix is None:
                 mod = inspect.getmodule(func)
+                assert mod != None
                 funcname = func.__name__
                 cache_key = "%s.%s%s" % (mod.__name__, funcname, args)
             else:
