@@ -78,6 +78,6 @@ def migrate_user_meta():
         meta_record.create_time = dateutil.timestamp_ms()
         meta_record.update_time = dateutil.timestamp_ms()
         meta_record.meta_key = config_key
-        meta_record.meta_value = value
+        meta_record.meta_value = str(value)
         meta_record.pop("id", None)
         new_db.replace(**meta_record)
