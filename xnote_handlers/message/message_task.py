@@ -167,7 +167,7 @@ class TaskListAjaxHandler:
 
     def do_list_task(self, user_name, offset, limit):
         p = xutils.get_argument_str("p", "")
-        filter_key = xutils.get_argument("filterKey", "")
+        filter_key = xutils.get_argument_str("filterKey", "")
 
         if p == "done":
             return msg_dao.list_task_done(user_name, offset, limit)

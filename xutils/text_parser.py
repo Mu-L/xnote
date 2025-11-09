@@ -408,6 +408,8 @@ class TextParser(TextParserBase):
 
     # 是否记录关键字，关键字包括话题、书籍、@值等等
     record_keyword_flag = True
+    # 关键字转小写
+    keyword_to_lower = True
 
     # 话题的长度限制
     topic_len_limit = 100
@@ -415,7 +417,9 @@ class TextParser(TextParserBase):
     def init_ext(self, text):
         self.keywords = set()
 
-    def record_keyword(self, keyword):
+    def record_keyword(self, keyword:str):
+        if self.keyword_to_lower:
+            keyword = keyword.lower()
         self.keywords.add(keyword)
 
     def build_search_link(self, keyword):
