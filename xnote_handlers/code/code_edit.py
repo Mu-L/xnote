@@ -250,6 +250,7 @@ class EditUserConfigHandler:
             user_config.expire_cache(user_id=user_id)
             kw.title = user_config.label
             kw.content = user_config.get_str(user_id=user_id)
+            kw.help_text = user_config.help_text
 
         return xtemplate.render("code/page/code_edit.html", **kw)
 

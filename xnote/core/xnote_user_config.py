@@ -11,10 +11,11 @@ from xutils import Storage
 
 class UserConfigItem:
 
-    def __init__(self, key="", label="", default_value=""):
+    def __init__(self, key="", label="", default_value="", help_text=""):
         self.key = key
         self.label = label
         self.default_value = default_value
+        self.help_text = help_text
 
     def get(self, user_name: str):
         return get_user_config(user_name, self.key)
@@ -34,6 +35,13 @@ class UserConfigItem:
             return ""
         return str(value)
     
+    def get_int(self, user_id: int):
+        value = self.get_str(user_id)
+        try:
+            return int(value)
+        except:
+            return 0
+    
     def expire_cache(self, user_id: int):
         xauth.UserMetaDao.expire_cache(user_id=user_id, meta_key=self.key)
     
@@ -49,12 +57,12 @@ class UserConfig:
     nav_style = UserConfigItem("nav_style", "导航风格")
     show_md_preview = UserConfigItem("show_md_preview", "Markdown预览")
     font_scale = UserConfigItem("FONT_SCALE", "字体大小", default_value="100")
-    group_list_order_type = UserConfigItem("group_list_order_type", "笔记本排序方式")
+    group_list_order_type = UserConfigItem("group_list_order_type", "笔记本排序方式", default_value="0")
     show_comment_edit = UserConfigItem("show_comment_edit", "是否展示评论编辑", default_value="1")
     note_table_width = UserConfigItem("note_table_width", "表格宽度", default_value="normal")
     search_message_detail_show = UserConfigItem("search_message_detail_show", "自动展开记事详情", default_value="0")
     search_plugin_detail_show = UserConfigItem("search_plugin_detail_show", "自动展开插件详情", default_value="0")
-    task_filter_text = UserConfigItem("task.filter.text", "待办过滤器")
+    task_filter_text = UserConfigItem("task.filter.text", "待办过滤器", help_text="示例：\n类别1 #标签1# #标签2#\n类别2 #Tag3# #Tag4#")
 
     @classmethod
     def init(cls):

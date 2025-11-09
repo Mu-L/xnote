@@ -148,6 +148,9 @@ class TaskListAjaxHandler:
 
     @xauth.login_required()
     def GET(self):
+        filter_key = xutils.get_argument_str("filterKey")
+        quote_key = xutils.quote(filter_key)
+        
         user_name = xauth.current_name_str()
         limit = 20
         page = xutils.get_argument_int("page", default_value=1)
@@ -162,6 +165,7 @@ class TaskListAjaxHandler:
         kw.page = page
         kw.page_total = amount
         kw.item_list = chatlist
+        kw.page_url = f"?filterKey={quote_key}&page="
 
         return xtemplate.render("message/page/message_list_ajax.html", **kw)
 

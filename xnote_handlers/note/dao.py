@@ -1254,7 +1254,7 @@ def check_group_status(status):
 def list_group_with_count(creator=None,
                orderby="mtime_desc",
                skip_archived=False,
-               status="all", **kw):
+               status="all", **kw) -> typing.Tuple[typing.List[NoteIndexDO], int]:
     """查询笔记本列表"""
 
     offset = kw.get("offset", 0)

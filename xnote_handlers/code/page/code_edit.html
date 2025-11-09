@@ -71,6 +71,7 @@
 {% init title = "文本编辑" %}
 {% init parent_link = None %}
 {% init show_rename = True %}
+{% init help_text = "" %}
 
 <div class="card editor-title">
     <h3 class="card-title btn-line-height">
@@ -106,6 +107,10 @@
         <pre class="col-md-12 warn">
             {{warn}}
         </pre>
+    {% end %}
+
+    {% if help_text %}
+        <pre class="row info">{{help_text}}</pre>
     {% end %}
 
     {% if file_too_large %}

@@ -272,8 +272,9 @@ class GroupListHandler:
     @xauth.login_required()
     def do_get(self):
         user_name = xauth.current_name_str()
+        user_id = xauth.current_user_id()
 
-        order_type = UserConfig.group_list_order_type.get(user_name=user_name)
+        order_type = UserConfig.group_list_order_type.get_int(user_id)
         logging.debug("group_list_order_type:%s", order_type)
 
         category = xutils.get_argument_str("note_category", "all")
