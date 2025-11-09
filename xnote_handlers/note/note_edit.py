@@ -573,9 +573,9 @@ class UpdateOrderTypeHandler:
             return webutil.FailedResult(code = "fail", message = f"无效的排序方式: {order_type}")
 
         if note_id == 0:
-            user_name = xauth.current_name_str()
+            user_id = xauth.current_user_id()
             # 更新根目录的排序
-            UserConfig.group_list_order_type.set(user_name, order_type)
+            UserConfig.group_list_order_type.save_config(user_id, order_type)
             return webutil.SuccessResult()
         
         note = check_get_note(note_id)

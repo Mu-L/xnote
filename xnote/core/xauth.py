@@ -23,7 +23,7 @@ import typing
 import enum
 import logging
 
-from xnote.core import xtables, xconfig, xmanager
+from xnote.core import xtables, xconfig
 from xnote.core import xnote_event
 from xnote.core.models import UserMetaRecord
 from xutils import textutil, dbutil, fsutil, dateutil
@@ -215,11 +215,13 @@ class UserDao:
         user.login_time = "1970-01-01 00:00:00"
         user.pop("id")
         db = get_user_db()
-        user_id = db.insert(**user)
+        user_id = int(db.insert(**user)) # type: ignore
         #xutils.trace("UserAdd", name)
         if fire_event:
-            event = Storage(user_name=name)
-            xmanager.fire("user.create", event)
+            event = xnote_event.UserCreateEvent()
+            event.user_id = user_id
+            event.user_name = name
+            event.fire()
 
         assert isinstance(user_id, int)
         return user_id
@@ -243,7 +245,7 @@ class UserDao:
             event.user_name = user_info.name
             xutils.trace("UserUpdate", user_info)
             # 刷新完成之后再发送消息
-            xmanager.fire("user.update", event)
+            event.fire()
         except:
             pass
 
@@ -515,6 +517,7 @@ def find_by_name(name):
 class UserMetaDao:
 
     USER_CONFIG_PROP = {}  # type: dict
+    valid_keys = set() # type: set[str]
     cache = cacheutil.MemoryCache(max_size=100)
 
     @classmethod
@@ -529,15 +532,18 @@ class UserMetaDao:
 
     @classmethod
     def check_config_key(cls, key: str):
-        if key not in cls.USER_CONFIG_PROP:
-            raise Exception(f"invalid user config: {key}")
+        if key in cls.valid_keys:
+            return
+        if key in cls.USER_CONFIG_PROP:
+            return
+        raise Exception(f"invalid user config: {key}")
         
     @classmethod
     def build_cache_key(cls, user_id: int, meta_key: str):
         return f"user_config:{user_id}:{meta_key}"
         
     @classmethod
-    def save(cls, user_id: int, meta_key: str, meta_value: str):
+    def save_meta(cls, user_id: int, meta_key: str, meta_value: str):
         assert user_id > 0
         assert len(meta_key) > 0
 
@@ -555,6 +561,11 @@ class UserMetaDao:
         record.create_time = dateutil.timestamp_ms()
         record.update_time = dateutil.timestamp_ms()
         cls.db.insert(**record.to_save_dict())
+        cache_key = cls.build_cache_key(user_id, meta_key)
+        cls.cache.delete(cache_key)
+
+    @classmethod
+    def expire_cache(cls, user_id=0, meta_key=""):
         cache_key = cls.build_cache_key(user_id, meta_key)
         cls.cache.delete(cache_key)
 
@@ -600,7 +611,7 @@ def get_user_config(user_id: int, config_key: str, default_value=None):
 @logutil.log_deco("update_user_config", log_args=True)
 def update_user_config(user_id: int, key: str, value):
     check_user_config_key(key)
-    UserMetaDao.save(user_id=user_id, meta_key = key, meta_value = value)
+    UserMetaDao.save_meta(user_id=user_id, meta_key = key, meta_value = value)
 
 
 def update_user_config_dict(user_id: int, config_dict):
@@ -610,7 +621,7 @@ def update_user_config_dict(user_id: int, config_dict):
 
     for key in config_dict:
         value = config_dict.get(key, "")
-        UserMetaDao.save(user_id=user_id, meta_key=key, meta_value=value)
+        UserMetaDao.save_meta(user_id=user_id, meta_key=key, meta_value=value)
 
 
 def get_user_from_token():

@@ -105,16 +105,26 @@ class MessageEvent(Storage):
         self.user_id = user_id
         self.content = content
 
-class MessageUpdateEvent(Storage):
-
+class MessageUpdateEvent(BaseEvent):
+    event_type = "message.update"
     def __init__(self):
+        super().__init__()
         self.msg_id = 0
         self.msg_key = ""
         self.user_id = 0
         self.content = ""
 
 
-class UserUpdateEvent(Storage):
+class UserUpdateEvent(BaseEvent):
+    event_type = "user.update"
     def __init__(self):
+        super().__init__()
+        self.user_id = 0
+        self.user_name = ""
+
+class UserCreateEvent(BaseEvent):
+    event_type = "user.create"
+    def __init__(self):
+        super().__init__()
         self.user_id = 0
         self.user_name = ""

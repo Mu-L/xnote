@@ -95,6 +95,7 @@ class CalendarHandler:
         kw.html_title = T("随手记")
         kw.search_type = "message"
         kw.filter_tab = filter_tab
+        kw.tab_default = "log.date"
         
         # 实际数据从 /message/date 接口获取
 

@@ -20,6 +20,7 @@ from xutils import netutil
 from xnote.plugin import TextLink
 from xnote.service.system_meta_service import SystemMetaEnum
 from xnote_handlers.config import LinkConfig
+from xnote.core.xnote_user_config import UserConfig, UserConfigItem
 
 def can_preview(path):
     name, ext = os.path.splitext(path)
@@ -227,10 +228,49 @@ class EditConfigHandler:
         sys_info.save_meta(content)
         return webutil.SuccessResult()
 
+
+class EditUserConfigHandler:
+    @xauth.login_required()
+    def GET(self):
+        config_key = xutils.get_argument_str("config_key")
+        user_config = UserConfig.get_by_config_key(config_key=config_key)
+        kw = Storage()
+        kw.path = "config.md"
+        kw.content = ""
+        kw.post_action = "/code/edit/user_config"
+        kw.show_fs_path = False
+        kw.show_rename = False
+        kw.code_type = "md"
+        user_id = xauth.current_user_id()
+
+        if user_config is None:
+            error = f"config not exists, config_key={config_key}"
+            kw.error = error
+        else:
+            user_config.expire_cache(user_id=user_id)
+            kw.title = user_config.label
+            kw.content = user_config.get_str(user_id=user_id)
+
+        return xtemplate.render("code/page/code_edit.html", **kw)
+
+
+    @xauth.admin_required()
+    def POST(self):
+        config_key = xutils.get_argument_str("config_key")
+        content = xutils.get_argument_str("content")
+
+        user_config = UserConfig.get_by_config_key(config_key=config_key)
+        if user_config is None:
+            return webutil.FailedResult("404", message="config_key not exists")
+        user_id = xauth.current_user_id()
+        user_config.save_config(user_id, content)
+        return webutil.SuccessResult()
+
 xurls = (
     r"/code/view_source", ViewSourceHandler,
     r"/code/view_source/update", UpdateHandler,
     r"/code/update", UpdateHandler,
     r"/code/edit", ViewSourceHandler,
     r"/code/edit/config", EditConfigHandler,
+    r"/code/edit/user_config", EditUserConfigHandler,
 )

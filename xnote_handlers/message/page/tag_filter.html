@@ -1,0 +1,12 @@
+{% init filter_html = "" %}
+<div class="card">
+    <div class="split-title">
+        <span class="bold">过滤器</span>
+        <div class="float-right">
+            <a href="/code/edit/user_config?config_key=task.filter.text">[编辑]</a>
+        </div>
+    </div>
+    <div class="padding-sm">
+        {% raw filter_html %}
+    </div>
+</div>

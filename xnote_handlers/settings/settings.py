@@ -291,7 +291,7 @@ def update_user_config(key: str, value: str):
     if user_config is None:
         raise Exception("无效的配置项:%s" % key)
     user_id = xauth.current_user_id()
-    user_config.set(user_id, value)
+    user_config.save_config(user_id, value)
 
 @xauth.login_required("admin")
 def update_sys_config(key: str, value: str):

@@ -34,7 +34,10 @@ class UserConfigItem:
             return ""
         return str(value)
     
-    def set(self, user_id=0, value=None):
+    def expire_cache(self, user_id: int):
+        xauth.UserMetaDao.expire_cache(user_id=user_id, meta_key=self.key)
+    
+    def save_config(self, user_id=0, value=None):
         assert user_id > 0
         xauth.update_user_config(user_id=user_id, key=self.key, value=value)
 
@@ -51,6 +54,7 @@ class UserConfig:
     note_table_width = UserConfigItem("note_table_width", "表格宽度", default_value="normal")
     search_message_detail_show = UserConfigItem("search_message_detail_show", "自动展开记事详情", default_value="0")
     search_plugin_detail_show = UserConfigItem("search_plugin_detail_show", "自动展开插件详情", default_value="0")
+    task_filter_text = UserConfigItem("task.filter.text", "待办过滤器")
 
     @classmethod
     def init(cls):
@@ -58,6 +62,7 @@ class UserConfig:
         for value in cls.__dict__.values():
             if isinstance(value, UserConfigItem):
                 items.append(value)
+                xauth.UserMetaDao.valid_keys.add(value.key)
         cls._items = items
 
     @classmethod

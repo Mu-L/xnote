@@ -73,3 +73,11 @@
     background-color: #08c;
     text-decoration: none;
 }
+
+
+.link.active {
+    color: white;
+    background-color: #08c;
+    padding: 3px;
+    border-radius: 3px;
+}

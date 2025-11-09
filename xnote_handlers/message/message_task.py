@@ -6,6 +6,7 @@ import xnote_handlers.message.dao as msg_dao
 
 from xutils import Storage
 from xnote.core import xtemplate, xauth
+from xnote.core.xnote_user_config import UserConfig
 from xnote.core.xtemplate import T
 from xnote_handlers.message.message_utils import list_task_tags
 from xnote_handlers.message.message_utils import get_tags_from_message_list
@@ -13,7 +14,7 @@ from xnote_handlers.message.message_utils import is_marked_keyword
 from xnote_handlers.message.message_utils import sort_keywords_by_marked, MessageListParser
 from xnote_handlers.message.message_model import MessageTag, MessageTagEnum
 from xnote_handlers.message.message_utils import MAX_LIST_LIMIT
-from xnote_handlers.message.message_utils import filter_msg_list_by_key
+from xnote_handlers.message.message_utils import filter_msg_list_by_key, mark_filter_text
 
 class TaskListHandler:
 
@@ -45,6 +46,10 @@ class TaskListHandler:
     
     @classmethod
     def get_task_create_page(cls):
+        filter_key = xutils.get_argument_str("filterKey")
+        user_id = xauth.current_user_id()
+        filter_content = UserConfig.task_filter_text.get_str(user_id)
+
         show_side_tags = xutils.get_argument_bool("show_side_tags")
         kw = cls.get_task_kw()
         kw.show_input_box = True
@@ -53,11 +58,12 @@ class TaskListHandler:
         cls.fix_side_tags(side_tags)
         kw.side_tag_tab_key = "filterKey"
         kw.side_tags = side_tags
-        kw.default_content = xutils.get_argument_str("filterKey")
+        kw.default_content = filter_key
         kw.search_type = "task"
         kw.search_placeholder = "搜索待办"
         kw.search_ext_dict = dict(tag = "task.search")
         kw.message_tag = "task"
+        kw.filter_html = mark_filter_text(filter_content, selected_key=filter_key).result_text
 
         if not show_side_tags:
             cls.hide_side_tags(kw)

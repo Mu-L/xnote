@@ -88,6 +88,15 @@ def get_search_html(value="", tag=""):
     server_home = xconfig.WebConfig.server_home
     return f"<a class=\"link\" href=\"{server_home}/message?tag={tag}&key={quoted_key}\">{value}</a>"
 
+def get_task_filter(key="", selected_key=""):
+    key = key.strip()
+    quoted_key = textutil.quote(key)
+    server_home = xconfig.WebConfig.server_home
+    css_class = ""
+    if key == selected_key:
+        css_class = "active"
+    return f"<a class=\"link {css_class}\" href=\"{server_home}/message/task?filterKey={quoted_key}\">{key}</a>"
+
 class TagHelper:
 
     search_tag_mapping = {
@@ -150,9 +159,6 @@ def mark_text_v2(content="", tag="log"):
     for token in tokens:
         if token.type in (TokenType.topic, TokenType.search):
             token.html = get_search_html(value=token.value, tag=tag)
-  
-    # parser.set_topic_translator(marker.mark)
-    # parser.set_search_translator(marker.mark)
 
     keywords = parser.keywords
     if keywords == None:
@@ -160,6 +166,22 @@ def mark_text_v2(content="", tag="log"):
 
     text_tokens = parser.get_text_tokens(tokens)
     return MarkResult("".join(text_tokens), keywords=get_standard_tag_set(keywords), full_keywords=keywords)
+
+def mark_filter_text(content="", tag="log", selected_key=""):
+    # 设置图片文集后缀
+    set_img_file_ext(xconfig.FS_IMG_EXT_LIST)
+
+    tag=TagHelper.get_search_tag(tag)
+    
+    parser = TextParser()
+    tokens = parser.parse_to_tokens(text=content)
+    
+    for token in tokens:
+        if token.type in (TokenType.topic, TokenType.search):
+            token.html = get_task_filter(key = token.value, selected_key=selected_key)
+
+    text_tokens = parser.get_text_tokens(tokens)
+    return MarkResult("".join(text_tokens))
 
 def mark_text_to_tokens(content="", tag="log"):
     parser = TextParser()
@@ -376,7 +398,8 @@ def get_length(item):
         return -1
 
 
-def filter_msg_list_by_key(msg_list: typing.List[MessageDO], filter_key):
+def filter_msg_list_by_key(msg_list: typing.List[MessageDO], filter_key: str):
+    filter_key = filter_key.lower()
     result = []
 
     for msg_item in msg_list:
