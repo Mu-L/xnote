@@ -48,7 +48,8 @@ class TaskListHandler:
     def get_task_create_page(cls):
         filter_key = xutils.get_argument_str("filterKey")
         user_id = xauth.current_user_id()
-        filter_content = UserConfig.task_filter_text.get_str(user_id)
+        filter_content = UserConfig.task_filter.get_str(user_id)
+        filter_config_key = UserConfig.task_filter.key
 
         show_side_tags = xutils.get_argument_bool("show_side_tags")
         kw = cls.get_task_kw()
@@ -63,7 +64,8 @@ class TaskListHandler:
         kw.search_placeholder = "搜索待办"
         kw.search_ext_dict = dict(tag = "task.search")
         kw.message_tag = "task"
-        kw.filter_html = mark_filter_text(filter_content, selected_key=filter_key).result_text
+        kw.filter_config_key = filter_config_key
+        kw.filter_html = mark_filter_text(filter_content, link_type="task", selected_key=filter_key).result_text
 
         if not show_side_tags:
             cls.hide_side_tags(kw)

@@ -1,9 +1,10 @@
 {% init filter_html = "" %}
+{% init filter_config_key = "task.filter" %}
 <div class="card">
     <div class="split-title">
         <span class="bold">过滤器</span>
         <div class="float-right">
-            <a href="/code/edit/user_config?config_key=task.filter.text">[编辑]</a>
+            <a href="/code/edit/user_config?config_key={{filter_config_key}}">[编辑]</a>
         </div>
     </div>
     <div class="padding-sm">

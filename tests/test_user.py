@@ -49,7 +49,7 @@ class TestUser(BaseTestCase):
         assert new_session.sid == session_info.sid
 
     def test_user_config(self):
-        config_key = UserConfig.task_filter_text.key
+        config_key = UserConfig.task_filter.key
         self.check_OK(f"/code/edit/user_config?config_key={config_key}")
 
         data = {}

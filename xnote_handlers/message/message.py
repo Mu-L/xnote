@@ -184,7 +184,7 @@ class ListAjaxHandler:
         display_tag = xutils.get_argument("displayTag", "")
         date = xutils.get_argument("date", "")
         key = xutils.get_argument("key", "")
-        filter_key = xutils.get_argument("filterKey", "")
+        filter_key = xutils.get_argument_str("filterKey", "")
         orderby = xutils.get_argument("orderby", "")
         p = xutils.get_argument("p", "")
         xutils.get_argument_bool("show_marked_tag", True)

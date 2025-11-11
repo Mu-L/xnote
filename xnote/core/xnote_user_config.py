@@ -49,6 +49,15 @@ class UserConfigItem:
         assert user_id > 0
         xauth.update_user_config(user_id=user_id, key=self.key, value=value)
 
+_filter_text_help = """
+示例：
+类别1 #标签1# #标签2#
+类别2 #Tag3# #Tag4#
+
+特殊标签
+#_all# 清空筛选条件，即选择全部
+"""
+
 class UserConfig:
     THEME = UserConfigItem("THEME", "主题") 
     HOME_PATH = UserConfigItem("HOME_PATH", "桌面端首页")
@@ -62,7 +71,8 @@ class UserConfig:
     note_table_width = UserConfigItem("note_table_width", "表格宽度", default_value="normal")
     search_message_detail_show = UserConfigItem("search_message_detail_show", "自动展开记事详情", default_value="0")
     search_plugin_detail_show = UserConfigItem("search_plugin_detail_show", "自动展开插件详情", default_value="0")
-    task_filter_text = UserConfigItem("task.filter.text", "待办过滤器", help_text="示例：\n类别1 #标签1# #标签2#\n类别2 #Tag3# #Tag4#")
+    task_filter = UserConfigItem("task.filter", "待办过滤器", help_text=_filter_text_help)
+    msg_filter = UserConfigItem("msg.filter", "随手记过滤器", help_text=_filter_text_help)
 
     @classmethod
     def init(cls):

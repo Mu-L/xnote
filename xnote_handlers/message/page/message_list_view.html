@@ -61,6 +61,9 @@
         {% if show_keyword_info %}
             {% include message/component/message_keyword_info.html %}
         {% end %}
+
+        <!-- 标签过滤器 -->
+        {% include message/page/tag_filter.html %}
     
         <!-- 内容区域 -->
         {% include message/page/message_list_content.html %}

@@ -80,6 +80,7 @@ def build_search_html(content, search_tag="log"):
                       key_text=xutils.html_escape(content))
 
 
+
 def get_search_html(value="", tag=""):
     key0 = value
     key = value.strip()
@@ -88,14 +89,24 @@ def get_search_html(value="", tag=""):
     server_home = xconfig.WebConfig.server_home
     return f"<a class=\"link\" href=\"{server_home}/message?tag={tag}&key={quoted_key}\">{value}</a>"
 
-def get_task_filter(key="", selected_key=""):
+def build_filter_html(link_type="task", key="", selected_key=""):
     key = key.strip()
     quoted_key = textutil.quote(key)
     server_home = xconfig.WebConfig.server_home
     css_class = ""
     if key == selected_key:
         css_class = "active"
-    return f"<a class=\"link {css_class}\" href=\"{server_home}/message/task?filterKey={quoted_key}\">{key}</a>"
+
+    if key == "#_all#":
+        key = "全部"
+        quoted_key = ""
+        if selected_key == "":
+            css_class = "active"
+
+    if link_type == "task":
+        return f"<a class=\"link {css_class}\" href=\"{server_home}/message/task?filterKey={quoted_key}\">{key}</a>"
+    else:
+        return f"<a class=\"link {css_class}\" href=\"{server_home}/message?key={quoted_key}\">{key}</a>"
 
 class TagHelper:
 
@@ -167,18 +178,15 @@ def mark_text_v2(content="", tag="log"):
     text_tokens = parser.get_text_tokens(tokens)
     return MarkResult("".join(text_tokens), keywords=get_standard_tag_set(keywords), full_keywords=keywords)
 
-def mark_filter_text(content="", tag="log", selected_key=""):
+def mark_filter_text(content="", link_type="log", selected_key=""):
     # 设置图片文集后缀
-    set_img_file_ext(xconfig.FS_IMG_EXT_LIST)
-
-    tag=TagHelper.get_search_tag(tag)
-    
+    set_img_file_ext(xconfig.FS_IMG_EXT_LIST)    
     parser = TextParser()
     tokens = parser.parse_to_tokens(text=content)
     
     for token in tokens:
         if token.type in (TokenType.topic, TokenType.search):
-            token.html = get_task_filter(key = token.value, selected_key=selected_key)
+            token.html = build_filter_html(link_type=link_type, key = token.value, selected_key=selected_key)
 
     text_tokens = parser.get_text_tokens(tokens)
     return MarkResult("".join(text_tokens))

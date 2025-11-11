@@ -110,7 +110,7 @@
     {% end %}
 
     {% if help_text %}
-        <pre class="row info">{{help_text}}</pre>
+        <pre class="row info"><a onclick="xnote.tmp.showHelp(this)" data-text="{{help_text}}">查看帮助</a></pre>
     {% end %}
 
     {% if file_too_large %}
@@ -215,5 +215,10 @@
             })
         });
     });
+
+xnote.tmp.showHelp = function(target) {
+    var text = $(target).attr("data-text");
+    xnote.showTextDialog("帮助", text);
+}
 </script>
 {% end %}

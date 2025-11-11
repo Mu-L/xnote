@@ -14,6 +14,8 @@ from xnote_handlers.message import message_utils
 from xnote_handlers.message import message_tag
 from xnote_handlers.message.message_utils import filter_key
 from .dao_template import MessageTemplateDao
+from .message_utils import mark_filter_text
+from xnote.core.xnote_user_config import UserConfig
 
 class LogPageHandler:
 
@@ -21,6 +23,7 @@ class LogPageHandler:
         key = xutils.get_argument_str("key", "")
         input_tag = xutils.get_argument_str("tag", "log")
         user_name = xauth.current_name_str()
+        user_id = xauth.current_user_id()
         default_content = filter_key(key)
 
         kw = Storage()
@@ -40,6 +43,10 @@ class LogPageHandler:
         kw.search_ext_dict = dict(tag="log.search")
         kw.message_left_class = "hide"
         kw.message_right_class = "row"
+        
+        filter_content = UserConfig.msg_filter.get_str(user_id=user_id)
+        kw.filter_config_key = UserConfig.msg_filter.key
+        kw.filter_html = mark_filter_text(filter_content, link_type="log", selected_key=key).result_text
         self.handle_template_tab(kw, default_content)
         
         return xtemplate.render("message/page/message_list_view.html", **kw)
