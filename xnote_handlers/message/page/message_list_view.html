@@ -22,6 +22,7 @@
     {% init show_input_box = True %}
     {% init show_system_tag = True %}
     {% init show_keyword_info = False %}
+    {% init show_tag_filter = False %}
     {% init message_left_class = "message-left" %}
     {% init message_right_class = "message-right" %}
     {% init list_ajax_url = "/message/list" %}
@@ -63,7 +64,9 @@
         {% end %}
 
         <!-- 标签过滤器 -->
-        {% include message/page/tag_filter.html %}
+        {% if show_tag_filter %}
+            {% include message/page/tag_filter.html %}
+        {% end %}
     
         <!-- 内容区域 -->
         {% include message/page/message_list_content.html %}

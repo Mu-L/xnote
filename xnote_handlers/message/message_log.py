@@ -45,6 +45,7 @@ class LogPageHandler:
         kw.message_right_class = "row"
         
         filter_content = UserConfig.msg_filter.get_str(user_id=user_id)
+        kw.show_tag_filter = True
         kw.filter_config_key = UserConfig.msg_filter.key
         kw.filter_html = mark_filter_text(filter_content, link_type="log", selected_key=key).result_text
         self.handle_template_tab(kw, default_content)
