@@ -83,6 +83,10 @@
     display: none;
   }
 
+  .main-content {
+    width: 100%;
+  }
+
   @media screen and (max-width: 1000px) {
     .x-body {
       padding: 0px;
@@ -146,6 +150,7 @@
 </div>
 
 <script type="text/javascript">
+  xnote.config.skipLayoutAdjust = true;
   $(function () {
     function adjustLoginBody() {
       var winWidth = getWindowWidth();

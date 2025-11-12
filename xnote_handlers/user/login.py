@@ -55,12 +55,14 @@ class LoginHandler:
                                 error=error)
 
     def GET(self):
-        return xtemplate.render("user/page/login.html",
-                                show_aside=False,
-                                show_nav=False,
-                                username="",
-                                password="",
-                                error="")
+        kw = Storage()
+        kw.load_base_layout = False
+        kw.show_aside = False
+        kw.show_nav = False
+        kw.username = ""
+        kw.password = ""
+        kw.error = ""
+        return xtemplate.render("user/page/login.html",**kw)
 
     def do_login(self, name, pswd):
         target = xutils.get_argument_str("target")

@@ -6,6 +6,8 @@
 {% init show_menu  = True %}
 {% init show_aside = False %}
 {% init show_search = True %}
+{% init load_base_layout = True %}
+
 {% import xconfig %}
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -56,8 +58,11 @@
   xnote.config.isMaster = "{{xconfig.WebConfig.is_leader()}}";
 </script>
 
-<!-- 布局脚本 -->
-{% include common/layout/base_layout.html %}
+{% if load_base_layout %}
+  <!-- 布局脚本 -->
+  {% include common/layout/base_layout.html %}
+{% end %}
+
 <!-- 页面自定义的样式区块,放在后面可以重写基础样式 -->
 {% block head %} {% end %}
 

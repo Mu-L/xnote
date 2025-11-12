@@ -196,7 +196,7 @@
 
         try {
             // var csv = new CSV(code);
-            var rows = CSV.parse(code);
+            var rows = CSV.parse(code, {cast: false});
             var table = $("<table>").attr("data-index", dupIndex).addClass("table");
             var editAction = $("<a>").text("编辑表格");
             editAction.attr("onclick", extOptions.csvEditFunc + "(this)");
