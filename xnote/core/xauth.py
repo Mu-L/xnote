@@ -144,6 +144,7 @@ class UserDao:
     @classmethod
     def init(cls):
         cls._db = xtables.get_user_table()
+        cls._token_cache = cacheutil.PrefixedCache(prefix="user_token:")
 
     @classmethod
     def _get_db(cls):
@@ -178,10 +179,24 @@ class UserDao:
     @classmethod
     def get_by_token(cls, token=""):
         db = get_user_db()
+        user_info = cls._token_cache.get(token)
+        if cls._token_cache.is_empty_value(user_info):
+            return None
+        
+        if isinstance(user_info, dict):
+            return UserDO.from_dict(user_info)
+        
         user_dict = db.select_first(where=dict(token=token))
         user_info = UserDO.from_dict(user_dict)
         if user_info != None and user_info.status == UserStatusEnum.deleted.value:
+            cls._token_cache.put_empty(token)
             return None
+        
+        if user_info is None:
+            cls._token_cache.put_empty(token)
+        else:
+            cls._token_cache.put(token, user_info)
+        
         return user_info
 
     @classmethod
@@ -227,7 +242,7 @@ class UserDao:
         return user_id
 
     @classmethod
-    def update(cls, user_info):
+    def update(cls, user_info: UserDO):
         assert isinstance(user_info, UserDO)
         db = get_user_db()
 
@@ -336,7 +351,7 @@ class SessionDao:
             if record != None:
                 session_cache.put(sid, record, expire=DEFAULT_CACHE_EXPIRE)
 
-        if record == None or session_cache.is_empty(record):
+        if record == None or session_cache.is_empty_value(record):
             return None
 
         session_info = SessionInfo.from_dict(record)

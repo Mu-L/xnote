@@ -41,7 +41,6 @@ from web.db import SQLLiteral
 from xnote_handlers.note.dao_api import NoteDao
 from xnote_handlers.note import dao_log
 from xnote_handlers.note.models import NoteIndexDO, NoteDO, del_dict_key, remove_virtual_fields
-from xnote_handlers.note.models import NoteToken
 from xnote_handlers.note.models import NotePathInfo
 from xnote_handlers.note.models import NOTE_ICON_DICT
 from xnote_handlers.note.models import OrderTypeEnum
@@ -905,34 +904,6 @@ def create_note(note_dict: NoteDO, date_str=None, note_id=None, check_name=True)
     xmanager.fire("note.create", create_msg)
 
     return note_id
-
-class NoteTokenDaoImpl:
-    db = dbutil.get_table("token")
-    token_type = "note"
-
-    def create_token(self, note_id=0):
-        uuid = textutil.generate_uuid()
-        token_info = NoteToken(type=self.token_type, id=note_id)
-        self.db.put_by_id(uuid, token_info)
-        return uuid
-
-    def update_token(self, note: NoteDO):
-        if note.token == "" or note.token is None:
-            return
-        
-        result = self.db.get_by_id(note.token)
-        if result is None:
-            self.db.put_by_id(note.token, NoteToken(type=self.token_type, id=note.id))
-  
-    def get_by_token(self, token):
-        token_dict = self.db.get_by_id(token)
-        if token_dict is None:
-            return None
-        token_info = NoteToken.from_dict(token_dict)
-        if token_info.type == self.token_type:
-            return get_by_id(token_info.id)
-        return None
-
 
 
 def check_and_create_default_book(user_name="", default_book_name="默认笔记本"):
@@ -1996,4 +1967,3 @@ NoteDao.batch_query_list = batch_query_list
 NoteDao.get_note_stat = get_note_stat
 
 
-NoteTokenDao = NoteTokenDaoImpl()

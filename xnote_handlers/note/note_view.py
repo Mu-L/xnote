@@ -320,7 +320,7 @@ def view_func_before(kw: NoteViewContext):
 
 def find_note_for_view0(token, note_id=0, name=""):
     if token != "":
-        return note_dao.NoteTokenDao.get_by_token(token)
+        return dao_share.NoteTokenDao.get_note_by_token(token)
     if note_id != 0:
         return note_dao.get_by_id(note_id)
     if name != "":
@@ -375,7 +375,7 @@ class ViewHandler:
         page = xutils.get_argument_int("page", 1)
         pagesize = xutils.get_argument_int("pagesize", xconfig.PAGE_SIZE)
         is_iframe = xutils.get_argument_str("is_iframe", "false")
-        token = xutils.get_argument_str("token")
+        token = xutils.get_argument_str("share_token")
         
         user_info = xauth.current_user()
         if user_info != None:
@@ -569,7 +569,7 @@ class QueryHandler:
     @xauth.login_required("admin")
     def GET(self, action=""):
         if action == "get_by_id":
-            id = xutils.get_argument("id")
+            id = xutils.get_argument_int("id")
             return dict(code="success", data=note_dao.get_by_id(id))
         if action == "get_by_name":
             name = xutils.get_argument_str("name")

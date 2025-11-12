@@ -172,15 +172,15 @@ xnote.execute(function() {
         note_id = xutils.get_argument_int("note_id")
 
         note = check_get_note(note_id)
-        NoteTokenDao = note_dao.NoteTokenDao
+        NoteTokenDao = dao_share.NoteTokenDao
 
         if note.token != None and note.token != "":
             NoteTokenDao.update_token(note)
-            share_link = f"{xconfig.WebConfig.server_home}/note/view?token={note.token}"
+            share_link = f"{xconfig.WebConfig.server_home}/note/view?share_token={note.token}"
         else:
             token = NoteTokenDao.create_token(note.id)
             note_dao.update_note(note.id, token = token)
-            share_link = f"{xconfig.WebConfig.server_home}/note/view?token={token}"
+            share_link = f"{xconfig.WebConfig.server_home}/note/view?share_token={token}"
 
         if self.get_format() == "json":
             return webutil.SuccessResult(data=share_link)

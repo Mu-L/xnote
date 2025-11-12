@@ -7,11 +7,13 @@
 import json
 import xutils
 from xnote.core import xauth, xconfig, xtables
-
 from xutils import Storage
 from xutils import logutil
+from xutils import dbutil
+from xutils import textutil
+from xnote_handlers.note.models import NoteToken, NoteDO
 from xnote_handlers.note.dao import ShareTypeEnum, ShareInfoDO
-from .dao import batch_query_list
+from .dao import batch_query_list, get_by_id
 
 def check_not_empty(value, method_name):
     if value == None or value == "":
@@ -134,6 +136,41 @@ def count_share_to(to_user):
 
 def get_share_to(to_user_id=0, note_id=0):
     return get_share_by_note_and_to_user(note_id, to_user_id)
+
+
+
+class NoteTokenDaoImpl:
+    db = dbutil.get_table("token")
+    token_type = "note"
+
+    def create_token(self, note_id=0):
+        uuid = textutil.generate_uuid()
+        token_info = NoteToken(type=self.token_type, id=note_id)
+        self.db.put_by_id(uuid, token_info)
+        return uuid
+
+    def update_token(self, note: NoteDO):
+        if note.token == "" or note.token is None:
+            return
+        
+        result = self.db.get_by_id(note.token)
+        if result is None:
+            self.db.put_by_id(note.token, NoteToken(type=self.token_type, id=note.id))
+
+    def get_token_info(self, token: str):
+        token_dict = self.db.get_by_id(token)
+        return NoteToken.from_dict_or_None(token_dict)
+  
+    def get_note_by_token(self, token: str):
+        token_info = self.get_token_info(token)
+        if token_info is None:
+            return None
+        if token_info.type == self.token_type:
+            return get_by_id(token_info.id)
+        return None
+
+NoteTokenDao = NoteTokenDaoImpl()
+
 
 xutils.register_func("note.share_to", share_note_to)
 xutils.register_func("note.delete_share", delete_share)

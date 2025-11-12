@@ -45,12 +45,17 @@ class NoteService:
         return result
         
     @classmethod
-    def check_auth(cls, file: NoteIndexDO, user_id=0):
+    def check_auth(cls, file: NoteIndexDO, user_id=0, share_token=""):
         if user_id == file.creator_id:
             return
 
         if file.is_public == 1:
             return
+        
+        if share_token != "":
+            note_info = dao_share.NoteTokenDao.get_token_info(share_token)
+            if note_info != None and int(note_info.id) == file.id:
+                return
 
         if user_id == 0:
             xauth.redirect_to_login()

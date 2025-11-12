@@ -250,14 +250,14 @@ class PrefixedCache(interfaces.CacheInterface):
         assert isinstance(value, dict)
         return value
     
-    def put(self, key, value, expire=60*5):
+    def put(self, key: str, value, expire=60*5):
         return self.cache.put(self.prefix+key, value, expire)
     
-    def put_empty(self, key, expire=5):
+    def put_empty(self, key: str, expire=5):
         """针对空值的特殊处理"""
         return self.cache.put(self.prefix+key, "$empty", expire)
     
-    def is_empty(self, value):
+    def is_empty_value(self, value):
         return value == "$empty"
     
     def delete(self, key):

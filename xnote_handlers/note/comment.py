@@ -157,7 +157,8 @@ class CommentListAjaxHandler:
             note_index = NoteIndexDao.get_by_id(note_id)
             if note_index is None:
                 raise Exception("笔记不存在")
-            NoteService.check_auth(note_index, user_id=user_id)
+            share_token = xutils.get_argument_str("share_token")
+            NoteService.check_auth(note_index, user_id=user_id, share_token=share_token)
             comments  = dao_comment.list_comments(note_id, offset = offset, limit = page_size, 
                                                   user_name=user_name, order=comment_order)
             count = dao_comment.count_comment_by_note(note_id)

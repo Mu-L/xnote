@@ -74,6 +74,7 @@
                 page: page
             };
             list_param.comment_order = getUrlParam("comment_order", "latest");
+            list_param.share_token = getUrlParam("share_token", "");
 
             xnote.http.get("/note/comments", list_param, function (resp) {
                 $("#comments").html(resp);
