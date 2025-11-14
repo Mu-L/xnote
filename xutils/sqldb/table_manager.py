@@ -20,6 +20,10 @@ from xutils.sqldb import table_validator
 
 empty_db = web.db.DB(None, {})
 
+class DefaultValues:
+    pk_name = "id"
+    pk_type = "int"
+
 class ColumnInfo:
     def __init__(self):
         self.name = ""
@@ -112,8 +116,8 @@ class BaseTableManager:
         self.connect()
         self.db = db
         self.mysql_database = kw.get("mysql_database", "")
-        self.pk_name = kw.get("pk_name", "id")
-        self.pk_type = kw.get("pk_type", "int")
+        self.pk_name = kw.get("pk_name", DefaultValues.pk_name)
+        self.pk_type = kw.get("pk_type", DefaultValues.pk_type)
         self.pk_len = kw.get("pk_len", 0) # 废弃字段
         self.pk_comment = kw.get("pk_comment", "主键")
         pk_type = TableHelper.get_type_name(self.pk_type)
@@ -381,7 +385,8 @@ class TableInfo:
 
     def __init__(self, tablename = ""):
         self.tablename = tablename
-        self.pk_name = "id"
+        self.pk_name = DefaultValues.pk_name
+        self.pk_type = DefaultValues.pk_type
         self.db_type = "" # 数据库类型, 比如 mysql/sqlite
         self.comment = "" # 表的描述
         self.column_names = []
@@ -412,6 +417,11 @@ class TableInfo:
             if info.name == colname:
                 return info.kw.get("comment", "")
         return ""
+    
+    def validate(self):
+        if self.pk_type != DefaultValues.pk_type:
+            if self.tablename not in TableConfig._non_int_pk_tables:
+                raise Exception(f"table {self.tablename}: pk_type {self.pk_type} is not allowed")
 
 class TableManagerFacade:
 
@@ -427,10 +437,11 @@ class TableManagerFacade:
         :type check_table_define: bool
         """
         self.table_info = TableInfo(tablename)
-        self.table_info.pk_name = kw.get("pk_name", "id")
+        self.table_info.pk_name = kw.get("pk_name", DefaultValues.pk_name)
+        self.table_info.pk_type = kw.get("pk_type", DefaultValues.pk_type)
         self.table_info.db_type = kw.get("db_type", "")
         self.table_info.is_plugin = is_plugin
-        
+
         if db.dbname == "mysql":
             self.manager = MySQLTableManager(tablename, db = db, **kw)
         else:
@@ -441,6 +452,7 @@ class TableManagerFacade:
         
         self.table_info.is_deleted = kw.get("is_deleted", False)
         self.table_info.comment = kw.get("comment", "")
+        self.table_info.validate()
 
         self.manager.create_table()
 

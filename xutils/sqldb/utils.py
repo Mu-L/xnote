@@ -9,6 +9,11 @@
 @Description  : 描述
 """
 
+import typing
+from web.db import SqliteDB
+from xutils.base import BaseDataRecord
+from typing import Optional
+
 def safe_str(obj, max_length=-1):
     if obj == None:
         return ""
@@ -41,3 +46,33 @@ def remove_like_wildcard(text: str):
     text = text.replace("%", "")
     text = text.replace("_", "")
     return text
+
+class SqliteColumnInfo(BaseDataRecord):
+    def __init__(self):
+        self.cid = 0
+        self.name = ""
+        self.type = ""
+        self.notnull = 0
+        self.dflt_value = None
+        self.pk = 0
+
+class SqliteTableStruct:
+    def __init__(self) -> None:
+        self.pk_column: Optional[SqliteColumnInfo] = None
+        self.columns: typing.List[SqliteColumnInfo] = []
+
+def get_sqlite_table_struct(db_path: str, table_name: str):
+    db = SqliteDB(db = db_path)
+    rows = db.query(f"pragma table_info({table_name})")
+    column_info_list = SqliteColumnInfo.from_dict_list(rows)
+
+    result = SqliteTableStruct()
+    result.columns = column_info_list
+
+    for item in column_info_list:
+        if item.pk:
+            result.pk_column = item
+            break
+    return result
+
+

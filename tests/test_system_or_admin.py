@@ -16,6 +16,7 @@ from xnote.core import xconfig, xmanager, xauth
 from xnote.service import JobService
 from xnote.service.system_meta_service import SystemMetaEnum
 from .test_base import json_request_return_dict
+from xutils.sqldb.utils import get_sqlite_table_struct
 
 app = test_base.init()
 
@@ -127,3 +128,14 @@ class TestMain(test_base.BaseTestCase):
         data = dict(key = "config.sys.no_such_key", value = "1")
         result = json_request_return_dict("/system/config", method="POST", data=data)
         assert result["success"] == False
+
+    def test_backup(self):
+        self.check_OK("/system/backup")
+        db_path = SystemMetaEnum.db_backup_file.meta_value
+        table_struct = get_sqlite_table_struct(db_path, "kv_store")
+        print("table_struct:", table_struct.columns)
+        pk = table_struct.pk_column
+        assert pk != None
+        assert pk.type == "varbinary(100)"
+        assert pk.name == "key"
+

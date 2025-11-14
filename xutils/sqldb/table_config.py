@@ -17,6 +17,7 @@ class TableConfig:
     
     _disable_profile_tables = set() # type: set[str]
     _disable_binlog_tables = set() # type: set[str]
+    _non_int_pk_tables = set(["kv_store"])
     
     @classmethod
     def disable_profile(cls, table_name=""):

@@ -122,10 +122,10 @@ class DBBackup:
 
     def dump_db(self, backup_kv = True, backup_sql=True):
         count = 0
-        if backup_kv:
-            count = self.backup_kv_store()
         if backup_sql:
             self.backup_sql_tables()
+        if backup_kv:
+            count = self.backup_kv_store()
         return count
     
     def backup_sql_tables(self):
@@ -218,9 +218,10 @@ class DBBackup:
 
             logger.log("backup done, total:(%d), cost_time:(%.2fs)", count, time.time()-start_time)
             SystemMetaEnum.db_backup_count.save_meta(str(total_count))
-        except:            
+        except Exception as e:            
             stack_info = xutils.print_exc()
             logger.log("backup failed, err:%s", stack_info)
+            raise e
         finally:
             db2 = None
             DBBackup._start_time = -1
@@ -424,6 +425,7 @@ class BackupHandler:
         view.add_item(ListViewItem(text="备份进度", css_class="list-item-black", badge_info=DBBackup.progress()))
         view.add_item(ListViewItem(text="运行时间", css_class="list-item-black", badge_info=DBBackup.run_time()))
         view.add_item(ListViewItem(text="剩余时间", css_class="list-item-black", badge_info=DBBackup.rest_time()))
+        view.add_item(ListViewItem(text="最新备份文件", css_class="list-item-black", badge_info=SystemMetaEnum.db_backup_file.meta_value))
         return view
 
     @xauth.login_required("admin")

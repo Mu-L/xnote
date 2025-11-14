@@ -112,8 +112,8 @@ def run_test(args: Namespace):
 		py_exec("-m coverage html -i")
 		return
 
-	if target == "admin":
-		py_exec("-m pytest tests/test_admin.py --doctest-modules --cov xnote_handlers --capture no")
+	if target == "admin" or target == "system":
+		py_exec("-m pytest tests/test_system_or_admin.py --doctest-modules --cov xnote_handlers --capture no")
 		py_exec("-m coverage html -i")
 		return
 	

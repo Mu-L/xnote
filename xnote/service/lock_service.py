@@ -13,6 +13,7 @@ import xutils
 import time
 import datetime
 
+from xutils.base import BaseDataRecord
 from xnote.core import xtables, xconfig
 
 DEFAULT_LOCK_TIMEOUT_SECONDS = 60.0
@@ -45,6 +46,15 @@ class LockObject:
     def __del__(self):
         self.release()
 
+
+class LockRecord(BaseDataRecord):
+    def __init__(self):
+        self.ctime = xtables.DEFAULT_DATETIME
+        self.mtime = xtables.DEFAULT_DATETIME
+        self.lock_key = ""
+        self.lock_token = ""
+        self.timeout_time = 0
+
 class DatabaseLockService:
     """数据库锁服务"""
 
@@ -63,7 +73,7 @@ class DatabaseLockService:
         now_time = xutils.format_datetime()
         now_time_ms = time.time() * 1000
         timeout_time = int(now_time_ms + timeout_seconds* 1000)
-        old_lock = cls.db.select_first(where=dict(lock_key=lock_key))
+        old_lock = LockRecord.from_dict_or_None(cls.db.select_first(where=dict(lock_key=lock_key)))
         
         if old_lock != None and old_lock.timeout_time < now_time_ms:
             # lock is timeout

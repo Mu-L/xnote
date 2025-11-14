@@ -412,7 +412,7 @@ def readbytes(path):
 class MoveFileHandler:
 
     @classmethod
-    def move(cls, from_path, to_path, rename_on_conflict=False):
+    def move(cls, from_path: str, to_path: str, rename_on_conflict=False):
         if not os.path.exists(from_path):
             return
         to_dirname = os.path.dirname(to_path)

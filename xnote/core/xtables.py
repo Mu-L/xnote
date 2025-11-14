@@ -814,7 +814,8 @@ def init_backup_table(tablename, db, dbpath=""):
     if table_info == None:
         raise Exception("table not defined: %s" % tablename)
     pk_name = table_info.pk_name
-    with TableManager(tablename, db=db, is_backup=True, dbpath = dbpath, pk_name=pk_name) as manager:
+    pk_type = table_info.pk_type
+    with TableManager(tablename, db=db, is_backup=True, dbpath = dbpath, pk_name=pk_name, pk_type = pk_type) as manager:
         for col in table_info.columns:
             manager.add_column(col.name, *col.args, **col.kw)
 
