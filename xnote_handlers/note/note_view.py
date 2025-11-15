@@ -56,6 +56,7 @@ class NoteViewContext(Storage):
         self.show_left = False
         self.show_groups = False
         self.show_aside = True
+        self.show_right = True
         self.show_contents_btn = False
         self.show_comment_edit = False
         self.show_comment = True
@@ -282,7 +283,11 @@ def view_checklist_func(note, kw):
     kw.search_ext_dict = dict(note_id=note.id)
 
 
-def view_table_func(note, kw):
+def view_table_func(note, kw: NoteViewContext):
+    user_id = kw.user_id
+    if UserConfig.note_table_width.get_str(user_id=user_id) == "wide":
+        kw.show_aside = False
+        kw.show_right = False
     kw.show_aside = False
     kw.template_name = "note/page/detail/table_detail.html"
 

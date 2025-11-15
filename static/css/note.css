@@ -44,7 +44,7 @@
 
 .note-body {
     padding: 5px;
-    word-break: break-all;
+    word-break: break-word;
 }
 
 .note-head {
@@ -90,7 +90,7 @@
 
 .note-content-short {
     font-size: small;
-    word-break: break-all;
+    word-break: break-word;
 }
 
 .note-last-modify-time,
@@ -125,7 +125,7 @@
 
 .note-content-short {
     font-size: small;
-    word-break: break-all;
+    word-break: break-word;
 }
 
 .note-detail-head {
