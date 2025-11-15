@@ -15,6 +15,7 @@ from xnote.core import xtemplate, xconfig, xtables, xauth, xmanager
 from xutils import logutil
 from . import test_base
 from .test_base import ResponseWrapper, json_request_return_dict
+from xnote.core import xnote_code_builder
 
 app = test_base.init()
 json_request = test_base.json_request
@@ -455,3 +456,7 @@ class Main(BasePlugin):
         resp = json_request("/plugins_upload", data=dict(content=content, token=user.token), method="POST")
         assert isinstance(resp, dict)
         assert resp["success"] == True
+
+    def test_xnote_code_builder(self):
+        xnote_code_builder.main()
+        

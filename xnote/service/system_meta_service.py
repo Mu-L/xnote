@@ -109,6 +109,9 @@ class SystemMetaEnum:
     dev_mode = SystemMetaEnumItem("开发者模式", "config.dev_mode.bool")
     init_script = SystemMetaEnumItem("启动脚本", "config.init.script")
 
+    # 集群信息
+    leader_base_url = SystemMetaEnumItem("主节点根URL", "leader.base_url")
+
     @classmethod
     def init(cls):
         items: typing.List[SystemMetaEnumItem] = []

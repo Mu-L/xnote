@@ -22,6 +22,7 @@ import xutils
 import web
 
 from xnote.core import xauth, xconfig, xtemplate, xmanager
+from xnote.plugin import TabBox
 
 from xutils import webutil
 from xutils import Storage
@@ -39,6 +40,9 @@ from .models import SystemSyncToken
 from xnote_handlers.system.system_sync.dao import ClusterConfigDao
 from xnote.core.xtemplate import T
 from xnote.plugin import LinkConfig
+from xnote.plugin.table_plugin import BaseTablePlugin, TableActionType
+
+from xnote.open_api.dao import SystemSyncAppDao, SystemSyncAppRecord
 
 class SyncConfig:
     
@@ -86,6 +90,11 @@ def get_system_role_manager():
     else:
         return FOLLOWER
 
+def get_system_sync_tab(tab_default="home"):
+    tab = TabBox(tab_key="tab", tab_default=tab_default)
+    tab.add_item(title="概览", value="home", href="/system/sync?p=home")
+    tab.add_item(title="应用", value="app", href="/system/sync/app")
+    return tab
 
 class ConfigHandler:
 
@@ -240,6 +249,7 @@ class SyncHandler:
         kw.follower_db_sync_state = FOLLOWER.db_syncer.get_db_sync_state()
         kw.follower_db_last_key = FOLLOWER.db_syncer.get_db_last_key()
         kw.sync_status = SyncConfig.need_sync_db()
+        kw.system_sync_tab = get_system_sync_tab()
 
         if SyncConfig.is_leader():
             pass
@@ -443,7 +453,7 @@ def on_sync_db_from_leader(ctx=None):
         xutils.print_exc()
         logging.error("sync_db_from_leader failed, wait 60 seconds...")
         time.sleep(60)
-
+    
 
 xurls = (
     r"/system/sync", SyncHandler,

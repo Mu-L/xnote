@@ -516,11 +516,28 @@ def init_system_sync_token_table():
     with create_default_table_manager(table_name, comment=comment) as manager:
         manager.add_column("ctime", "datetime", default_value=DEFAULT_DATETIME)
         manager.add_column("mtime", "datetime", default_value=DEFAULT_DATETIME)
-        manager.add_column("token_holder", "varchar(128)", default_value="token的持有者")
+        manager.add_column("token_holder", "varchar(128)", default_value="", comment="令牌持有者")
         manager.add_column("token", "varchar(36)", default_value="", comment="访问令牌")
         manager.add_column("expire_time", "datetime", default_value=DEFAULT_DATETIME, comment="令牌有效期")
         manager.add_index("token_holder")
         manager.add_index("token")
+
+def init_system_sync_app_table():
+    """系统同步应用信息
+    @since 2025/11/15
+    """
+    table_name = "system_sync_app"
+    comment = "系统同步应用"
+    pk_name = "app_id"
+    with create_default_table_manager(table_name, comment=comment, pk_name=pk_name) as manager:
+        manager.add_column("create_time", "bigint", default_value=0, comment="创建时间毫秒时间戳")
+        manager.add_column("update_time", "bigint", default_value=0, comment="更新时间毫秒时间戳")
+        manager.add_column("version", "int", default_value=0)
+        manager.add_column("app_name", "varchar(64)", default_value="")
+        manager.add_column("app_key", "varchar(64)", default_value="")
+        manager.add_column("app_secret", "varchar(64)", default_value="")
+        manager.add_column("remark", "text", default_value="")
+        manager.add_index("app_key", is_unique=True)
 
 def init_system_info_table():
     """系统信息表"""
@@ -885,6 +902,7 @@ def init():
 
     # 系统相关的表
     init_system_sync_token_table()
+    init_system_sync_app_table()
     init_system_info_table() # 已删除, 占位
     init_system_meta_table()
     init_id_generator_table()

@@ -18,6 +18,7 @@ from xnote.core import xtemplate
 from web.utils import group
 
 DEFAULT_WIDTH = "auto"
+DEFAULT_MIN_WIDTH = "100px"
 
 class TableActionType:
     """表格动作的类型"""
@@ -61,7 +62,7 @@ def _get_px_value(value: str):
 class DefaultHeadStyle:
     def __init__(self):
         self.width = DEFAULT_WIDTH
-        self.min_width = ""
+        self.min_width = DEFAULT_MIN_WIDTH
         self.max_width = ""
 
     def get_width(self, width=""):
@@ -267,7 +268,7 @@ class DataTable:
         action_head.min_width = min_width
         action_head.max_width = max_width
     
-    def add_action(self, title="", type="button", link_field="", title_field="", msg_field="", css_class=""):
+    def add_action(self, title="", type=TableActionType.button, link_field="", title_field="", msg_field="", css_class=""):
         action = TableAction()
         action.title = title
         action.type = type

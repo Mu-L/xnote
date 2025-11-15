@@ -11,6 +11,7 @@
 
 import os
 import re
+import json
 
 from .a import *
 from urllib.parse import urlparse, parse_qs, unquote
@@ -24,8 +25,6 @@ from xutils import webutil
 from xnote.core import xauth
 from xnote.core import xconfig
 from xnote.core import xnote_event
-from xnote.service.system_meta_service import SystemMetaService
-
 from . import test_base
 from xnote_handlers.system.system_sync.node_follower import DBSyncer
 from xnote_handlers.system.system_sync.dao import ClusterConfigDao
@@ -36,6 +35,10 @@ app = test_base.init()
 json_request = test_base.json_request
 request_html = test_base.request_html
 BaseTestCase = test_base.BaseTestCase
+
+from xnote.open_api import client
+from xnote.service.system_meta_service import SystemMetaService
+from xnote.service.system_meta_service import SystemMetaEnum
 
 DBSyncer.MAX_LOOPS = 5
 DBSyncer.FULL_SYNC_MAX_LOOPS = 5
@@ -384,3 +387,27 @@ class TestSystemSync(BaseTestCase):
         SystemMetaService.save_meta(info_key, "2")
         value = SystemMetaService.get_meta_value(info_key)
         assert value == "2"
+
+    def test_open_api(self):
+        app_info = dict(
+            app_name = "test",
+            app_key = xconfig.WebConfig.cluster_node_id,
+        )
+
+        data = dict(
+            action = "save",
+            data = json.dumps(app_info)
+        )
+        json_request("/system/sync/app", method="POST", data=data)
+
+        SystemMetaEnum.leader_base_url.save_meta("http://127.0.0.1:1234")
+        request = client.BaseRequest()
+        request.data = "hello"
+        request.api_name = "test.ping"
+        print(request)
+        resp = client.invoke_remote_api(request)
+        print(resp)
+        assert resp.success
+        assert resp.data == "success"
+
+
