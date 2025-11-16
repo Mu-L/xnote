@@ -25,8 +25,10 @@ def invoke_remote_api(request: BaseRequest) -> BaseResponse:
         resp_dict = json.loads(resp.text)
     resp_obj = BaseResponse.from_dict(resp_dict)
     resp_sig = resp_obj.calc_signature(app_info.app_secret)
+    if not resp_obj.success:
+        return resp_obj
     if resp_obj.signature != resp_sig:
-        raise Exception("invalid response signature")
+        raise Exception(f"invalid response signature, remote={resp_obj.signature}, local={resp_sig}")
     return resp_obj
 
 

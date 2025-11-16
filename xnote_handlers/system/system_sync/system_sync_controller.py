@@ -23,6 +23,8 @@ import web
 
 from xnote.core import xauth, xconfig, xtemplate, xmanager
 from xnote.plugin import TabBox
+from xnote.plugin.list import ListView, ListViewItem
+from xnote.service.system_meta_service import SystemMetaEnum
 
 from xutils import webutil
 from xutils import Storage
@@ -88,6 +90,14 @@ def get_system_sync_tab(tab_default="home"):
     tab.add_item(title="应用", value="app", href="/system/sync/app")
     return tab
 
+def get_system_sync_info_list():
+    info_list = ListView()
+    info_list.add_item(ListViewItem(text="当前节点类型", badge_info=xconfig.WebConfig.cluster_node_role, 
+                                    css_class="list-item-black"))
+    info_list.add_item(ListViewItem(text="当前节点ID", badge_info=xconfig.WebConfig.cluster_node_id, 
+                                    css_class="list-item-black"))
+    return info_list
+
 class ConfigHandler:
 
     def execute(self):
@@ -141,6 +151,7 @@ class ConfigHandler:
         if not netutil.is_http_url(host):
             return webutil.FailedResult(code="400", message="无效的URL地址(%s)" % host)
         ClusterConfigDao.put_leader_host(host)
+        SystemMetaEnum.leader_base_url.save_meta(host)
         return webutil.SuccessResult()
 
     def set_leader_token(self, token):
@@ -242,6 +253,7 @@ class SyncHandler:
         kw.follower_db_last_key = FollowerInstance.db_syncer.get_db_last_key()
         kw.sync_status = SyncConfig.need_sync_db()
         kw.system_sync_tab = get_system_sync_tab()
+        kw.system_sync_info_list = get_system_sync_info_list()
 
         if SyncConfig.is_leader():
             pass

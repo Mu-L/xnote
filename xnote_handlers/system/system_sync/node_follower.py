@@ -421,7 +421,6 @@ class DBSyncer:
             assert isinstance(binlog_last_seq, int)
             self.put_binlog_last_seq(binlog_last_seq)
 
-
         new_last_key = last_key
         for row in data.rows:
             key = row.key

@@ -292,10 +292,12 @@ class HttpClient:
         req.api_name = "system.sync.list_db"
         req.data = jsonutil.tojson(data)
         resp = invoke_remote_api(req)
+        print("resp", resp)
         data = resp.data
         db_resp = ListDBResponse.from_json(data)
-        assert db_resp != None
-        db_resp.rows = BinLogRecord.from_dict_list(db_resp.rows)
+        if resp.success:
+            assert db_resp != None
+            db_resp.rows = BinLogRecord.from_dict_list(db_resp.rows)
         return resp, db_resp
 
 
