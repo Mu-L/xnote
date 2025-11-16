@@ -346,7 +346,7 @@ class TableInfo:
         return table
     
     @classmethod
-    def check_table_name(cls, table_name):
+    def check_table_name(cls, table_name: str):
         table_name = table_name.split(":")[0]
         validate_str(table_name, "invalid table_name:{}", table_name)
         if not cls.is_registered(table_name):

@@ -51,7 +51,7 @@ class LdbTable:
         比较麻烦，要重新构建主键
     """
 
-    def __init__(self, table_name:str, user_name=None):
+    def __init__(self, table_name:str, user_name=None, skip_user_check=False, skip_index = False):
         # 参数检查
         check_table_name(table_name)
         table_info = get_table_info(table_name)
@@ -72,7 +72,7 @@ class LdbTable:
         # 自定义索引构建器
         self.build_index_func = None
 
-        if table_info.check_user:
+        if table_info.check_user and not skip_user_check:
             if table_info.user_attr == None:
                 raise Exception("table({table_name}).user_attr can not be None".format(
                     table_name=table_name))
@@ -81,7 +81,7 @@ class LdbTable:
         self.binlog = BinLog.get_instance()
         self.binlog_enabled = True
         # TODO 索引用一个单例管理起来
-        self.indexes = self._build_indexes() # type: list[TableIndex]
+        self.indexes = self._build_indexes(skip_index) # type: list[TableIndex]
 
         if user_name != None:
             assert user_name != ""
@@ -90,8 +90,11 @@ class LdbTable:
         if self.prefix[-1] != ":":
             self.prefix += ":"
 
-    def _build_indexes(self):
+    def _build_indexes(self, skip_index = False):
         indexes = []
+        if skip_index:
+            return indexes
+        
         index_dict = IndexInfo.get_table_index_dict(self.table_name)
         if index_dict != None:
             for index_name in index_dict:
@@ -156,7 +159,7 @@ class LdbTable:
         if not isinstance(obj, dict):
             raise Exception("key:%r, invalid obj:%r, expected dict" % (key, obj))
 
-    def _check_key(self, key):
+    def _check_key(self, key: str):
         if not key.startswith(self.prefix):
             raise Exception("invalid key:(%s), prefix:(%s)" %
                             (key, self.prefix))
@@ -391,7 +394,7 @@ class LdbTable:
 
     update_by_id = put_by_id
 
-    def update_by_key(self, key, obj):
+    def update_by_key(self, key: str, obj: dict):
         """直接通过`key`进行更新"""
         self._check_key(key)
         self._check_value(obj, key=key)

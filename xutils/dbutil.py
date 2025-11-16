@@ -36,13 +36,13 @@ def get_table_old(table_name, type="rdb"):
     return table
 
 
-def get_table(table_name, user_name=None):
+def get_table(table_name, user_name=None, skip_user_check = False, skip_index = False):
     """获取table对象
     @param {str} table_name 表名
     @return {LdbTable}
     """
     check_table_name(table_name)
-    return LdbTable(table_name, user_name=user_name)
+    return LdbTable(table_name, user_name=user_name, skip_user_check=skip_user_check, skip_index=skip_index)
 
 
 def get_hash_table(table_name, user_name=None):

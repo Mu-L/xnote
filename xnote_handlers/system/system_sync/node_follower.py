@@ -347,7 +347,7 @@ class DBSyncer:
         if table_info.type == "hash":
             dbutil.put(key, value)
         else:
-            table = dbutil.get_table(table_name)
+            table = dbutil.get_table(table_name, skip_user_check = True)
             table.update_by_key(key, value)
     
     def delete_and_log(self, key:str):
@@ -404,7 +404,7 @@ class DBSyncer:
         new_last_key = last_key
         for row in data.rows:
             key = row.record_key
-            value = row.record_value
+            value = row.value_obj
             assert key != None
             assert value != None
             if key == last_key:
