@@ -2,11 +2,11 @@ import time
 import xutils
 import web
 import json
-from .base_model import BaseRequest, BaseResponse, ApiRegistry, FailedResponse, SuccessResponse
+from .base_model import BaseRequest, BaseResponse, OpenApiRegistry, FailedResponse, SuccessResponse
 from .dao import SystemSyncAppDao
 
 def register_api(api_name: str, handler):
-    ApiRegistry.mappings[api_name] = handler
+    OpenApiRegistry.mappings[api_name] = handler
 
 
 def invoke_local_api(request: BaseRequest):
@@ -19,7 +19,7 @@ def invoke_local_api(request: BaseRequest):
         return FailedResponse(404, f"validate error: {validate_error}")
 
     api_name = request.api_name
-    handler = ApiRegistry.mappings[api_name]
+    handler = OpenApiRegistry.mappings[api_name]
     if handler == None:
         return FailedResponse(404, f"api_name {api_name} not found")
     
@@ -27,4 +27,5 @@ def invoke_local_api(request: BaseRequest):
     if not isinstance(resp, BaseResponse):
         return FailedResponse(500, f"invalid response, type {type(resp)}")
     
+    resp.build(app_info.app_secret)
     return resp

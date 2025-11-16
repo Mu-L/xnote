@@ -27,7 +27,7 @@ class BaseRequest(BaseDataRecord):
             digestmod=hashlib.sha256
         )
         # 转为十六进制字符串（大小写不敏感，服务端校验时需统一格式）
-        signature = hmac_obj.hexdigest().upper()  # 推荐转为大写，避免大小写不一致问题
+        signature = hmac_obj.hexdigest().lower()  # 推荐转为小写，避免大小写不一致问题
         return signature
 
     def build(self, app_key: str, app_secret: str):
@@ -67,9 +67,25 @@ class BaseResponse(BaseDataRecord):
     def __init__(self):
         self.code = 0
         self.success = True
-        self.data = None
+        self.data = ""
         self.message = ""
+        self.signature = "" # 用于验证数据完整性
 
+    def calc_signature(self, app_secret: str) -> str:
+        sign_str = self.data
+        hmac_obj = hmac.new(
+            key=app_secret.encode("utf-8"),
+            msg=sign_str.encode("utf-8"),
+            digestmod=hashlib.sha256
+        )
+        # 转为十六进制字符串（大小写不敏感，服务端校验时需统一格式）
+        signature = hmac_obj.hexdigest().lower()  # 推荐转为小写，避免大小写不一致问题
+        return signature
+    
+    def build(self, app_secret: str):
+        if self.signature != "":
+            return
+        self.signature = self.calc_signature(app_secret)
 
 def FailedResponse(code: int, message: str):
     resp = BaseResponse()
@@ -78,7 +94,7 @@ def FailedResponse(code: int, message: str):
     resp.message = message
     return resp
     
-def SuccessResponse(data):
+def SuccessResponse(data: str):
     resp = BaseResponse()
     resp.success = True
     resp.code = 0
@@ -86,5 +102,5 @@ def SuccessResponse(data):
     resp.data = data
     return resp
 
-class ApiRegistry:
+class OpenApiRegistry:
     mappings = {}

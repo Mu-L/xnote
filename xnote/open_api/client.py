@@ -4,7 +4,7 @@ import requests
 import json
 
 from xnote.core import xconfig, xmanager
-from .base_model import BaseRequest, ApiRegistry, BaseResponse
+from .base_model import BaseRequest, OpenApiRegistry, BaseResponse
 from xnote.service.system_meta_service import SystemMetaEnum
 from .dao import SystemSyncAppDao
 
@@ -23,7 +23,11 @@ def invoke_remote_api(request: BaseRequest) -> BaseResponse:
     else:
         resp = requests.post(url=f"{leader_base_url}/open_api/server", data=http_data)
         resp_dict = json.loads(resp.text)
-    return BaseResponse.from_dict(resp_dict)
+    resp_obj = BaseResponse.from_dict(resp_dict)
+    resp_sig = resp_obj.calc_signature(app_info.app_secret)
+    if resp_obj.signature != resp_sig:
+        raise Exception("invalid response signature")
+    return resp_obj
 
 
 
