@@ -30,6 +30,8 @@ from xnote_handlers.system.system_sync.node_follower import DBSyncer
 from xnote_handlers.system.system_sync.dao import ClusterConfigDao
 from xnote_handlers.system.system_sync.models import LeaderStat
 from xnote_handlers.system.system_sync import system_sync_proxy
+from xutils.db.binlog import BinLog, BinLogOpType
+from xnote.open_api import BaseResponse, FailedResponse
 
 app = test_base.init()
 json_request = test_base.json_request
@@ -82,10 +84,6 @@ class LeaderNetMock:
         if "list_db" in url:
             assert access_token == get_test_access_token(readonly=True)
             return self.http_list_db(url)
-
-        if "list_binlog" in url:
-            assert access_token == get_test_access_token(readonly=True)
-            return self.http_list_binlog(url)
         
         if "refresh_token" in url:
             return self.refresh_token(url)
@@ -220,20 +218,20 @@ class TestSystemSync(BaseTestCase):
             netutil.set_net_mock(None)
 
     def test_system_sync_db_full(self):
-        from xnote_handlers.system.system_sync.system_sync_controller import FOLLOWER
+        from xnote_handlers.system.system_sync.system_sync_controller import FollowerInstance
         netutil.set_net_mock(LeaderNetMock())
 
         try:
             self.get_access_token()
             self.init_leader_config()
 
-            FOLLOWER._debug = True
-            db_syncer = FOLLOWER.db_syncer
+            FollowerInstance._debug = True
+            db_syncer = FollowerInstance.db_syncer
             db_syncer.debug = True
             db_syncer.put_db_sync_state("full")
             
             # 全量同步
-            FOLLOWER.sync_db_from_leader()
+            FollowerInstance.sync_db_from_leader()
 
             self.assertEqual(db_syncer.get_db_sync_state(), "binlog")
             self.assertEqual(db_syncer.get_binlog_last_seq(), 1234) # 全量同步不会更新 last_seq
@@ -241,30 +239,34 @@ class TestSystemSync(BaseTestCase):
             netutil.set_net_mock(None)
 
     def test_system_sync_db_binlog(self):
-        from xnote_handlers.system.system_sync.system_sync_controller import FOLLOWER
+        from xnote_handlers.system.system_sync.system_sync_controller import FollowerInstance
         netutil.set_net_mock(LeaderNetMock())
 
         try:
             self.get_access_token()
             self.init_leader_config()
 
-            FOLLOWER._debug = True
-            db_syncer = FOLLOWER.db_syncer
+            dbutil.db_put("_max_id:_binlog", 1200)
+            for i in range(100):
+                BinLog.get_instance().add_log(optype=BinLogOpType.put, key="test:1")
+
+            FollowerInstance._debug = True
+            db_syncer = FollowerInstance.db_syncer
             db_syncer.debug = True
             db_syncer.put_db_sync_state("binlog")
             db_syncer.put_binlog_last_seq(1234)
             
             # 增量同步
-            FOLLOWER.sync_db_from_leader()
+            FollowerInstance.sync_db_from_leader()
 
             self.assertEqual(db_syncer.get_db_sync_state(), "binlog")
-            self.assertEqual(db_syncer.get_binlog_last_seq(), 2346)
+            self.assertEqual(db_syncer.get_binlog_last_seq(), 1300)
         finally:
             netutil.set_net_mock(None)
 
 
     def test_system_sync_db_broken(self):
-        from xnote_handlers.system.system_sync.system_sync_controller import FOLLOWER
+        from xnote_handlers.system.system_sync.system_sync_controller import FollowerInstance
         admin_token = self.get_access_token()
         self.init_leader_config()
 
@@ -273,7 +275,7 @@ class TestSystemSync(BaseTestCase):
                 pass
             
             def list_binlog(self, last_seq):
-                return dict(code="sync_broken")
+                return FailedResponse(code="sync_broken", message="sync broken"), []
             
             def list_db(self, last_key=""):
                 return """{
@@ -285,14 +287,14 @@ class TestSystemSync(BaseTestCase):
                 }
                 """
 
-        FOLLOWER._debug = True
-        FOLLOWER.db_syncer.put_db_sync_state("binlog")
-        result = FOLLOWER.db_syncer.sync_by_binlog(MockedClient())
+        FollowerInstance._debug = True
+        FollowerInstance.db_syncer.put_db_sync_state("binlog")
+        result = FollowerInstance.db_syncer.sync_by_binlog(MockedClient())
         self.assertEqual(result, "sync_by_full")
-        self.assertEqual(1234, FOLLOWER.db_syncer.get_binlog_last_seq())
+        self.assertEqual(1234, FollowerInstance.db_syncer.get_binlog_last_seq())
     
     def test_is_token_active(self):
-        from xnote_handlers.system.system_sync.system_sync_controller import FOLLOWER
+        from xnote_handlers.system.system_sync.system_sync_controller import FollowerInstance
         result = """
         {
             "code": "success",
@@ -320,8 +322,8 @@ class TestSystemSync(BaseTestCase):
         result_obj = LeaderStat.from_dict(result_dict)
         assert result_obj != None
         result_obj.access_token = self.get_access_token()
-        FOLLOWER.update_ping_result(result_obj)
-        self.assertTrue(FOLLOWER.is_token_active())
+        FollowerInstance.update_ping_result(result_obj)
+        self.assertTrue(FollowerInstance.is_token_active())
 
     def test_build_fs_sync_index(self):
         self.check_OK("/system/sync?p=build_index")
@@ -340,7 +342,7 @@ class TestSystemSync(BaseTestCase):
         self.assertTrue(len(result) > 0)
     
     def test_leader_list_binlog(self):
-        from xnote_handlers.system.system_sync.system_sync_controller import LEADER
+        from xnote_handlers.system.system_sync.system_sync_controller import LeaderInstance
         from xutils.db.binlog import BinLog
         binlog = BinLog.get_instance()
         binlog.set_max_size(1000)
@@ -349,11 +351,11 @@ class TestSystemSync(BaseTestCase):
         for i in range(20):
             binlog.add_log("put", "test", i)
         last_seq = binlog.last_seq - 10
-        result = LEADER.list_binlog(last_seq=last_seq, limit=20)
+        result = LeaderInstance.list_binlog(last_seq=last_seq, limit=20)
         assert result.success == True
 
     def test_leader_list_file_binlog(self):
-        from xnote_handlers.system.system_sync.system_sync_controller import LEADER
+        from xnote_handlers.system.system_sync.system_sync_controller import LeaderInstance
         from xnote_handlers.system.system_sync.system_sync_indexer import on_fs_upload, FileIndexCheckManager
         from xutils.db.binlog import BinLog, BinLogOpType
         binlog = BinLog.get_instance()
@@ -368,7 +370,7 @@ class TestSystemSync(BaseTestCase):
         on_fs_upload(upload_event)
 
         last_seq = binlog.last_seq
-        result = LEADER.list_binlog(last_seq=last_seq, limit=20)
+        result = LeaderInstance.list_binlog(last_seq=last_seq, limit=20)
         assert result.success == True
         assert isinstance(result.data, list)
         assert len(result.data) == 1

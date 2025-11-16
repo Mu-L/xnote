@@ -33,6 +33,7 @@ from .models import SystemSyncToken
 from .models import FileIndexInfo
 from .models import FollowerInfo
 from .models import LeaderBaseInfo
+from .models import ListBinlogRequest
 from .dao import ClusterConfigDao
 from .dao import SystemSyncTokenDao
 from .config import MAX_FOLLOWER_SIZE
@@ -172,8 +173,10 @@ class Leader(NodeManagerBase):
 
     def list_binlog(self, last_seq=0, limit=20, include_req_seq=True):
         """列出指定条件的binlog
-        include_req_seq: 是否包含请求的seq对应的binlog
+        
+        :param include_req_seq: 是否包含请求的seq对应的binlog
         """
+
         sync_diff = self.binlog.last_seq - last_seq
         binlog_size = self.binlog.count_size()
         out_of_sync = sync_diff > self.binlog.count_size()
@@ -208,7 +211,6 @@ class Leader(NodeManagerBase):
             logging.debug("binlogs:%s", binlogs)
 
         for log in binlogs:
-            assert isinstance(log, Storage)
             if not include_req_seq and log.seq == last_seq:
                 continue
             

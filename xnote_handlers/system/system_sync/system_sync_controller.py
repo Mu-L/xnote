@@ -26,23 +26,18 @@ from xnote.plugin import TabBox
 
 from xutils import webutil
 from xutils import Storage
-from xutils import dbutil
 from xutils import dateutil
 from xutils import textutil
 from xutils import netutil
-from xutils import cacheutil
-
-from .node_follower import Follower
-from .node_leader import Leader
 from . import system_sync_indexer
 from .dao import SystemSyncTokenDao
-from .models import SystemSyncToken
 from xnote_handlers.system.system_sync.dao import ClusterConfigDao
 from xnote.core.xtemplate import T
 from xnote.plugin import LinkConfig
-from xnote.plugin.table_plugin import BaseTablePlugin, TableActionType
+from .system_sync_instances import LeaderInstance, FollowerInstance
+from . import system_sync_open_api
 
-from xnote.open_api.dao import SystemSyncAppDao, SystemSyncAppRecord
+system_sync_open_api.init()
 
 class SyncConfig:
     
@@ -80,15 +75,12 @@ def convert_dict_to_text(dict):
     return textutil.tojson(dict, format=True)
 
 
-LEADER = Leader()
-FOLLOWER = Follower()
-
 
 def get_system_role_manager():
     if SyncConfig.is_leader():
-        return LEADER
+        return LeaderInstance
     else:
-        return FOLLOWER
+        return FollowerInstance
 
 def get_system_sync_tab(tab_default="home"):
     tab = TabBox(tab_key="tab", tab_default=tab_default)
@@ -126,21 +118,21 @@ class ConfigHandler:
         return webutil.SuccessResult()
 
     def reset_offset(self):
-        FOLLOWER.reset_sync()
+        FollowerInstance.reset_sync()
         return webutil.SuccessResult()
     
     def reset_fs_offset(self):
-        FOLLOWER.reset_fs_offset()
+        FollowerInstance.reset_fs_offset()
         return webutil.SuccessResult()
 
     def trigger_sync(self):
-        FOLLOWER.ping_leader()
-        FOLLOWER.sync_files_from_leader()
+        FollowerInstance.ping_leader()
+        FollowerInstance.sync_files_from_leader()
         return webutil.SuccessResult()
     
     def trigger_fs_sync(self):
-        FOLLOWER.ping_leader()
-        FOLLOWER.sync_files_from_leader()
+        FollowerInstance.ping_leader()
+        FollowerInstance.sync_files_from_leader()
         return webutil.SuccessResult()
 
     def set_leader_host(self, host):
@@ -204,11 +196,11 @@ class SyncHandler:
 
         if p == "sync_files_from_leader":
             xauth.check_login("admin")
-            return FOLLOWER.sync_files_from_leader()
+            return FollowerInstance.sync_files_from_leader()
 
         if p == "sync_db":
             xauth.check_login("admin")
-            FOLLOWER.sync_db_from_leader()
+            FollowerInstance.sync_db_from_leader()
             return webutil.SuccessResult()
 
         return LeaderHandler().handle_leader_action()
@@ -243,11 +235,11 @@ class SyncHandler:
         kw.ping_error = role_manager.get_ping_error()
         kw.fs_index_count = role_manager.get_fs_index_count()
 
-        kw.whitelist = LEADER.get_ip_whitelist()
-        kw.sync_process = FOLLOWER.get_sync_process()
-        kw.follower_binlog_seq = FOLLOWER.db_syncer.get_binlog_last_seq()
-        kw.follower_db_sync_state = FOLLOWER.db_syncer.get_db_sync_state()
-        kw.follower_db_last_key = FOLLOWER.db_syncer.get_db_last_key()
+        kw.whitelist = LeaderInstance.get_ip_whitelist()
+        kw.sync_process = FollowerInstance.get_sync_process()
+        kw.follower_binlog_seq = FollowerInstance.db_syncer.get_binlog_last_seq()
+        kw.follower_db_sync_state = FollowerInstance.db_syncer.get_db_sync_state()
+        kw.follower_db_last_key = FollowerInstance.db_syncer.get_db_last_key()
         kw.sync_status = SyncConfig.need_sync_db()
         kw.system_sync_tab = get_system_sync_tab()
 
@@ -255,9 +247,9 @@ class SyncHandler:
             pass
         else:
             # 从节点
-            kw.fs_max_index = FOLLOWER.fs_max_index
-            kw.fs_current_index = FOLLOWER.get_fs_sync_last_id()
-            kw.fs_sync_failed_msg = FOLLOWER.http_client.fs_sync_failed_msg
+            kw.fs_max_index = FollowerInstance.fs_max_index
+            kw.fs_current_index = FollowerInstance.get_fs_sync_last_id()
+            kw.fs_sync_failed_msg = FollowerInstance.http_client.fs_sync_failed_msg
         
         return xtemplate.render("system/page/system_sync.html", **kw)
 
@@ -294,8 +286,8 @@ class SyncHandler:
 
     def do_ping(self):
         if SyncConfig.is_leader():
-            return webutil.SuccessResult(data=LEADER.get_stat(""))
-        data = FOLLOWER.ping_leader(force=True)
+            return webutil.SuccessResult(data=LeaderInstance.get_stat(""))
+        data = FollowerInstance.ping_leader(force=True)
         return webutil.SuccessResult(data)
 
 
@@ -314,7 +306,7 @@ class LeaderHandler(SyncHandler):
         leader_token = xutils.get_argument_str("leader_token")
         node_id = xutils.get_argument_str("node_id")
         port = xutils.get_argument_str("port")
-        return LEADER.refresh_token(leader_token=leader_token, node_id=node_id, port=port)
+        return LeaderInstance.refresh_token(leader_token=leader_token, node_id=node_id, port=port)
 
 
     def build_error(self, code="", message=""):
@@ -342,7 +334,7 @@ class LeaderHandler(SyncHandler):
         result = webutil.SuccessResult()
         result.code = "success"
         result.req_last_id = last_id
-        data = LEADER.list_files(last_id=last_id)
+        data = LeaderInstance.list_files(last_id=last_id)
         result.data = data
         return result
 
@@ -360,21 +352,15 @@ class LeaderHandler(SyncHandler):
 
         if p == "get_stat":
             port = xutils.get_argument_str("port", "")
-            return LEADER.get_stat(port)
+            return LeaderInstance.get_stat(port)
 
         if p == "list_files":
             return self.list_files()
 
-        if p == "list_binlog":
-            binlog_last_seq = xutils.get_argument_int("last_seq")
-            limit = xutils.get_argument_int("limit", 20)
-            include_req_seq = xutils.get_argument_bool("include_req_seq", True)
-            return LEADER.list_binlog(binlog_last_seq, limit, include_req_seq=include_req_seq)
-
         if p == "list_db":
             last_key = xutils.get_argument("last_key", "")
             limit = xutils.get_argument_int("limit", 20)
-            data = LEADER.list_db(last_key, limit)
+            data = LeaderInstance.list_db(last_key, limit)
             return webutil.SuccessResult(data=data)
 
         if p == "list_recent":
@@ -389,13 +375,13 @@ class FollowerHandler(SyncHandler):
     def GET(self):
         p = xutils.get_argument_str("p", "")
         if p == "get_leader_stat":
-            return FOLLOWER.get_leader_info()
+            return FollowerInstance.get_leader_info()
         
         return webutil.FailedResult(code="400", message="unknown op")
 
 @xmanager.listen("sys.init")
 def init(ctx=None):
-    LEADER.get_leader_token()
+    LeaderInstance.get_leader_token()
 
 @xmanager.listen("sync.step")
 # @log_mem_info_deco("on_ping_leader")
@@ -407,10 +393,10 @@ def on_ping_leader(ctx=None):
     # TODO 优化ping的时间
 
     try:        
-        if FOLLOWER.is_token_active():
+        if FollowerInstance.is_token_active():
             return
             
-        return FOLLOWER.ping_leader()
+        return FollowerInstance.ping_leader()
     except:
         xutils.print_exc()
         logging.error("ping_leader failed, wait 60 seconds...")
@@ -429,7 +415,7 @@ def on_sync_files_from_leader(ctx=None):
     try:
         logging.debug("开始同步文件...")
         logging.debug("-" * 50)
-        FOLLOWER.sync_files_from_leader()
+        FollowerInstance.sync_files_from_leader()
     except:
         xutils.print_exc()
         logging.error("sync_files_from_leader failed, wait 60 seconds...")
@@ -448,7 +434,7 @@ def on_sync_db_from_leader(ctx=None):
     try:
         logging.debug("开始同步数据库")
         logging.debug("-"*50)
-        FOLLOWER.sync_db_from_leader()
+        FollowerInstance.sync_db_from_leader()
     except:
         xutils.print_exc()
         logging.error("sync_db_from_leader failed, wait 60 seconds...")

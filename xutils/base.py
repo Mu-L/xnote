@@ -7,6 +7,7 @@ import sys
 import os
 import traceback
 import codecs
+import json
 
 IS_PY2 = sys.version_info[0] == 2
 
@@ -171,6 +172,13 @@ class BaseDataRecord(Storage):
     def from_dict_or_None(cls, dict_value):
         if dict_value is None:
             return None
+        return cls.from_dict(dict_value)
+    
+    @classmethod
+    def from_json(cls, json_value: str):
+        if json_value == "":
+            return None
+        dict_value = json.loads(json_value)
         return cls.from_dict(dict_value)
 
     @classmethod    

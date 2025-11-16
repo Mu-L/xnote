@@ -51,6 +51,7 @@ class BinLogRecord(BaseDataRecord):
         self.key = "" # type: str | int
         self.value = None # type: object
         self.table_name = ""
+        self.seq = 0
         super().__init__(**kw)
 
 class BinLog:
@@ -150,7 +151,7 @@ class BinLog:
         else:
             db_put(key, log_body)
 
-    def add_log(self, optype, key, value=None, batch=None, old_value=None, *, record_value=False, table_name=None):
+    def add_log(self, optype: str, key, value=None, batch=None, old_value=None, *, record_value=False, table_name=None):
         if not self._is_enabled:
             return
 
@@ -170,7 +171,8 @@ class BinLog:
         """从last_seq开始查询limit个binlog"""
         start_id = self._pack_id(last_seq)
         key_from = self._table_name + ":" + start_id
-        return prefix_list(self._table_name, key_from=key_from, limit=limit, map_func=map_func)
+        results = prefix_list(self._table_name, key_from=key_from, limit=limit, map_func=map_func)
+        return BinLogRecord.from_dict_list(results)
 
     def delete_expired(self):
         assert self._max_size != None, "binlog_max_size未设置"

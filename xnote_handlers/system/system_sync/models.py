@@ -127,3 +127,11 @@ class SystemSyncToken(Storage):
         expire_time = dateutil.to_py_datetime(self.expire_time)
         return expire_time <= now
     
+
+class ListBinlogRequest(BaseDataRecord):
+    def __init__(self):
+        self.last_seq = 0
+        self.limit = 20
+        self.include_req_seq = True
+        
+

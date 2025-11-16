@@ -21,7 +21,7 @@ from xutils import textutil, cacheutil
 from xutils import dbutil, six
 from xnote.service import DatabaseLockService
 
-from xutils.db.binlog import BinLog, FileLog, BinLogOpType
+from xutils.db.binlog import BinLog, FileLog, BinLogOpType, BinLogRecord
 from .node_base import NodeManagerBase
 from .node_base import convert_follower_dict_to_list
 from .system_sync_proxy import HttpClient
@@ -428,19 +428,17 @@ class DBSyncer:
                 raise Exception("too deep loops")
 
             last_seq = self.get_binlog_last_seq()
-            result_obj = proxy.list_binlog(last_seq)
+            result_obj, data_list = proxy.list_binlog(last_seq)
             
             if self.debug:
                 logging.debug("list binlog result=%s" % result_obj)
 
-            code = result_obj.get("code")
-            data = result_obj.get("data")
-            # TODO 优化has_next判断
-            has_next = (data != None and len(data) > 1)
+            code = result_obj.code
+            has_next = (data_list != None and len(data_list) > 1)
             logging.info("code=%s, has_next=%s", code, has_next)
 
             if code == "success":
-                self.sync_by_binlog_step(result_obj)
+                self.sync_by_binlog_step(data_list)
             elif code == "sync_broken":
                 logging.error("同步binlog异常, 重新全量同步...")
                 self.put_binlog_last_seq(0)
@@ -454,20 +452,17 @@ class DBSyncer:
         return None
 
     @log_mem_info_deco("sync_by_binlog_step")
-    def sync_by_binlog_step(self, result_obj):
+    def sync_by_binlog_step(self, data_list: typing.List[BinLogRecord]):
         last_seq = self.get_binlog_last_seq()
         max_seq = last_seq
-        data_list = result_obj.get("data")
         for data in data_list:
-            seq = data.get("seq")
-            assert isinstance(seq, int)
-
+            seq = data.seq
             if seq == last_seq:
                 continue
 
-            optype = data.get("optype")
-            key = data.get("key")
-            value = data.get("value")
+            optype = data.optype
+            key = data.key
+            value = data.value
 
             if optype in (BinLogOpType.put, BinLogOpType.delete):
                 self.handle_kv_binlog(data)
@@ -490,20 +485,20 @@ class DBSyncer:
         else:
             logging.info("db已经保持同步")
     
-    def handle_kv_binlog(self, data):
-        key = data.get("key")
-        value = data.get("value")
+    def handle_kv_binlog(self, data: BinLogRecord):
+        key = data.key
+        value = data.value
         assert key != None
         if value == None:
             self.delete_and_log(key)
         else:
             self.put_and_log(key, value)
 
-    def handle_sql_binlog(self, data):
-        optype = data.get("optype")
-        table_name = data.get("table_name")
-        value = data.get("value")
-        pk_value = data.get("key")
+    def handle_sql_binlog(self, data: BinLogRecord):
+        optype = data.optype
+        table_name = data.table_name
+        value = data.value
+        pk_value = data.key
 
         if table_name == None:
             return

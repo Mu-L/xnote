@@ -98,7 +98,7 @@ def run_test(args: Namespace):
 		return
 	
 	if target == "system_sync":
-		py_exec(f"-m pytest tests/test_system_sync.py --doctest-modules --cov xnote_handlers.system.system_sync --capture no")
+		py_exec(f"-m pytest tests/test_system_sync.py --doctest-modules --cov xnote_handlers.system.system_sync --capture {args.capture}")
 		py_exec("-m coverage html -i")
 		return
 	

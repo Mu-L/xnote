@@ -13,6 +13,7 @@ import os
 import time
 import logging
 import typing
+import json
 
 import xutils
 from xnote.core import xconfig
@@ -28,8 +29,10 @@ from xutils.mem_util import log_mem_info_deco
 from xutils.netutil import HttpFileNotFoundError, HttpError
 from .models import FileIndexInfo
 from .models import LeaderStat
-from .models import SystemSyncToken
+from .models import SystemSyncToken, ListBinlogRequest
 from .system_sync_indexer import build_index_by_fpath
+from xnote.open_api import invoke_remote_api, BaseRequest
+from xutils.db.binlog import BinLogRecord
 
 RETRY_INTERVAL = 60
 MAX_KEY_SIZE = 511
@@ -267,24 +270,20 @@ class HttpClient:
         return netutil.http_get(url, params=params)
 
     @log_mem_info_deco("proxy.list_binlog")
-    def list_binlog(self, last_seq=0) -> dict:
-        # TODO 这里做类型解析和转换
-        assert isinstance(last_seq, int)
-        params = dict(last_seq=str(last_seq), include_req_seq="false")
-        self.check_access_token()
-
-        leader_host = self.host
-        url = "{host}/system/sync/leader?p=list_binlog&token={token}".format(
-            host=leader_host, token=self.access_token)
+    def list_binlog(self, last_seq=0):
+        data = ListBinlogRequest()
+        data.last_seq = last_seq
+        req = BaseRequest()
+        req.api_name = "system.sync.list_binlog"
+        req.data = jsonutil.tojson(data)
+        resp = invoke_remote_api(req)
+        data = resp.data
+        binlog_list = []
+        if data != "":
+            dict_list = json.loads(data)
+            binlog_list = BinLogRecord.from_dict_list(dict_list)
         
-        result = self.http_get(url, params=params)
-        try:
-            result_obj = textutil.parse_json(result)
-            assert isinstance(result_obj, dict)
-            return result_obj
-        except:
-            logging.error("解析json失败, result=%s", result)
-            raise Exception("解析JSON失败")
+        return resp, binlog_list
     
     def list_db(self, last_key):
         # type: (str) -> str

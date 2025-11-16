@@ -65,7 +65,7 @@ class BaseRequest(BaseDataRecord):
 
 class BaseResponse(BaseDataRecord):
     def __init__(self):
-        self.code = 0
+        self.code = "success"
         self.success = True
         self.data = ""
         self.message = ""
@@ -87,7 +87,7 @@ class BaseResponse(BaseDataRecord):
             return
         self.signature = self.calc_signature(app_secret)
 
-def FailedResponse(code: int, message: str):
+def FailedResponse(code: str, message: str):
     resp = BaseResponse()
     resp.success = False
     resp.code = code
@@ -97,7 +97,7 @@ def FailedResponse(code: int, message: str):
 def SuccessResponse(data: str):
     resp = BaseResponse()
     resp.success = True
-    resp.code = 0
+    resp.code = "success"
     resp.message = "success"
     resp.data = data
     return resp
