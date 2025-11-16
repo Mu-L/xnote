@@ -33,7 +33,7 @@ from .models import SystemSyncToken
 from .models import FileIndexInfo
 from .models import FollowerInfo
 from .models import LeaderBaseInfo
-from .models import ListBinlogRequest
+from .models import ListBinlogRequest, ListDBResponse
 from .dao import ClusterConfigDao
 from .dao import SystemSyncTokenDao
 from .config import MAX_FOLLOWER_SIZE
@@ -275,7 +275,10 @@ class Leader(NodeManagerBase):
                                              filter_func=filter_func):
             record = dict(key=key, value=value)
             result.append(record)
-        return dict(binlog_last_seq=self.binlog.last_seq, rows=result)
+        resp = ListDBResponse()
+        resp.binlog_last_seq = self.binlog.last_seq
+        resp.rows = BinLogRecord.from_dict_list(result)
+        return resp
 
     def refresh_token(self, leader_token="", node_id="", port=""):
         if node_id == "":

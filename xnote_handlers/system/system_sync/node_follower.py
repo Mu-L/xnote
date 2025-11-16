@@ -405,14 +405,41 @@ class DBSyncer:
 
     def sync_db_full_step(self, proxy, last_key):
         # type: (HttpClient, str) -> int
-        result = proxy.list_db(last_key)
+        result, data = proxy.list_db(last_key)
 
         if self.debug:
             logging.debug("-------------\nresp:%s\n\n", result)
 
-        result_obj = textutil.parse_json(result)
-        assert isinstance(result_obj, dict)
-        count = self.sync_db_by_result(result_obj, last_key)
+        code = result.code
+        count = 0
+        assert code == "success"
+        assert data != None, "data不能为空"
+
+        if last_key == "":
+            # 这里需要保存一下位点，后面增量同步从这里开始
+            binlog_last_seq = data.binlog_last_seq
+            assert isinstance(binlog_last_seq, int)
+            self.put_binlog_last_seq(binlog_last_seq)
+
+
+        new_last_key = last_key
+        for row in data.rows:
+            key = row.key
+            value = row.value
+            assert key != None
+            assert value != None
+            if key == last_key:
+                continue
+            
+            self.put_and_log(key, value)
+            new_last_key = key
+            count += 1
+
+        if count == 0:
+            self.put_db_sync_state("binlog")
+        else:
+            self.put_db_last_key(new_last_key)
+        
         return count
 
     @log_mem_info_deco("sync_by_binlog")
@@ -514,8 +541,9 @@ class DBSyncer:
             table.delete(where=where)
 
         if optype == BinLogOpType.sql_upsert:
+            assert isinstance(value, dict)
             value = table.filter_record(value)
-            # 使用replace解决冲突的问题?
+            # 使用replace解决冲突的问题
             try:
                 table.replace(**value)
             except Exception as err:
@@ -540,41 +568,3 @@ class DBSyncer:
             # sqlite: 主键冲突
             return
         raise err
-
-    def sync_db_by_result(self, result_obj: dict, last_key):
-        # type: (dict, str) -> int
-        code = result_obj.get("code")
-        count = 0
-        assert code == "success"
-        data = result_obj.get("data")
-        assert data != None, "data不能为空"
-        if last_key == "":
-            # 这里需要保存一下位点，后面增量同步从这里开始
-            binlog_last_seq = data.get("binlog_last_seq")
-            assert isinstance(binlog_last_seq, int)
-            self.put_binlog_last_seq(binlog_last_seq)
-
-        rows = data.get("rows")
-        if not isinstance(rows, list):
-            logging.error("resp:%s", result_obj)
-            raise Exception("data.rows必须为list,当前类型(%s)" % type(rows))
-
-        new_last_key = last_key
-        for row in rows:
-            key = row.get("key")
-            value = row.get("value")
-            assert key != None
-            assert value != None
-            if key == last_key:
-                continue
-            
-            self.put_and_log(key, value)
-            new_last_key = key
-            count += 1
-
-        if count == 0:
-            self.put_db_sync_state("binlog")
-        else:
-            self.put_db_last_key(new_last_key)
-        
-        return count

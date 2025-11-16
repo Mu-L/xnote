@@ -29,7 +29,7 @@ from xutils.mem_util import log_mem_info_deco
 from xutils.netutil import HttpFileNotFoundError, HttpError
 from .models import FileIndexInfo
 from .models import LeaderStat
-from .models import SystemSyncToken, ListBinlogRequest
+from .models import SystemSyncToken, ListBinlogRequest, ListDBRequest, ListDBResponse
 from .system_sync_indexer import build_index_by_fpath
 from xnote.open_api import invoke_remote_api, BaseRequest
 from xutils.db.binlog import BinLogRecord
@@ -285,16 +285,18 @@ class HttpClient:
         
         return resp, binlog_list
     
-    def list_db(self, last_key):
-        # type: (str) -> str
-        # TODO 这里做类型解析和转换
-        self.check_access_token()
-        leader_host = self.host
-        params = dict(last_key=last_key, token=self.access_token)
-        url = "{host}/system/sync/leader?p=list_db".format(host=leader_host)
-        result = netutil.http_get(url, params=params)
-        assert isinstance(result, str)
-        return result
+    def list_db(self, last_key:str):
+        data = ListDBRequest()
+        data.last_key = last_key
+        req = BaseRequest()
+        req.api_name = "system.sync.list_db"
+        req.data = jsonutil.tojson(data)
+        resp = invoke_remote_api(req)
+        data = resp.data
+        db_resp = ListDBResponse.from_json(data)
+        assert db_resp != None
+        db_resp.rows = BinLogRecord.from_dict_list(db_resp.rows)
+        return resp, db_resp
 
 
 empty_http_client = HttpClient("", "", "")

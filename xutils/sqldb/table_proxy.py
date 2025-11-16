@@ -205,8 +205,7 @@ class TableProxy(SQLDBInterface):
     def get_table_info(self) -> table_manager.TableInfo:
         return self.table_info
 
-    def filter_record(self, record):
-        # type: (dict) -> dict
+    def filter_record(self, record: dict) -> dict:
         result = {}
         table_info = self.get_table_info()
         for colname in table_info.column_names:

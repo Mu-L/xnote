@@ -9,6 +9,7 @@ from xutils import dateutil
 from xnote.core import xtables
 from datetime import datetime
 from .config import EXPIRE_TIME
+from xutils.db.binlog import BinLogRecord
 
 class ResultCode:
     success = "success"
@@ -135,3 +136,11 @@ class ListBinlogRequest(BaseDataRecord):
         self.include_req_seq = True
         
 
+class ListDBRequest(BaseDataRecord):
+    def __init__(self):
+        self.last_key = ""
+
+class ListDBResponse(BaseDataRecord):
+    def __init__(self):
+        self.binlog_last_seq = 0
+        self.rows: typing.List[BinLogRecord] = []

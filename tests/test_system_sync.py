@@ -28,13 +28,14 @@ from xnote.core import xnote_event
 from . import test_base
 from xnote_handlers.system.system_sync.node_follower import DBSyncer
 from xnote_handlers.system.system_sync.dao import ClusterConfigDao
-from xnote_handlers.system.system_sync.models import LeaderStat
+from xnote_handlers.system.system_sync.models import LeaderStat, ListDBResponse
 from xnote_handlers.system.system_sync import system_sync_proxy
 from xutils.db.binlog import BinLog, BinLogOpType
-from xnote.open_api import BaseResponse, FailedResponse
+from xnote.open_api import BaseResponse, FailedResponse, SuccessResponse
 
 app = test_base.init()
 json_request = test_base.json_request
+json_request_return_dict = test_base.json_request_return_dict
 request_html = test_base.request_html
 BaseTestCase = test_base.BaseTestCase
 
@@ -81,10 +82,6 @@ class LeaderNetMock:
             assert access_token == get_test_access_token(readonly=True)
             return self.http_get_stat()
 
-        if "list_db" in url:
-            assert access_token == get_test_access_token(readonly=True)
-            return self.http_list_db(url)
-        
         if "refresh_token" in url:
             return self.refresh_token(url)
 
@@ -101,79 +98,6 @@ class LeaderNetMock:
         leader_stat = LeaderStat()
         leader_stat.access_token = get_test_access_token(readonly=True)
         return textutil.tojson(leader_stat)
-
-    def http_list_db(self, url):
-        result = urlparse(url)
-        params = parse_qs(result.query)
-        last_key = params.get("last_key")
-
-        if last_key != None:
-            last_key = last_key[0]
-            last_key == unquote(last_key)
-
-        if last_key == "my_config:test:key2":
-            result = dict(code="success",
-                          data=dict(
-                              binlog_last_seq=2345,
-                              rows=[]
-                          ))
-        else:
-            result = dict(code="success",
-                          data=dict(
-                              binlog_last_seq=1234,
-                              rows=[
-                                  {
-                                      "key": "my_config:test:key1",
-                                      "value": "value1"
-                                  },
-                                  {
-                                      "key": "my_config:test:key2",
-                                      "value": "value2"
-                                  }
-                              ]))
-        return textutil.tojson(result)
-
-    def http_list_binlog(self, url):
-        result = urlparse(url)
-        params = parse_qs(result.query)
-        last_seq = params.get("last_seq")[0]
-
-        print("[NetMock] last_seq=%s" % last_seq)
-
-        if last_seq == "2346":
-            return """
-            {
-                "code": "success",
-                "data": [
-                    {
-                        "optype": "put",
-                        "seq": 2346,
-                        "key": "my_table:1",
-                        "value": {"name":"Ada", "age":20}
-                    }
-                ]
-            }
-            """
-
-        return """
-        {
-            "code": "success",
-            "data": [
-                {
-                    "optype": "delete",
-                    "seq": 2345,
-                    "key": "my_table:2"
-                },
-                {
-                    "optype": "put",
-                    "seq": 2346,
-                    "key": "my_table:1",
-                    "value": {"name":"Ada", "age":20}
-                }
-            ]
-        }
-        """
-
 
 class TestSystemSync(BaseTestCase):
 
@@ -198,7 +122,7 @@ class TestSystemSync(BaseTestCase):
     def test_system_get_stat(self):
         self.init_leader_config()
         admin_token = self.get_access_token()
-        resp = json_request("/system/sync?p=get_stat&token=" + admin_token)
+        resp = json_request_return_dict("/system/sync?p=get_stat&token=" + admin_token)
 
         print("get_stat resp:{resp}".format(resp=resp))
         self.assertEqual("success", resp["code"])
@@ -210,7 +134,7 @@ class TestSystemSync(BaseTestCase):
         try:
             self.init_leader_config()
             admin_token = self.get_access_token()
-            resp = json_request("/system/sync?p=ping&token=" + admin_token)
+            resp = json_request_return_dict("/system/sync?p=ping&token=" + admin_token)
             print("ping resp:{resp}".format(resp=resp))
             self.assertEqual("success", resp["code"])
             self.assertIsNotNone(resp["data"])
@@ -229,6 +153,9 @@ class TestSystemSync(BaseTestCase):
             db_syncer = FollowerInstance.db_syncer
             db_syncer.debug = True
             db_syncer.put_db_sync_state("full")
+
+            dbutil.db_put("_max_id:_binlog", 1233)
+            BinLog.get_instance().add_log(BinLogOpType.delete, "test:1")
             
             # 全量同步
             FollowerInstance.sync_db_from_leader()
@@ -278,14 +205,9 @@ class TestSystemSync(BaseTestCase):
                 return FailedResponse(code="sync_broken", message="sync broken"), []
             
             def list_db(self, last_key=""):
-                return """{
-                    "code": "success",
-                    "data": {
-                        "binlog_last_seq": 1234,
-                        "rows": []
-                    }
-                }
-                """
+                resp = ListDBResponse()
+                resp.binlog_last_seq = 1234
+                return SuccessResponse(""), resp
 
         FollowerInstance._debug = True
         FollowerInstance.db_syncer.put_db_sync_state("binlog")
