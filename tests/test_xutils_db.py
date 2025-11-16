@@ -31,6 +31,7 @@ from . import test_base
 
 app = test_base.init()
 json_request = test_base.json_request
+json_request_return_dict = test_base.json_request_return_dict
 request_html = test_base.request_html
 BaseTestCase = test_base.BaseTestCase
 
@@ -568,7 +569,7 @@ class TestMain(BaseTestCase):
         self.assertEqual(30, results[2].age)
         self.assertEqual(1, db.count_by_index("name", index_value="Ada"))
 
-        binlog_count = dbutil.count_table("_binlog")
+        binlog_count = BinLog.get_instance().count_size()
         self.assertTrue(binlog_count > 0)
 
     def test_db_shard(self):
@@ -645,7 +646,7 @@ class TestMain(BaseTestCase):
     def test_db_index_page(self):
         self.check_OK("/system/db_index")
 
-        result = json_request("/system/db_index", method="POST",
+        result = json_request_return_dict("/system/db_index", method="POST",
                               data=dict(action="rebuild", table_name="note_tiny", index_name="name"))
 
         self.assertEqual("success", result.get("code"))
@@ -664,13 +665,13 @@ class TestMain(BaseTestCase):
         binlog.log_debug = False
 
         with binlog._lock:
-            last_seq = binlog.id_gen.current_id_int()
+            last_seq = binlog.get_max_id()
             assert last_seq > 0
 
-            self.assertEqual(binlog._pack_id(last_seq), binlog.get_last_key())
+            self.assertEqual(last_seq, binlog.get_last_key())
             binlog.add_log("test", "666")
 
-            new_seq = binlog.id_gen.current_id_int()
+            new_seq = binlog.get_max_id()
             self.assertEqual(last_seq+1, new_seq)
 
     def test_db_index_no_user(self):
@@ -803,9 +804,8 @@ class TestMain(BaseTestCase):
 
     def test_binlog_clear(self):
         BinLog.set_max_size(10)
-
         binlog = BinLog.get_instance()
-        # binlog.log_debug = True
+        binlog.db.delete("1=1") # delete all
 
         for i in range(20):
             binlog.add_log("put", "test_binlog_clear", "test")

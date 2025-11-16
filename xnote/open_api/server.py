@@ -2,6 +2,8 @@ import time
 import xutils
 import web
 import json
+import traceback
+
 from .base_model import BaseRequest, BaseResponse, OpenApiRegistry, FailedResponse, SuccessResponse
 from .dao import SystemSyncAppDao
 
@@ -19,11 +21,16 @@ def invoke_local_api(request: BaseRequest):
         return FailedResponse("400", f"validate error: {validate_error}")
 
     api_name = request.api_name
-    handler = OpenApiRegistry.mappings[api_name]
+    handler = OpenApiRegistry.mappings.get(api_name)
     if handler == None:
         return FailedResponse("404", f"api_name {api_name} not found")
     
-    resp = handler(request)
+    try:
+        resp = handler(request)
+    except Exception as e:
+        trace_error = traceback.print_exc()
+        return FailedResponse("500", f"internal error\n\n{trace_error}")
+    
     if not isinstance(resp, BaseResponse):
         return FailedResponse("500", f"invalid response, type {type(resp)}")
     

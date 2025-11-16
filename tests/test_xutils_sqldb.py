@@ -9,14 +9,17 @@
 @Description  : 描述
 """
 
+import os
+import json
+import web.db
+
 from . import test_base
+from xutils import jsonutil
 from xutils.sqldb import TableManagerFacade, TableProxy
-from xutils.db.binlog import BinLog
+from xutils.db.binlog import BinLog, BinLogRecord
 from xutils.sqldb import TableConfig
 from xnote.core import xconfig
-import os
 from xnote.core import xtables
-import web.db
 from xutils.sqldb import utils as sql_utils
 
 app = test_base.init()
@@ -73,24 +76,24 @@ class TestMain(test_base.BaseTestCase):
         new_id = table.insert(name="test-1", age=10)
         last_log = BinLog.get_instance().get_last_log()
 
-        assert isinstance(last_log, dict)
-        assert last_log.get("key") == new_id
-        assert last_log.get("table_name") == table.tablename
-        assert last_log.get("optype") == "sql_upsert"
+        assert isinstance(last_log, BinLogRecord)
+        assert last_log.record_key == jsonutil.tojson(new_id)
+        assert last_log.table_name == table.tablename
+        assert last_log.op_type == "sql_upsert"
 
         table.update(where=dict(name="test-1"), age=20)
         last_log = BinLog.get_instance().get_last_log()
-        assert isinstance(last_log, dict)
-        assert last_log.get("key") == new_id
-        assert last_log.get("table_name") == table.tablename
-        assert last_log.get("optype") == "sql_upsert"
+        assert isinstance(last_log, BinLogRecord)
+        assert last_log.record_key == jsonutil.tojson(new_id)
+        assert last_log.table_name == table.tablename
+        assert last_log.op_type == "sql_upsert"
 
         table.delete(where=dict(name="test-1"))
         last_log = BinLog.get_instance().get_last_log()
-        assert isinstance(last_log, dict)
-        assert last_log.get("key") == new_id
-        assert last_log.get("table_name") == table.tablename
-        assert last_log.get("optype") == "sql_delete"
+        assert isinstance(last_log, BinLogRecord)
+        assert last_log.record_key == jsonutil.tojson(new_id)
+        assert last_log.table_name == table.tablename
+        assert last_log.op_type== "sql_delete"
 
     def test_safe_str(self):
         s = sql_utils.safe_str(None)

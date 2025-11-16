@@ -303,7 +303,7 @@ class DBSyncer:
     def get_binlog_last_seq(self):
         return ClusterConfigDao.get_binlog_last_seq()
 
-    def put_binlog_last_seq(self, last_seq):
+    def put_binlog_last_seq(self, last_seq: int):
         return ClusterConfigDao.put_binlog_last_seq(last_seq)
 
     def get_db_sync_state(self):
@@ -403,7 +403,7 @@ class DBSyncer:
                 break
             steps+=1
 
-    def sync_db_full_step(self, proxy, last_key):
+    def sync_db_full_step(self, proxy, last_key: str):
         # type: (HttpClient, str) -> int
         result, data = proxy.list_db(last_key)
 
@@ -416,6 +416,7 @@ class DBSyncer:
         assert data != None, "data不能为空"
 
         if last_key == "":
+            # last_key为空说明开始全量同步
             # 这里需要保存一下位点，后面增量同步从这里开始
             binlog_last_seq = data.binlog_last_seq
             assert isinstance(binlog_last_seq, int)
@@ -423,8 +424,8 @@ class DBSyncer:
 
         new_last_key = last_key
         for row in data.rows:
-            key = row.key
-            value = row.value
+            key = row.record_key
+            value = row.record_value
             assert key != None
             assert value != None
             if key == last_key:
@@ -482,13 +483,13 @@ class DBSyncer:
         last_seq = self.get_binlog_last_seq()
         max_seq = last_seq
         for data in data_list:
-            seq = data.seq
+            seq = data.binlog_id
             if seq == last_seq:
                 continue
 
-            optype = data.optype
-            key = data.key
-            value = data.value
+            optype = data.op_type
+            key = data.record_key
+            value = data.value_obj
 
             if optype in (BinLogOpType.put, BinLogOpType.delete):
                 self.handle_kv_binlog(data)
@@ -512,8 +513,8 @@ class DBSyncer:
             logging.info("db已经保持同步")
     
     def handle_kv_binlog(self, data: BinLogRecord):
-        key = data.key
-        value = data.value
+        key = data.record_key
+        value = data.value_obj
         assert key != None
         if value == None:
             self.delete_and_log(key)
@@ -521,10 +522,10 @@ class DBSyncer:
             self.put_and_log(key, value)
 
     def handle_sql_binlog(self, data: BinLogRecord):
-        optype = data.optype
+        optype = data.op_type
         table_name = data.table_name
-        value = data.value
-        pk_value = data.key
+        value = data.value_obj
+        pk_value = data.record_key
 
         if table_name == None:
             return
@@ -534,6 +535,8 @@ class DBSyncer:
             return
         
         table = xtables.get_table_by_name(table_name)
+        table.enable_binlog = False
+        
         pk_name = table.table_info.pk_name
         where = {pk_name:pk_value}
         if optype == BinLogOpType.sql_delete:

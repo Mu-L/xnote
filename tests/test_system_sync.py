@@ -30,7 +30,7 @@ from xnote_handlers.system.system_sync.node_follower import DBSyncer
 from xnote_handlers.system.system_sync.dao import ClusterConfigDao
 from xnote_handlers.system.system_sync.models import LeaderStat, ListDBResponse
 from xnote_handlers.system.system_sync import system_sync_proxy
-from xutils.db.binlog import BinLog, BinLogOpType
+from xutils.db.binlog import BinLog, BinLogOpType, BinLogRecord
 from xnote.open_api import BaseResponse, FailedResponse, SuccessResponse
 
 app = test_base.init()
@@ -160,6 +160,7 @@ class TestSystemSync(BaseTestCase):
     def test_system_sync_db_full(self):
         from xnote_handlers.system.system_sync.system_sync_controller import FollowerInstance
         netutil.set_net_mock(LeaderNetMock())
+        binlog_obj = BinLog.get_instance()
 
         try:
             self.get_access_token()
@@ -170,40 +171,54 @@ class TestSystemSync(BaseTestCase):
             db_syncer.debug = True
             db_syncer.put_db_sync_state("full")
 
-            dbutil.db_put("_max_id:_binlog", 1233)
-            BinLog.get_instance().add_log(BinLogOpType.delete, "test:1")
+            max_id = binlog_obj.get_max_id()
             
             # 全量同步
             FollowerInstance.sync_db_from_leader()
 
             self.assertEqual(db_syncer.get_db_sync_state(), "binlog")
-            self.assertEqual(db_syncer.get_binlog_last_seq(), 1234) # 全量同步不会更新 last_seq
+            self.assertEqual(db_syncer.get_binlog_last_seq(), max_id)
         finally:
             netutil.set_net_mock(None)
 
     def test_system_sync_db_binlog(self):
         from xnote_handlers.system.system_sync.system_sync_controller import FollowerInstance
+        from xnote_handlers.system.system_sync.system_sync_indexer import on_fs_upload
         netutil.set_net_mock(LeaderNetMock())
+
+        binlog_instance = BinLog.get_instance()
 
         try:
             self.get_access_token()
             self.init_leader_config()
 
-            dbutil.db_put("_max_id:_binlog", 1200)
-            for i in range(100):
-                BinLog.get_instance().add_log(optype=BinLogOpType.put, key="test:1")
+            current_seq = binlog_instance.get_max_id()
+            kv_db = dbutil.get_table("test")
+
+            for i in range(50):
+                record = dict(name = "test", age = 20 + i)
+                kv_db.insert(record)
+            
+            SystemMetaEnum.dev_mode.save_meta("0")
+            SystemMetaEnum.dev_mode.save_meta("1")
+            
+            upload_event = xnote_event.FileUploadEvent()
+            upload_event.fpath = "./tmp/a.txt"
+            upload_event.user_id = 0
+            on_fs_upload(upload_event)
+            
 
             FollowerInstance._debug = True
             db_syncer = FollowerInstance.db_syncer
             db_syncer.debug = True
             db_syncer.put_db_sync_state("binlog")
-            db_syncer.put_binlog_last_seq(1234)
+            db_syncer.put_binlog_last_seq(current_seq + 10)
             
             # 增量同步
             FollowerInstance.sync_db_from_leader()
 
             self.assertEqual(db_syncer.get_db_sync_state(), "binlog")
-            self.assertEqual(db_syncer.get_binlog_last_seq(), 1300)
+            self.assertEqual(db_syncer.get_binlog_last_seq(), binlog_instance.get_max_id())
         finally:
             netutil.set_net_mock(None)
 
@@ -312,9 +327,9 @@ class TestSystemSync(BaseTestCase):
         assert result.success == True
         assert isinstance(result.data, list)
         assert len(result.data) == 1
-        assert result.data[0].optype == BinLogOpType.file_upload
-        assert result.data[0].value["fpath"] == upload_event.fpath
-        assert result.data[0].value["ftype"] == "txt"
+        assert result.data[0].op_type == BinLogOpType.file_upload
+        assert result.data[0].value_obj["fpath"] == upload_event.fpath
+        assert result.data[0].value_obj["ftype"] == "txt"
 
         check_manager = FileIndexCheckManager()
         check_manager.run_step()

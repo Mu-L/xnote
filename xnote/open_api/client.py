@@ -22,7 +22,13 @@ def invoke_remote_api(request: BaseRequest) -> BaseResponse:
         resp_dict = json.loads(str(resp.data, encoding="utf-8"))
     else:
         resp = requests.post(url=f"{leader_base_url}/open_api/server", data=http_data)
-        resp_dict = json.loads(resp.text)
+        if not resp.ok:
+            raise Exception(f"post failed, status_code={resp.status_code}, reason={resp.reason}")
+        try:
+            resp_dict = json.loads(resp.text)
+        except Exception as e:
+            print(f"parse json failed, text={resp.text}")
+            raise e
     resp_obj = BaseResponse.from_dict(resp_dict)
     resp_sig = resp_obj.calc_signature(app_info.app_secret)
     if not resp_obj.success:

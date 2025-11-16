@@ -277,6 +277,8 @@ class HttpClient:
         req.api_name = "system.sync.list_binlog"
         req.data = jsonutil.tojson(data)
         resp = invoke_remote_api(req)
+        if not resp.success:
+            logging.error("list_binlog failed, resp=%s", resp)
         data = resp.data
         binlog_list = []
         if data != "":
@@ -292,7 +294,8 @@ class HttpClient:
         req.api_name = "system.sync.list_db"
         req.data = jsonutil.tojson(data)
         resp = invoke_remote_api(req)
-        print("resp", resp)
+        if not resp.success:
+            logging.error("list_db failed, resp=%s", resp)
         data = resp.data
         db_resp = ListDBResponse.from_json(data)
         if resp.success:

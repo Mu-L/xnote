@@ -258,6 +258,7 @@ def convert_bytes_to_dict(data_bytes: bytes) -> typing.Dict[bytes, bytes]:
         return dict()
     else:            
         value_dict = convert_bytes_to_object(data_bytes)
+        assert isinstance(value_dict, dict)
         result = dict()
         for key in value_dict:
             value = value_dict[key]

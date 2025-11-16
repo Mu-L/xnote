@@ -11,6 +11,7 @@
 import time
 import xutils
 import web.db
+import typing
 
 from web.db import SQLQuery, sqlparam
 from xutils.sqldb import table_manager
@@ -82,7 +83,7 @@ class TableProxy(SQLDBInterface):
         start_time = time.time()
         try:
             new_id = self.db.insert(self.tablename, seqname, _test, **values)
-            self.add_insert_binlog(new_id, _test=_test)
+            self._add_insert_binlog(new_id, _test=_test)
             return new_id
         except Exception as e:
             del self.db.ctx.db # 尝试重新连接
@@ -142,7 +143,7 @@ class TableProxy(SQLDBInterface):
             cost_time = time.time() - start_time
             self._add_profile_log(cost_time, "update", _skip_profile=_skip_profile)
 
-    def delete(self,  where, using=None, vars=None, _test=False):
+    def delete(self, where, using=None, vars=None, _test=False):
         self.check_write_state()
         if _test:
             # delete为了记录binlog会转换成按照主键删除的sql, 所以这里单独处理下_test场景
@@ -217,9 +218,10 @@ class TableProxy(SQLDBInterface):
         result[pk_name] = record.get(pk_name)
         return result
 
-    def _add_row_binlog(self, row):
+    def _add_row_binlog(self, row: typing.Optional[dict]):
         if not self.enable_binlog:
             return
+        
         if row == None:
             return
         
@@ -231,7 +233,7 @@ class TableProxy(SQLDBInterface):
 
         BinLog.get_instance().add_log(BinLogOpType.sql_upsert, pk_value, table_name=self.tablename)
 
-    def add_insert_binlog(self, new_id, _test=False):
+    def _add_insert_binlog(self, new_id, _test=False):
         if _test:
             return
         if not self.enable_binlog:
@@ -290,7 +292,7 @@ class TableProxy(SQLDBInterface):
         sql_query = (
             "REPLACE INTO %s " % tablename + q(_keys) + " VALUES " + q(_values)
         )
-
+        self._add_row_binlog(values)
         return self.db.query(sql_query)
 
     def _new_profile_log(self):

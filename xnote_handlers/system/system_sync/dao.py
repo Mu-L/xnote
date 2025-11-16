@@ -108,7 +108,7 @@ class ClusterConfigDao:
         return 0
     
     @classmethod
-    def put_binlog_last_seq(cls, last_seq):
+    def put_binlog_last_seq(cls, last_seq: int):
         return cls.db.put("follower_binlog_last_seq", last_seq)
 
     @classmethod

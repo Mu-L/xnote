@@ -15,6 +15,7 @@ import time
 import xutils
 import logging
 import os
+import json
 
 from xnote.core import xauth, xconfig, xtables
 
@@ -183,10 +184,13 @@ class Leader(NodeManagerBase):
         is_broken = False
         broken_reason = ""
 
+        if self.binlog.get_max_id() == 0:
+            return webutil.SuccessResult([])
+
         if last_seq <= 0:
             broken_reason = "sync_broken: last_seq<=0"
             is_broken = True
-        if last_seq > self.binlog.last_seq:
+        if last_seq > self.binlog.get_max_id():
             broken_reason = "sync_broken: last_seq=%s, binlog.last_seq=%s" % (last_seq, self.binlog.last_seq)
             is_broken = True
         if out_of_sync:
@@ -196,32 +200,24 @@ class Leader(NodeManagerBase):
         if is_broken:
             return webutil.FailedResult(code="sync_broken", message="同步中断，请重新同步: %s" % broken_reason)
 
-        def map_func(key, value):
-            record_key = value.get("key")
-            if self.skip_db_sync(record_key):
-                return None
-            table_name, seq = key.split(":")
-            value["seq"] = self.binlog._unpack_id(seq)
-            return value
-
         data_list = []
         # 预读一位 用于获取下一个key
-        binlogs = self.binlog.list(last_seq, limit + 1, map_func=map_func)
+        binlogs = self.binlog.list(last_seq, limit + 1)
         if self.log_debug:
             logging.debug("binlogs:%s", binlogs)
 
         for log in binlogs:
-            if not include_req_seq and log.seq == last_seq:
+            if not include_req_seq and log.binlog_id == last_seq:
+                # ignore requested seq_id
                 continue
             
             log = self.process_log(log)
-            if log != None:
-                data_list.append(log)
+            data_list.append(log)
 
         return webutil.SuccessResult(data_list[:limit])
     
-    def process_file_log(self, log):
-        value_dict = log.value
+    def process_file_log(self, log: BinLogRecord):
+        value_dict = json.loads(log.record_value)
         value = FileIndexInfo(**value_dict)
 
         fpath = value.fpath
@@ -232,32 +228,32 @@ class Leader(NodeManagerBase):
         value.exists = os.path.exists(fpath)
         value.sha1_sum = fsutil.get_sha1_sum(fpath)
         
-        log.value = value
+        log.value_obj = value
         return log
     
     def process_log(self, log: BinLogRecord):
         # TODO 补充单元测试
-        optype = log.optype
+        optype = log.op_type
         if optype in (BinLogOpType.sql_upsert, BinLogOpType.sql_delete):
             table_name = log.table_name
             table_info = xtables.TableManager.get_table_info(table_name)
             if table_info == None:
                 # 无效的binlog
-                return None
+                return log
             table = xtables.get_table_by_name(table_name)
             pk_name = table_info.pk_name
-            pk_value = log.key
+            pk_value = json.loads(log.record_key)
             db_record = table.select_first(where={pk_name: pk_value})
-            log.value = db_record
+            log.value_obj = db_record
             if db_record == None:
-                log.optype = BinLogOpType.sql_delete
+                log.op_type = BinLogOpType.sql_delete
         elif optype in (BinLogOpType.file_upload, BinLogOpType.file_rename, BinLogOpType.file_delete):
             return self.process_file_log(log)
         elif optype == BinLogOpType.put:
-            key = log.key
-            log.value = dbutil.get(key)
-            if log.value == None:
-                log.optype = BinLogOpType.delete
+            key = json.loads(log.record_key)
+            log.value_obj = dbutil.get(key)
+            if log.record_value == None:
+                log.op_type = BinLogOpType.delete
         
         return log
 

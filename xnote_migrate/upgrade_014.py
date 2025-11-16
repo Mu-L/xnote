@@ -24,9 +24,8 @@ class BatchDelete:
 
 def fix_binlog_20230709():
     """删除老版本的binlog"""
-    binlog = BinLog.get_instance()
     batch_delete = BatchDelete()
-    for key, value in dbutil.prefix_iter(binlog._table_name, limit=-1, include_key=True):
+    for key, value in dbutil.prefix_iter("_binlog", limit=-1, include_key=True):
         table_name, log_id = key.split(":")
         if len(log_id) == 20:
             batch_delete.delete(key)

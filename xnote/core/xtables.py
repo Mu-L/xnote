@@ -15,6 +15,7 @@ from xutils.dbutil import interfaces
 from xutils.sqldb import TableManagerFacade as TableManager
 from xutils.sqldb import TableProxy, TableConfig
 from xutils.sqldb.table_manager import TableHelper
+from xutils.db.binlog import BinLog
 from xutils import fsutil
 from xutils.dateutil import DEFAULT_DATE, DEFAULT_DATETIME
 
@@ -539,6 +540,23 @@ def init_system_sync_app_table():
         manager.add_column("remark", "text", default_value="")
         manager.add_index("app_key", is_unique=True)
 
+def init_system_sync_binlog_table():
+    """系统同步binlog
+    @since 2025/11/16
+    """
+    table_name = "system_sync_binlog"
+    comment = "系统同步binlog"
+    pk_name = "binlog_id"
+    with create_default_table_manager(table_name, comment=comment, pk_name=pk_name) as manager:
+        manager.add_column("create_time", "bigint", default_value=0, comment="创建时间毫秒时间戳")
+        manager.add_column("op_type", "varchar(64)", default_value="")
+        manager.add_column("record_key", "varchar(100)", default_value="", comment="主键,json格式")
+        manager.add_column("record_value", "text", default_value="")
+        manager.add_column("table_name", "varchar(64)", default_value="")
+        
+    TableConfig.disable_binlog(table_name)
+    TableConfig.disable_profile(table_name)
+
 def init_system_info_table():
     """系统信息表"""
     table_name = "system_info"
@@ -900,9 +918,12 @@ def init():
     # 分布式锁表
     init_lock_table()
 
-    # 系统相关的表
+    # 系统同步相关的表
     init_system_sync_token_table()
     init_system_sync_app_table()
+    init_system_sync_binlog_table()
+
+    # 其他系统表
     init_system_info_table() # 已删除, 占位
     init_system_meta_table()
     init_id_generator_table()
@@ -941,3 +962,5 @@ def init():
     # KV表
     init_kv_store_table()
     init_kv_cache_table()
+
+    BinLog.init(get_table_by_name("system_sync_binlog"))

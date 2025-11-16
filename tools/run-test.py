@@ -61,14 +61,14 @@ def run_test(args: Namespace):
 	
 	if target == "xutils_db":
 		# py_exec("-m pytest tests/test_xutils_db.py::TestMain::test_dbutil_mysql_enhanced --doctest-modules --cov xutils.db --cov handlers.system.db_index --capture no")
-		py_exec("-m pytest tests/test_xutils_db.py tests/test_xutils_db_table.py tests/test_xutils_db_hash_table.py \
-	  			--doctest-modules --cov xutils.db --cov xnote_handlers.system.db_index --cov xutils.db2 --capture no")
+		py_exec(f"-m pytest tests/test_xutils_db.py tests/test_xutils_db_table.py tests/test_xutils_db_hash_table.py \
+	  			--doctest-modules --cov xutils.db --cov xnote_handlers.system.db_index --cov xutils.db2 --capture {args.capture}")
 		py_exec("-m coverage html -i")
 		return
 	
 	if target == "xutils_sqldb":
-		py_exec("-m pytest tests/test_xutils_sqldb.py --doctest-modules --cov xutils.sqldb --cov xnote_handlers.system.db_index \
-	  			--capture no")
+		py_exec(f"-m pytest tests/test_xutils_sqldb.py --doctest-modules --cov xutils.sqldb --cov xnote_handlers.system.db_index \
+	  			--capture {args.capture}")
 		py_exec("-m coverage html -i")
 		return
 	

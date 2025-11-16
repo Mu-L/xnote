@@ -8,20 +8,14 @@
 @FilePath     : /xnote/xutils/db/binlog.py
 @Description  : 数据库的binlog,用于同步
 """
-
-import struct
 import threading
 import logging
-import base64
-
+import typing
 
 from web import Storage
-from xutils.db.dbutil_base import count_table, prefix_iter
-from xutils.db.dbutil_base import db_put, prefix_list, register_table, db_batch_delete
-from xutils.db.dbutil_id_gen import IdGenerator
 from xutils.base import BaseDataRecord
-
-register_table("_binlog", "数据同步的binlog")
+from xutils.interfaces import SQLDBInterface
+from xutils import jsonutil, dateutil
 
 class BinLogOpType:
     """binlog操作枚举"""
@@ -46,16 +40,20 @@ class FileLog(Storage):
         self.mtime = 0.0
 
 class BinLogRecord(BaseDataRecord):
+    _ignore_save_fields = set(["old_value", "binlog_id", "value_obj"])
+
     def __init__(self, **kw):
-        self.optype = "" # see BinLogOpType
-        self.key = "" # type: str | int
-        self.value = None # type: object
+        self.create_time = dateutil.timestamp_ms()
+        self.op_type = "" # see BinLogOpType
+        self.record_key = "" # type: str
+        self.record_value = "" # type: str
         self.table_name = ""
-        self.seq = 0
+        self.binlog_id = 0
+        self.value_obj = None # type: object # 虚拟字段
+        self.old_value = None
         super().__init__(**kw)
 
 class BinLog:
-    _table_name = "_binlog"
     _lock = threading.RLock()
     _delete_lock = threading.RLock()
     _instance = None
@@ -63,8 +61,8 @@ class BinLog:
     _max_size = 10000
     log_debug = False
     logger = logging.getLogger("binlog")
-    id_gen = IdGenerator(_table_name)
     record_old_value = False
+    db: SQLDBInterface
 
     def __init__(self) -> None:
         """正常要使用单例模式使用"""
@@ -72,28 +70,14 @@ class BinLog:
             if self._instance != None:
                 raise Exception("只能创建一个BinLog单例")
             self._instance = self
-
-    def _pack_id(self, log_id=0):
-        return struct.pack('>Q', log_id).hex()
-    
-    def _unpack_id(self, id_str=""):
-        if len(id_str) == 20:
-            return int(id_str)
         
-        if len(id_str) == 16:
-            id_bytes = base64.b16decode(id_str.upper())
-            return struct.unpack('>Q', id_bytes)[0]
-
-        raise Exception("can not unpack value: %r" % id_str)
+    @classmethod
+    def init(cls, db: SQLDBInterface):
+        cls.db = db
 
     @property
     def last_seq(self):
-        return self.id_gen.current_id_int()
-    
-    def get_next_id(self):
-        next_id = self.id_gen.create_increment_id_int()
-        # TODO 可以按照整型数字循环写入
-        return next_id
+        return self.get_last_key()
 
     @classmethod
     def get_instance(cls):
@@ -115,104 +99,72 @@ class BinLog:
         cls._max_size = max_size
 
     def count_size(self):
-        return count_table(self._table_name)
-
-    def get_record_key(self, log_id):
-        return self._table_name + ":" + log_id
+        return self.db.count()
     
     def get_last_log(self):
-        logs = prefix_list(self._table_name, reverse=True,
-                           limit=1, include_key=False)
-        if len(logs) == 0:
-            return None
-        return logs[0]
+        last_log = self.db.select_first(order="binlog_id desc")
+        return BinLogRecord.from_dict_or_None(last_log)
 
     def get_last_key(self):
-        logs = prefix_list(self._table_name, reverse=True,
-                           limit=1, include_key=True)
-        if len(logs) == 0:
-            return None
-        key, value = logs[0]
-        return key.split(":")[1]
+        last_log = self.get_last_log()
+        if last_log:
+            return last_log.binlog_id
+        return 0
+    
+    def get_max_id(self):
+        record = self.db.select_first(what="MAX(binlog_id) AS binlog_id")
+        if record is None:
+            return 0
+        return BinLogRecord.from_dict(record).binlog_id
 
     def find_start_seq(self):
-        logs = prefix_list(self._table_name, limit=1, include_key=True)
-        if len(logs) == 0:
-            return 1
-        key, value = logs[0]
-        id_part = key.split(":")[1]
-        return self._unpack_id(id_part)
+        record = self.db.select_first(what="MIN(binlog_id) AS binlog_id")
+        if record is None:
+            return 0
+        return BinLogRecord.from_dict(record).binlog_id
 
-    def _put_log(self, log_id, log_body, batch=None):
-        key = self.get_record_key(log_id)
-        # print("binlog(%s,%s)" % (key, log_body))
-        if batch != None:
-            batch.put(key, log_body)
-        else:
-            db_put(key, log_body)
-
-    def add_log(self, optype: str, key, value=None, batch=None, old_value=None, *, record_value=False, table_name=None):
+    def add_log(self, optype: str, key: typing.Union[str, int], value=None, batch=None, old_value=None, *, record_value=False, table_name=None):
         if not self._is_enabled:
             return
 
         # 获取自增ID操作是并发安全的, 所以这里不需要加锁, 加锁过多不仅会导致性能下降, 还可能引发死锁问题
-        new_id = self.get_next_id()
-        binlog_id = self._pack_id(new_id)
-        binlog_body = dict(optype=optype, key=key)
-        if self.record_old_value and old_value != None:
-            binlog_body["old_value"] = old_value
-        if record_value and value != None:
-            binlog_body["value"] = value
-        if table_name != None:
-            binlog_body["table_name"] = table_name
-        self._put_log(binlog_id, binlog_body, batch=batch)
+        binlog_body = BinLogRecord()
+        binlog_body.op_type = optype
+        binlog_body.record_key = jsonutil.tojson(key)
 
-    def list(self, last_seq=0, limit=10, map_func=None):
-        """从last_seq开始查询limit个binlog"""
-        start_id = self._pack_id(last_seq)
-        key_from = self._table_name + ":" + start_id
-        results = prefix_list(self._table_name, key_from=key_from, limit=limit, map_func=map_func)
+        if self.record_old_value and old_value != None:
+            binlog_body.old_value = old_value
+        
+        if record_value and value != None:
+            binlog_body.record_value = jsonutil.tojson(value)
+        
+        if table_name != None:
+            binlog_body.table_name = table_name
+        
+        self.db.insert(**binlog_body.to_save_dict())
+
+    def list(self, start_binlog_id=0, limit=10):
+        """从start_binlog_id开始查询limit个binlog"""
+        results = self.db.select(where="binlog_id>=$start_binlog_id", 
+                                 order="binlog_id",limit=limit, 
+                                 vars=dict(start_binlog_id=start_binlog_id))
         return BinLogRecord.from_dict_list(results)
 
     def delete_expired(self):
         assert self._max_size != None, "binlog_max_size未设置"
         assert self._max_size > 0, "binlog_max_size必须大于0"
 
-        start_seq = self.find_start_seq()
-
         size = self.count_size()
         self.logger.info("count size:%s", size)
+        max_id = self.get_max_id()
+        min_keep_id = max_id - self._max_size + 1
+        batch_size = 100
 
-        if size > self._max_size:
+        if min_keep_id > 0:
             with self._delete_lock:
-                limit = size - self._max_size
-                self.logger.info("limit size: %s", size)
-                keys = []
-                batch_size = 100
+                self.logger.info("limit size: %s", batch_size)
+                delete_rows = self.db.select(what="binlog_id", where="binlog_id<$min_keep_id", 
+                                             limit=batch_size, vars=dict(min_keep_id=min_keep_id))
+                delete_ids = [row.binlog_id for row in delete_rows]
+                self.db.delete(where="binlog_id IN $id_list", vars=dict(id_list=delete_ids))
 
-                key_from = self._table_name + ":" + self._pack_id(start_seq)
-                for key, value in prefix_iter(self._table_name, key_from=key_from, limit=limit, include_key=True):
-                    keys.append(key)
-                    if len(keys) >= batch_size:
-                        self.delete_batch(keys)
-                        keys = []
-                
-                self.delete_batch(keys)
-    
-    def delete_batch(self, keys):
-        if len(keys) == 0:
-            return
-        if self.log_debug:
-            self.logger.info("Delete keys: %s", keys)
-        db_batch_delete(keys)
-
-
-    def _drop_table(self, batch_size=20):
-        """清空binlog,后台使用"""
-        keys = []
-        for key, value in prefix_iter(self._table_name, limit=-1, include_key=True):
-            keys.append(key)
-            if len(keys) >= batch_size:
-                self.delete_batch(keys)
-                keys = []
-        self.delete_batch(keys)
