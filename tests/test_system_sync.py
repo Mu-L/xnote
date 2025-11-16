@@ -43,8 +43,24 @@ from xnote.open_api import client
 from xnote.service.system_meta_service import SystemMetaService
 from xnote.service.system_meta_service import SystemMetaEnum
 
+def init_open_api():
+    app_info = dict(
+        app_name = "test",
+        app_key = xconfig.WebConfig.cluster_node_id,
+    )
+
+    data = dict(
+        action = "save",
+        data = json.dumps(app_info)
+    )
+    json_request("/system/sync/app", method="POST", data=data)
+    SystemMetaEnum.leader_base_url.save_meta("http://127.0.0.1:1234")
+
 DBSyncer.MAX_LOOPS = 5
 DBSyncer.FULL_SYNC_MAX_LOOPS = 5
+
+
+init_open_api()
 
 def get_test_access_token(readonly=False):
     from xnote_handlers.system.system_sync.models import SystemSyncToken
@@ -313,18 +329,7 @@ class TestSystemSync(BaseTestCase):
         assert value == "2"
 
     def test_open_api(self):
-        app_info = dict(
-            app_name = "test",
-            app_key = xconfig.WebConfig.cluster_node_id,
-        )
-
-        data = dict(
-            action = "save",
-            data = json.dumps(app_info)
-        )
-        json_request("/system/sync/app", method="POST", data=data)
-
-        SystemMetaEnum.leader_base_url.save_meta("http://127.0.0.1:1234")
+        init_open_api()
         request = client.BaseRequest()
         request.data = "hello"
         request.api_name = "test.ping"

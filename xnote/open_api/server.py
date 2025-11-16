@@ -27,5 +27,6 @@ def invoke_local_api(request: BaseRequest):
     if not isinstance(resp, BaseResponse):
         return FailedResponse("500", f"invalid response, type {type(resp)}")
     
+    resp.request_id = request.request_id
     resp.build(app_info.app_secret)
     return resp

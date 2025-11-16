@@ -70,9 +70,10 @@ class BaseResponse(BaseDataRecord):
         self.data = ""
         self.message = ""
         self.signature = "" # 用于验证数据完整性
+        self.request_id = ""
 
     def calc_signature(self, app_secret: str) -> str:
-        sign_str = self.data
+        sign_str = self.request_id + self.data
         hmac_obj = hmac.new(
             key=app_secret.encode("utf-8"),
             msg=sign_str.encode("utf-8"),
