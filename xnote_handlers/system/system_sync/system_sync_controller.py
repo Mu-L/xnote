@@ -20,6 +20,7 @@ import threading
 import logging
 import xutils
 import web
+import typing
 
 from xnote.core import xauth, xconfig, xtemplate, xmanager
 from xnote.plugin import TabBox
@@ -38,6 +39,8 @@ from xnote.core.xtemplate import T
 from xnote.plugin import LinkConfig
 from .system_sync_instances import LeaderInstance, FollowerInstance
 from . import system_sync_open_api
+from .node_leader import Leader
+from .node_follower import Follower
 
 system_sync_open_api.init()
 
@@ -216,7 +219,7 @@ class SyncHandler:
 
         return LeaderHandler().handle_leader_action()
     
-    def get_leader_binlog_seq(self, role_manager):
+    def get_leader_binlog_seq(self, role_manager: typing.Union[Leader, Follower]):
         leader_info = role_manager.get_leader_info()
         if leader_info == None:
             return -1

@@ -56,8 +56,8 @@ def init_open_api():
     json_request("/system/sync/app", method="POST", data=data)
     SystemMetaEnum.leader_base_url.save_meta("http://127.0.0.1:1234")
 
-DBSyncer.MAX_LOOPS = 5
-DBSyncer.FULL_SYNC_MAX_LOOPS = 5
+DBSyncer.MAX_LOOPS = 100
+DBSyncer.FULL_SYNC_MAX_LOOPS = 100
 
 
 init_open_api()
@@ -172,6 +172,7 @@ class TestSystemSync(BaseTestCase):
             db_syncer.put_db_sync_state("full")
 
             max_id = binlog_obj.get_max_id()
+            assert isinstance(max_id, int)
             
             # 全量同步
             FollowerInstance.sync_db_from_leader()
@@ -217,8 +218,8 @@ class TestSystemSync(BaseTestCase):
             # 增量同步
             FollowerInstance.sync_db_from_leader()
 
-            self.assertEqual(db_syncer.get_db_sync_state(), "binlog")
             self.assertEqual(db_syncer.get_binlog_last_seq(), binlog_instance.get_max_id())
+            self.assertEqual(db_syncer.get_db_sync_state(), "binlog")
         finally:
             netutil.set_net_mock(None)
 

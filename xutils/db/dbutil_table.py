@@ -27,10 +27,10 @@ from xutils.db import filters
 db = register_table("_id", "系统ID表")
 db.delete_table()
 
-register_table("_max_id", "最大ID")
+register_table("_max_id", "最大ID", type = "hash")
 register_table("_index", "通用索引", is_deleted = True)
 register_table("_meta", "表元信息", is_deleted = True)
-register_table("_idx_version", "索引版本", is_deleted = True)
+register_table("_idx_version", "索引版本", is_deleted = True, type = "hash")
 
 db = register_table("_repair_error", "修复错误记录", is_deleted = True)
 db.register_index("ctime")

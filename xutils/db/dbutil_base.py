@@ -301,6 +301,13 @@ def validate_dict(obj, msg, *argv):
         raise DBException(msg.format(*argv))
 
 
+class TableConfig:
+    _skip_sync_tables = set()
+
+    @classmethod
+    def add_skip_sync_table(cls, table_name: str):
+        cls._skip_sync_tables.add(table_name)
+
 class TableInfo:
     """表信息管理"""
 
@@ -399,6 +406,12 @@ class TableInfo:
                 if table_info.index_db.table_name == index_name:
                     return table_info
         return None
+    
+    @property
+    def need_sync(self):
+        if self.name in TableConfig._skip_sync_tables:
+            return False
+        return True
 
 class IndexInfo:
 
@@ -448,7 +461,7 @@ def register_deleted_table(table_name, description, **kw):
     kw["is_deleted"] = True
     return register_table(table_name=table_name, description=description, **kw)
 
-def register_table(table_name:str, description:str, is_deleted=False, **kw):  
+def register_table(table_name:str, description:str, is_deleted=False, type="table", **kw):  
     # type: (...)->TableInfo
     """注册表定义
     :param {str} table_name: 表名称
@@ -463,10 +476,10 @@ def register_table(table_name:str, description:str, is_deleted=False, **kw):
     if not re.match(r"^[0-9a-z_]+$", table_name):
         raise Exception("无效的表名:%r" % table_name)
 
-    return _register_table_inner(table_name, description, is_deleted=is_deleted, **kw)
+    return _register_table_inner(table_name, description, is_deleted=is_deleted, type=type, **kw)
 
 
-def _register_table_inner(table_name, description, is_deleted=False, **kw):
+def _register_table_inner(table_name, description, is_deleted=False, type="table", **kw):
     if not re.match(r"^[0-9a-z_\$\.]+$", table_name):
         # 内部校验更加宽松一些
         raise Exception("无效的表名:%r" % table_name)
@@ -474,7 +487,7 @@ def _register_table_inner(table_name, description, is_deleted=False, **kw):
     info = TableInfo(table_name, description, kw.get("category", "default"))
     info.check_user = kw.get("check_user", False)
     info.user_attr = kw.get("user_attr")
-    info.type = kw.get("type", "table")
+    info.type = type
     info.index_db = kw.get("index_db")
     info.check_and_register()
     info.is_deleted = is_deleted
@@ -560,7 +573,7 @@ def db_get_object(key: str, default_value=None):
     return value
 
     
-def db_get_str(key: str, default_value=None, encoding="utf-8"):
+def db_get_str(key: str, default_value: typing.Optional[str]=None, encoding="utf-8"):
     check_leveldb()
     try:
         if key == "" or key == None:
@@ -613,6 +626,16 @@ def db_put(key: str, obj_value, sync=False, check_table=True):
 def put_bytes(key: bytes, value: bytes, sync=False):
     check_before_write(key.decode("utf-8"))
     _leveldb.Put(key, value, sync=sync)
+
+def db_put_str(key: str, value: str, sync=False, check_table=True):
+    """往数据库中写入键值对
+    :param key: 数据库主键
+    :param value: 值 字符串类型
+    :param sync: 是否同步写入，默认为False
+    """
+    check_before_write(key, check_table)
+    bkey = key.encode("utf-8")
+    _leveldb.Put(bkey, value.encode("utf-8"), sync=sync)
 
 
 def db_delete(key: str, sync=False):

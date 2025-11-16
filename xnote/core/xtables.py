@@ -550,6 +550,7 @@ def init_system_sync_binlog_table():
     with create_default_table_manager(table_name, comment=comment, pk_name=pk_name) as manager:
         manager.add_column("create_time", "bigint", default_value=0, comment="创建时间毫秒时间戳")
         manager.add_column("op_type", "varchar(64)", default_value="")
+        manager.add_column("key_type", "tinyint", default_value=0, comment="key类型, 1-int,2-str")
         manager.add_column("record_key", "varchar(100)", default_value="", comment="主键,json格式")
         manager.add_column("record_value", "text", default_value="")
         manager.add_column("table_name", "varchar(64)", default_value="")

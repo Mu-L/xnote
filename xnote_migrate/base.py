@@ -27,7 +27,7 @@ class MigradeFailedDO(Storage):
         self.record = None
 
 
-dbutil.register_table("db_upgrade_log", "数据库升级日志")
+dbutil.register_table("db_upgrade_log", "数据库升级日志", type="hash")
 sys_log_db = dbutil.get_table("sys_log")
 failed_db = dbutil.get_table("migrate_failed")
 

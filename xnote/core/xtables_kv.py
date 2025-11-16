@@ -17,6 +17,8 @@ from xnote.core import xtables
 
 @xutils.log_init_deco("xtables_kv")
 def init():
+    dbutil.TableConfig.add_skip_sync_table("test")
+
     # 使用NoSQL风格的数据库接口
     # NoSQL适合的场景：大文档、配置、缓存、计数器、时序日志
     # 尽量不要使用索引的功能，数据库索引保证最终一致，不保证强一致
@@ -38,8 +40,7 @@ def init():
     db = dbutil.register_table("session", "用户会话信息", is_deleted=True)
     db.register_index("user", columns=["user_name"])
     dbutil.register_table("sys_config", "系统配置表", is_deleted=True)
-    
-    dbutil.register_table("user_stat", "用户数据统计")
+    dbutil.register_table("user_stat", "用户数据统计", type="hash")
 
     # 月度计划
     month_plan_index = xtables.get_table_by_name("month_plan_index")

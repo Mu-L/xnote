@@ -16,7 +16,7 @@ import web.db
 from . import test_base
 from xutils import jsonutil
 from xutils.sqldb import TableManagerFacade, TableProxy
-from xutils.db.binlog import BinLog, BinLogRecord
+from xutils.db.binlog import BinLog, BinLogRecord, BinLogKeyType
 from xutils.sqldb import TableConfig
 from xnote.core import xconfig
 from xnote.core import xtables
@@ -77,21 +77,22 @@ class TestMain(test_base.BaseTestCase):
         last_log = BinLog.get_instance().get_last_log()
 
         assert isinstance(last_log, BinLogRecord)
-        assert last_log.record_key == jsonutil.tojson(new_id)
+        assert last_log.record_key == str(new_id)
         assert last_log.table_name == table.tablename
         assert last_log.op_type == "sql_upsert"
+        assert last_log.key_type == BinLogKeyType.INT
 
         table.update(where=dict(name="test-1"), age=20)
         last_log = BinLog.get_instance().get_last_log()
         assert isinstance(last_log, BinLogRecord)
-        assert last_log.record_key == jsonutil.tojson(new_id)
+        assert last_log.record_key == str(new_id)
         assert last_log.table_name == table.tablename
         assert last_log.op_type == "sql_upsert"
 
         table.delete(where=dict(name="test-1"))
         last_log = BinLog.get_instance().get_last_log()
         assert isinstance(last_log, BinLogRecord)
-        assert last_log.record_key == jsonutil.tojson(new_id)
+        assert last_log.record_key == str(new_id)
         assert last_log.table_name == table.tablename
         assert last_log.op_type== "sql_delete"
 

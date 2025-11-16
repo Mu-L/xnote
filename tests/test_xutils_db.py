@@ -668,7 +668,7 @@ class TestMain(BaseTestCase):
             last_seq = binlog.get_max_id()
             assert last_seq > 0
 
-            self.assertEqual(last_seq, binlog.get_last_key())
+            self.assertEqual(last_seq, binlog.find_last_seq())
             binlog.add_log("test", "666")
 
             new_seq = binlog.get_max_id()

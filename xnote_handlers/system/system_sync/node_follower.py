@@ -329,59 +329,38 @@ class DBSyncer:
     def put_and_log(self, key, value):
         assert key != None
         assert value != None
-        done = False
-        try:
-            table_name = self.get_table_name_by_key(key)
-            table_v2 = self.get_table_v2_or_None(table_name)
-            if table_v2 != None:
-                table_v2.put_by_key(key, value, fix_index=True)
-                return
-            
-            table_info = dbutil.get_table_info(table_name)
-            if table_info == None:
-                logging.warning("table not exists: %s", table_name)
-                return
-            
-            if table_info.type == "hash":
-                dbutil.put(key, value)
-                done = True
-            else:
-                table = dbutil.get_table(table_name)
-                table.update_by_key(key, value)
-                done = True
-        except:
-            xutils.print_exc()
+        table_name = self.get_table_name_by_key(key)
+        table_v2 = self.get_table_v2_or_None(table_name)
+        if table_v2 != None:
+            table_v2.put_by_key(key, value, fix_index=True)
+            return
         
-        if not done:
-            # 失败才记录binlog
-            batch = dbutil.create_write_batch()
-            batch.put(key, value, check_table=False)
-            self._binlog.add_log("put", key, value, batch = batch)
-            batch.commit()
+        table_info = dbutil.get_table_info(table_name)
+        if table_info == None:
+            logging.warning("table not exists: %s", table_name)
+            return
+        
+        if not table_info.need_sync:
+            logging.info("no need sync, key=%s", key)
+            return
+        
+        if table_info.type == "hash":
+            dbutil.put(key, value)
+        else:
+            table = dbutil.get_table(table_name)
+            table.update_by_key(key, value)
     
-    def delete_and_log(self, key):
+    def delete_and_log(self, key:str):
         assert key != None
-        done = False
-        try:
-            table_name = self.get_table_name_by_key(key)
-            table_v2 = self.get_table_v2_or_None(table_name)
-            if table_v2 != None:
-                table_v2.delete_by_key(key)
-                return
-            
-            table = self.get_table_by_key(key)
-            if table != None:
-                table.delete_by_key(key)
-                done = True
-        except:
-            logging.error("key=%s", key)
-            xutils.print_exc()
-
-        if not done:
-            batch = dbutil.create_write_batch()
-            batch.delete(key)
-            self._binlog.add_log("delete", key, None, batch = batch)
-            batch.commit()
+        table_name = self.get_table_name_by_key(key)
+        table_v2 = self.get_table_v2_or_None(table_name)
+        if table_v2 != None:
+            table_v2.delete_by_key(key)
+            return
+        
+        table = self.get_table_by_key(key)
+        if table != None:
+            table.delete_by_key(key)
     
     @log_mem_info_deco("follower.sync_db")
     def sync_db(self, proxy: HttpClient):
@@ -516,7 +495,7 @@ class DBSyncer:
         key = data.record_key
         value = data.value_obj
         assert key != None
-        if value == None:
+        if value == None or data.op_type == BinLogOpType.delete:
             self.delete_and_log(key)
         else:
             self.put_and_log(key, value)

@@ -16,6 +16,7 @@ import xutils
 import logging
 import os
 import json
+import typing
 
 from xnote.core import xauth, xconfig, xtables
 
@@ -242,7 +243,7 @@ class Leader(NodeManagerBase):
                 return log
             table = xtables.get_table_by_name(table_name)
             pk_name = table_info.pk_name
-            pk_value = json.loads(log.record_key)
+            pk_value = log.key_obj
             db_record = table.select_first(where={pk_name: pk_value})
             log.value_obj = db_record
             if db_record == None:
@@ -250,10 +251,12 @@ class Leader(NodeManagerBase):
         elif optype in (BinLogOpType.file_upload, BinLogOpType.file_rename, BinLogOpType.file_delete):
             return self.process_file_log(log)
         elif optype == BinLogOpType.put:
-            key = json.loads(log.record_key)
-            log.value_obj = dbutil.get(key)
-            if log.record_value == None:
+            key = log.record_key
+            value = dbutil.db_get(key)
+            if value is None:
                 log.op_type = BinLogOpType.delete
+            else:
+                log.value_obj = value
         
         return log
 
@@ -263,17 +266,23 @@ class Leader(NodeManagerBase):
                 return False
             return True
 
-        result = []
+        result: typing.List[BinLogRecord] = []
         for key, value in dbutil.prefix_list("", key_from=last_key,
                                              limit=limit,
                                              include_key=True,
                                              scan_db=True,
                                              filter_func=filter_func):
-            record = dict(key=key, value=value)
+            # value是对象
+            record = BinLogRecord()
+            record.record_key = key
+            record.value_obj = value
+            record.op_type = BinLogOpType.put
+            record.build()
             result.append(record)
+
         resp = ListDBResponse()
         resp.binlog_last_seq = self.binlog.last_seq
-        resp.rows = BinLogRecord.from_dict_list(result)
+        resp.rows = result
         return resp
 
     def refresh_token(self, leader_token="", node_id="", port=""):

@@ -27,6 +27,23 @@ class BinLogOpType:
     sql_upsert = "sql_upsert"
     sql_delete = "sql_delete"
 
+class BinLogKeyType:
+    INT = 1
+    STR = 2
+
+    @classmethod
+    def get_type(cls, key: typing.Union[str, int]):
+        if isinstance(key, str):
+            return cls.STR
+        if isinstance(key, int):
+            return cls.INT
+        raise Exception(f"unknown type {type(key)}")
+    
+    @classmethod
+    def get_value(cls, key_type: int, record_key: str):
+        if key_type == cls.INT:
+            return int(record_key)
+        return record_key
 
 class FileLog(Storage):
     """文件变更日志"""
@@ -40,11 +57,12 @@ class FileLog(Storage):
         self.mtime = 0.0
 
 class BinLogRecord(BaseDataRecord):
-    _ignore_save_fields = set(["old_value", "binlog_id", "value_obj"])
+    _ignore_save_fields = set(["old_value", "binlog_id", "value_obj", "key_obj"])
 
     def __init__(self, **kw):
         self.create_time = dateutil.timestamp_ms()
         self.op_type = "" # see BinLogOpType
+        self.key_type = 0 # 主键类型
         self.record_key = "" # type: str
         self.record_value = "" # type: str
         self.table_name = ""
@@ -52,6 +70,14 @@ class BinLogRecord(BaseDataRecord):
         self.value_obj = None # type: object # 虚拟字段
         self.old_value = None
         super().__init__(**kw)
+
+    def build(self):
+        if self.key_type == 0:
+            self.key_type = BinLogKeyType.get_type(self.record_key)
+
+    @property
+    def key_obj(self):
+        return BinLogKeyType.get_value(self.key_type, self.record_key)
 
 class BinLog:
     _lock = threading.RLock()
@@ -77,7 +103,7 @@ class BinLog:
 
     @property
     def last_seq(self):
-        return self.get_last_key()
+        return self.find_last_seq()
 
     @classmethod
     def get_instance(cls):
@@ -105,23 +131,20 @@ class BinLog:
         last_log = self.db.select_first(order="binlog_id desc")
         return BinLogRecord.from_dict_or_None(last_log)
 
-    def get_last_key(self):
+    def find_last_seq(self):
         last_log = self.get_last_log()
         if last_log:
             return last_log.binlog_id
         return 0
-    
-    def get_max_id(self):
-        record = self.db.select_first(what="MAX(binlog_id) AS binlog_id")
-        if record is None:
-            return 0
-        return BinLogRecord.from_dict(record).binlog_id
 
     def find_start_seq(self):
-        record = self.db.select_first(what="MIN(binlog_id) AS binlog_id")
+        record = self.db.select_first(order="binlog_id")
         if record is None:
             return 0
         return BinLogRecord.from_dict(record).binlog_id
+    
+    def get_max_id(self):
+        return self.find_last_seq()
 
     def add_log(self, optype: str, key: typing.Union[str, int], value=None, batch=None, old_value=None, *, record_value=False, table_name=None):
         if not self._is_enabled:
@@ -130,7 +153,8 @@ class BinLog:
         # 获取自增ID操作是并发安全的, 所以这里不需要加锁, 加锁过多不仅会导致性能下降, 还可能引发死锁问题
         binlog_body = BinLogRecord()
         binlog_body.op_type = optype
-        binlog_body.record_key = jsonutil.tojson(key)
+        binlog_body.record_key = str(key)
+        binlog_body.key_type = BinLogKeyType.get_type(key)
 
         if self.record_old_value and old_value != None:
             binlog_body.old_value = old_value
