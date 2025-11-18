@@ -528,6 +528,9 @@ class TestMain(BaseTestCase):
 
     def test_create_auto_increment_id(self):
         db = dbutil.get_table("test")
+        for item in db.iter(limit=-1):
+            db.delete(item)
+        
         obj1 = Storage(name="Ada", age=20)
         db.insert(obj1, id_type="auto_increment")
 

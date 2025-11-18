@@ -3,6 +3,7 @@ import typing
 import requests
 import json
 
+from xutils import jsonutil
 from xnote.core import xconfig, xmanager
 from .base_model import BaseRequest, OpenApiRegistry, BaseResponse
 from xnote.service.system_meta_service import SystemMetaEnum
@@ -15,7 +16,7 @@ def invoke_remote_api(request: BaseRequest) -> BaseResponse:
         raise Exception(f"app_info not found, app_key={app_key}")
     request.build(app_key, app_info.app_secret)
     request.validate()
-    http_data = json.dumps(request)
+    http_data = jsonutil.tojson(request)
     leader_base_url = SystemMetaEnum.leader_base_url.meta_value
     if xconfig.IS_TEST:
         resp = xmanager.request("/open_api/server", method="POST", data=http_data)

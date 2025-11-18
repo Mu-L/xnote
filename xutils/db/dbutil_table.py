@@ -435,7 +435,7 @@ class LdbTable:
         self.repair_index()
         db_put(idx_version_key, version)
 
-    def delete(self, obj):
+    def delete(self, obj: dict):
         obj_key = self._get_key_from_obj(obj)
         self.delete_by_key(obj_key)
 

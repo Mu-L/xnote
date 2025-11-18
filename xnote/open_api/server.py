@@ -28,7 +28,7 @@ def invoke_local_api(request: BaseRequest):
     try:
         resp = handler(request)
     except Exception as e:
-        trace_error = traceback.print_exc()
+        trace_error = traceback.format_exc()
         return FailedResponse("500", f"internal error\n\n{trace_error}")
     
     if not isinstance(resp, BaseResponse):

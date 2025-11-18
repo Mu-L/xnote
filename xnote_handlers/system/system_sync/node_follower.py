@@ -453,6 +453,7 @@ class DBSyncer:
                 self.sync_db_full(proxy)
                 return "sync_by_full"
             else:
+                logging.error("code=%s, message=%s", code, result_obj.message)
                 raise Exception("未知的code:%s" % code)
         
         return None

@@ -62,7 +62,7 @@ class handler:
             table.add_head(title="name", field="name", link_field="name_link")
             table.add_head(title="amount", field="amount")
 
-            table_names = db_execute(path, "SELECT name FROM sqlite_master WHERE type = ?;", ("table",))
+            table_names = db_execute(path, "SELECT name FROM sqlite_master WHERE type = ? ORDER BY name;", ("table",))
             for name_row in table_names:
                 name = name_row["name"]
                 amount = db_execute(path, "SELECT COUNT(1) AS amount FROM %s" % name)[0].get("amount")
