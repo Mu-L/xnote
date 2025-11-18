@@ -1,5 +1,4 @@
-import json
-
+from xutils import jsonutil
 from xnote.open_api import register_api, BaseRequest, SuccessResponse, FailedResponse
 from .system_sync_instances import LeaderInstance
 from .models import ListBinlogRequest, ListDBRequest, ListDBResponse
@@ -13,7 +12,7 @@ def list_binlog(req: BaseRequest):
         last_seq=list_req.last_seq, limit=list_req.limit, include_req_seq=list_req.include_req_seq)
     
     if result.success:
-        return SuccessResponse(json.dumps(result.data))
+        return SuccessResponse(jsonutil.tojson(result.data))
     else:
         return FailedResponse(result.code, result.message)
 
@@ -23,7 +22,7 @@ def list_db(req: BaseRequest):
         raise Exception("req.data is empty")
     
     result = LeaderInstance.list_db(last_key=list_req.last_key)
-    return SuccessResponse(json.dumps(result))
+    return SuccessResponse(jsonutil.tojson(result))
     
 def init():
     register_api("system.sync.list_binlog", list_binlog)
