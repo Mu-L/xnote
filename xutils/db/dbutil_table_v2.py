@@ -65,13 +65,13 @@ class KvTableV2:
         id_str = self._get_id_from_key(key)
         return int(id_str)
 
-    def _format_value(self, key, value):
+    def _format_value(self, key, value) -> dict:
         if not isinstance(value, dict):
             value = Storage(_raw=value)
 
         value[self.key_name] = key
         value[self.id_name] = self._get_id_from_key(key)
-        return value
+        return value # type: ignore
 
     def _convert_to_db_row(self, obj: dict):
         obj_copy = dict(**obj)
@@ -101,7 +101,7 @@ class KvTableV2:
         batch.put(key, self._convert_to_db_row(obj))
         if self.binlog_enabled:
             self.binlog.add_log(
-                "put", key, obj, batch=batch, old_value=old_obj)
+                "put", key, obj, batch=batch, old_value=old_obj, table_name=self.table_name)
         # 更新批量操作
         batch.commit(sync)
         
@@ -295,7 +295,7 @@ class KvTableV2:
         batch.delete(key)
         if self.binlog_enabled:
             self.binlog.add_log("delete", key, old_obj,
-                                batch=batch, old_value=old_obj)
+                                batch=batch, old_value=old_obj, table_name=self.table_name)
         batch.commit()
         self.index_db.delete(where=dict(id=id))
 

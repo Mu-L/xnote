@@ -213,7 +213,7 @@ class LdbTable:
             self._update_index(old_obj, obj, batch)
             if self.binlog_enabled:
                 self.binlog.add_log(
-                    "put", key, obj, batch=batch, old_value=old_obj)
+                    "put", key, obj, batch=batch, old_value=old_obj, table_name=self.table_name)
             # 更新批量操作
             batch.commit(sync)
 
@@ -229,7 +229,7 @@ class LdbTable:
             self._update_index(old_obj, obj, batch)
             if self.binlog_enabled:
                 self.binlog.add_log(
-                    "put", key, obj, batch=batch, old_value=old_obj)
+                    "put", key, obj, batch=batch, old_value=old_obj, table_name=self.table_name)
             # 更新批量操作
             batch.commit(sync)
 
@@ -470,7 +470,7 @@ class LdbTable:
             batch.delete(key)
             if self.binlog_enabled:
                 self.binlog.add_log("delete", key, old_obj,
-                                    batch=batch, old_value=old_obj)
+                                    batch=batch, old_value=old_obj, table_name=self.table_name)
             batch.commit()
 
     def iter(self, offset=0, limit=20, reverse=False, key_from=None,

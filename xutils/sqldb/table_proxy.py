@@ -293,7 +293,11 @@ class TableProxy(SQLDBInterface):
             "REPLACE INTO %s " % tablename + q(_keys) + " VALUES " + q(_values)
         )
         self._add_row_binlog(values)
-        return self.db.query(sql_query)
+        try:
+            return self.db.query(sql_query)
+        except Exception as e:
+            del self.db.ctx.db # 尝试重新连接
+            raise e
 
     def _new_profile_log(self):
         log = ProfileLog()

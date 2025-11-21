@@ -12,6 +12,7 @@ import threading
 import logging
 import typing
 
+from typing import Optional
 from web import Storage
 from xutils.base import BaseDataRecord
 from xutils.interfaces import SQLDBInterface
@@ -146,7 +147,8 @@ class BinLog:
     def get_max_id(self):
         return self.find_last_seq()
 
-    def add_log(self, optype: str, key: typing.Union[str, int], value=None, batch=None, old_value=None, *, record_value=False, table_name=None):
+    def add_log(self, optype: str, key: typing.Union[str, int], value=None, batch=None, old_value=None, *, 
+                record_value=False, table_name: Optional[str]=None):
         if not self._is_enabled:
             return
 
@@ -170,8 +172,13 @@ class BinLog:
     def list(self, start_binlog_id=0, limit=10):
         """从start_binlog_id开始查询limit个binlog"""
         results = self.db.select(where="binlog_id>=$start_binlog_id", 
-                                 order="binlog_id",limit=limit, 
+                                 order="binlog_id",limit=limit,
                                  vars=dict(start_binlog_id=start_binlog_id))
+        return BinLogRecord.from_dict_list(results)
+    
+    def raw_list(self, offset=0, limit=20, order="binlog_id"):
+        """原生的查询接口"""
+        results = self.db.select(order=order,limit=limit,offset=offset)
         return BinLogRecord.from_dict_list(results)
 
     def delete_expired(self):

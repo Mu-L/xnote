@@ -131,9 +131,12 @@ def days_before(days:int, format=False):
     return time.localtime(seconds)
 
 
-def format_datetime(value: typing.Union[None, datetime.datetime, float] = None, 
-                    format='%Y-%m-%d %H:%M:%S'):
+def format_datetime(value: typing.Union[None, datetime.datetime, float] = None,
+                    format='%Y-%m-%d %H:%M:%S', is_ms = False):
     """格式化日期时间
+    
+    :param is_ms: 是否是毫秒时间戳
+
     >>> format_datetime(0)
     '1970-01-01 08:00:00'
     """
@@ -142,6 +145,8 @@ def format_datetime(value: typing.Union[None, datetime.datetime, float] = None,
     elif isinstance(value, datetime.datetime):
         return value.strftime(format)
     else:
+        if is_ms:
+            value = value / 1000
         st = time.localtime(value)
         return time.strftime(format, st)
 

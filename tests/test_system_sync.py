@@ -308,6 +308,9 @@ class TestSystemSync(BaseTestCase):
         result = LeaderInstance.list_binlog(last_seq=last_seq, limit=20)
         assert result.success == True
 
+    def test_system_sync_binlog(self):
+        self.check_OK("/system/sync/binlog")
+
     def test_leader_list_file_binlog(self):
         from xnote_handlers.system.system_sync.system_sync_controller import LeaderInstance
         from xnote_handlers.system.system_sync.system_sync_indexer import on_fs_upload, FileIndexCheckManager

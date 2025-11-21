@@ -91,6 +91,7 @@ def get_system_sync_tab(tab_default="home"):
     tab = TabBox(tab_key="tab", tab_default=tab_default)
     tab.add_item(title="概览", value="home", href="/system/sync?p=home")
     tab.add_item(title="应用", value="app", href="/system/sync/app")
+    tab.add_item(title="binlog", value="binlog", href="/system/sync/binlog")
     return tab
 
 def get_system_sync_info_list():
