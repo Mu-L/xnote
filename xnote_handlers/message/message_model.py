@@ -201,7 +201,7 @@ def is_task_tag(tag: str):
     return tag in ("task", "done", "task.search", "done.search")
 
 
-class MessageComment(Storage):
+class MessageComment(BaseDataRecord):
     def __init__(self):
         self.time = dateutil.format_datetime()
         self.content = ""
@@ -266,6 +266,7 @@ class MessageDO(BaseMsgDO):
         result.id = result._key
         if result.comments == None:
             result.comments = []
+        result.comments = MessageComment.from_dict_list(result.comments)
         for item in result.comments:
             comment_text = item.get("content")
             item["content"] = sys_comment_dict.get(comment_text, comment_text) # type:ignore

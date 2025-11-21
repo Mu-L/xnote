@@ -723,17 +723,32 @@ class DeleteCommentHandler:
         return webutil.SuccessResult()
     
 class ListCommentHandler:
+
+    html = """
+{% for value in comments %}
+    <div class="todo-comment-row">
+        <div class="content">{{value.content}}</div>
+        <div class="comment-second">
+            <span class="time">{{value.time}}</span>
+            <a data-id="{{msg_id}}" data-time="{{value.time}}" 
+                onclick="xnote.action.message.deleteComment(this)">删除</a>
+        </div>
+    </div>
+{% end %}
+"""
+
+    _code = xtemplate.compile_template(html)
     
     @xauth.login_required()
     def POST(self):
-        id = xutils.get_argument_str("id")
+        msg_id = xutils.get_argument_str("id")
         user_name = xauth.current_name_str()
-        msg = dao.get_message_by_id(id, user_name=user_name)
+        msg = dao.get_message_by_id(msg_id, user_name=user_name)
         if msg == None:
-            return webutil.FailedResult(message="随手记不存在")
+            return "随手记不存在"
         
         comments = list(reversed(msg.comments))
-        return webutil.SuccessResult(data=comments)
+        return self._code.generate(comments = comments, msg_id=msg_id)
 
 class ParseMessageHandler:
 

@@ -362,6 +362,8 @@ class TestMain(BaseTestCase):
         result = json_request_return_dict("/message/comment/create", method="POST", data=create_comment_data)
         assert result["success"] == True
 
+        self.check_OK(f"/message/comment/list?id={msg_id}", method="POST")
+
     def test_message_add_tag(self):
         result = message_tag.add_tag_to_content("empty", "#test#")
         assert result == "#test#\nempty"

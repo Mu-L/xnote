@@ -341,42 +341,34 @@ MessageView.createComment = function (target) {
 }
 
 MessageView.deleteComment = function (target) {
-    var id = $(target).attr("data-id");
+    var msgId = $(target).attr("data-id");
     var time = $(target).attr("data-time");
     var req = {};
-    req.id = id;
+    req.id = msgId;
     req.time = time;
     console.log("deleteComment req:", req);
     xnote.http.post("/message/comment/delete", req, function (resp) {
         if (resp.success) {
             xnote.toast("删除备注成功");
-            MessageView.refreshCommentList(id, "#msgCommentListTpl");
+            MessageView.refreshCommentList(msgId);
         } else {
             xnote.toast(resp.message);
         }
     });
 }
 
-MessageView.refreshCommentList = function(id, selector) {
+MessageView.refreshCommentList = function(msgId) {
     var req = {};
-    req.id = id;
+    req.id = msgId;
     console.log("listComments req:", req);
-    xnote.http.post("/message/comment/list", req, function (resp) {
-        if (resp.success) {
-            var html = $(selector).render({
-                commentList: resp.data,
-                msgId: id
-            });
-            $("#listCommentDialog").html(html);
-        } else {
-            xnote.toast(resp.message);
-        }
+    xnote.http.post("/message/comment/list", req, function (resp_html) {
+        $("#listCommentDialog").html(resp_html);
     });
 }
 
 MessageView.showAllComments = function(target, selector) {
     xnote.showDialog("查看备注", '<div id="listCommentDialog"></div>', ["关闭"]);
-    this.refreshCommentList($(target).attr("data-id"), selector);
+    this.refreshCommentList($(target).attr("data-id"))
 }
 
 MessageView.updateMessageTag = function(id, tag) {

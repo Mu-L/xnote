@@ -68,19 +68,6 @@
     </div>
 </div>
 
-<script id="msgCommentListTpl" type="text/template">
-    {{!each commentList }}
-    <div class="todo-comment-row">
-        <div class="content">{{!$value.content}}</div>
-        <div class="comment-second">
-            <span class="time">{{!$value.time}}</span>
-            <a data-id="{{!msgId}}" data-time="{{!$value.time}}" 
-                onclick="xnote.action.message.deleteComment(this)">删除</a>
-        </div>
-    </div>
-    {{!/each}}
-</script>
-
 <script type="text/javascript">
     $(function () {
         function updateMessageTag(id, tag) {

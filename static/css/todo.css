@@ -87,6 +87,10 @@
     padding: 10px;
 }
 
+.todo-comment-row .content {
+    word-break: break-all;
+}
+
 .todo-comment-row .time {
     color: #888;
 }
