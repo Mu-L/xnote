@@ -81,3 +81,7 @@
     padding: 3px;
     border-radius: 3px;
 }
+
+.action-link {
+    word-break: keep-all;
+}

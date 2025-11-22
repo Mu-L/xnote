@@ -292,6 +292,9 @@ class TestMain(BaseTestCase):
     def test_message_tag_search(self):
         self.check_OK("/message/tag/search_dialog")
 
+        user_id = xauth.current_user_id()
+        msg_dao.search_message(user_id=user_id, key="test", search_tags=set(["task"]))
+
     def test_message_keyword_mark(self):
         user_name = xauth.current_name_str()
         from xnote_handlers.message.dao import MsgTagInfoDao

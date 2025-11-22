@@ -12,6 +12,7 @@ from .note_service import NoteRelationService
 class NoteRelationHandler(BaseTablePlugin):
 
     require_login = True
+    require_admin = False
     title = "笔记关系编辑"
     
     EDIT_HTML = """

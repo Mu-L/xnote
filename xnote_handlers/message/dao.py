@@ -8,6 +8,7 @@ import logging
 import typing
 import types
 
+from typing import Optional, Union
 from xnote.core import xconfig, xmanager, xtables, xauth
 
 from xutils import dbutil, cacheutil, textutil, Storage, functions
@@ -149,19 +150,21 @@ def get_words_from_key(key: str):
     return words
 
 
-def has_tag_fast(content):
+def has_tag_fast(content: str):
     return content.find("#") >= 0 or content.find("@") >= 0
 
 def is_user_tag(key=""):
     return key.startswith("#") and key.endswith("#") and key.count("#") == 2
 
-def search_message(user_id: int, key: str, offset=0, limit=20, *, search_tags=None, no_tag=None, count_only=False, date=""):
+def search_message(user_id: int, key: str, offset=0, limit=20, *, 
+                   search_tags:Union[list, set, None]=None, no_tag=None, count_only=False, date=""):
     """搜索短信
+
     :param {int} user_id: 用户名
     :param {str} key: 要搜索的关键字
     :param {int} offset: 下标
     :param {int} limit: 返回结果最大限制
-    :param {list} search_tags: 搜索的标签集合
+    :param search_tags: 搜索的标签集合
     :param {bool} no_tag: 是否搜索无标签的
     :param {bool} count_only: 只统计数量
     :param {str} date: 日期过滤条件
@@ -173,7 +176,8 @@ def search_message(user_id: int, key: str, offset=0, limit=20, *, search_tags=No
         second_type = 0
         if search_tags != None:
             assert len(search_tags) == 1
-            second_type = MessageStatItem.get_second_type_by_code(search_tags[0])
+            tag_code = safe_list(search_tags)[0]
+            second_type = MessageStatItem.get_second_type_by_code(tag_code)
         return search_message_by_user_tag(user_id=user_id, key=key, offset=offset, limit=limit, second_type=second_type)
     
     words = get_words_from_key(key)
