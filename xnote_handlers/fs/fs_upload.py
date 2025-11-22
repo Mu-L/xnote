@@ -513,7 +513,7 @@ class CheckHandler:
 
 class FileInfoHandler(BaseTablePlugin):
     require_admin = False
-    require_admin = True
+    require_login = True
 
     def handle_edit(self):
         form = self.create_form()

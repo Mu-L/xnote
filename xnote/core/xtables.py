@@ -523,6 +523,8 @@ def init_system_sync_token_table():
         manager.add_index("token_holder")
         manager.add_index("token")
 
+    TableConfig.disable_binlog(table_name)
+
 def init_system_sync_app_table():
     """系统同步应用信息
     @since 2025/11/15

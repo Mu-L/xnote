@@ -383,8 +383,8 @@ class ColumnDef:
 
 class TableInfo:
 
-    def __init__(self, tablename = ""):
-        self.tablename = tablename
+    def __init__(self, table_name = ""):
+        self.table_name = table_name
         self.pk_name = DefaultValues.pk_name
         self.pk_type = DefaultValues.pk_type
         self.db_type = "" # 数据库类型, 比如 mysql/sqlite
@@ -420,8 +420,8 @@ class TableInfo:
     
     def validate(self):
         if self.pk_type != DefaultValues.pk_type:
-            if self.tablename not in TableConfig._non_int_pk_tables:
-                raise Exception(f"table {self.tablename}: pk_type {self.pk_type} is not allowed")
+            if self.table_name not in TableConfig._non_int_pk_tables:
+                raise Exception(f"table {self.table_name}: pk_type {self.pk_type} is not allowed")
 
 class TableManagerFacade:
 

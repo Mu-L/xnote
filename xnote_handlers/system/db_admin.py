@@ -623,13 +623,13 @@ class StructHelper:
         db_type = table_info.db_type
 
         if db_type == "sqlite":
-            vars = dict(type="index", tbl_name=table_info.tablename)
+            vars = dict(type="index", tbl_name=table_info.table_name)
             result_set = table_proxy.raw_query("select name, sql from sqlite_master where type=$type AND tbl_name=$tbl_name", vars=vars)
             assert isinstance(result_set, web.db.BaseResultSet)
             return self.result_set_to_table(result_set, table_proxy)
 
         if db_type == "mysql":
-            vars = dict(database=xconfig.DatabaseConfig.mysql_database, table_name=table_info.tablename)
+            vars = dict(database=xconfig.DatabaseConfig.mysql_database, table_name=table_info.table_name)
             # 完整字段查看 DESC information_schema.statistics
             result_set = table_proxy.raw_query("SELECT index_name,seq_in_index,column_name,non_unique,nullable,index_type,comment,index_comment \
                                                FROM information_schema.statistics WHERE table_schema=$database AND table_name = $table_name", vars=vars)
