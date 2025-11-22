@@ -1,9 +1,9 @@
 import time
 import typing
-import requests
 import json
 
 from xutils import jsonutil
+from xutils import netutil
 from xnote.core import xconfig, xmanager
 from .base_model import BaseRequest, OpenApiRegistry, BaseResponse
 from xnote.service.system_meta_service import SystemMetaEnum
@@ -22,13 +22,11 @@ def invoke_remote_api(request: BaseRequest) -> BaseResponse:
         resp = xmanager.request("/open_api/server", method="POST", data=http_data)
         resp_dict = json.loads(str(resp.data, encoding="utf-8"))
     else:
-        resp = requests.post(url=f"{leader_base_url}/open_api/server", data=http_data)
-        if not resp.ok:
-            raise Exception(f"post failed, status_code={resp.status_code}, reason={resp.reason}")
+        resp = netutil.http_post(url=f"{leader_base_url}/open_api/server", data=http_data)
         try:
-            resp_dict = json.loads(resp.text)
+            resp_dict = json.loads(resp)
         except Exception as e:
-            print(f"parse json failed, text={resp.text}")
+            print(f"parse json failed, text={resp}")
             raise e
     resp_obj = BaseResponse.from_dict(resp_dict)
     resp_sig = resp_obj.calc_signature(app_info.app_secret)

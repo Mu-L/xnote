@@ -59,7 +59,7 @@ class ShardCursor:
             data=self.params,
         )
 
-        raw_data = netutil.http_post(self.url, body=json.dumps(params))
+        raw_data = netutil.http_post(self.url, data=json.dumps(params))
         result = json.loads(raw_data)
         if result.get("code") == 0:
             data = result.get("data")

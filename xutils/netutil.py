@@ -23,6 +23,7 @@ import logging
 import http.client
 import typing
 
+from typing import Optional
 from urllib.parse import parse_qs
 from xutils.imports import try_decode
 from xutils.base import print_exc
@@ -178,7 +179,7 @@ class HttpFileNotFoundError(HttpError):
     def __init__(self, status, message):
         super().__init__(status, message)
 
-def do_http(method, url: str, headers, data = None, charset = 'utf-8'):
+def _do_http(method, url: str, headers, data = None, charset = 'utf-8'):
     """使用低级API访问HTTP，可以任意设置header，data等
     """
     addr = get_host_by_url(url)
@@ -193,23 +194,28 @@ def do_http(method, url: str, headers, data = None, charset = 'utf-8'):
     headers = headers or dict()
     if "User-Agent" not in headers:
         headers["User-Agent"] = USER_AGENT
-    conn.request(method, url, data, headers = headers)
-    head = None
-    buf = None
-    response_headers = None
-    with conn.getresponse() as resp:
-        response_headers = resp.getheaders()
-        content_type = resp.getheader("Content-Type")
-        content_encoding = resp.getheader("Content-Encoding")
-        buf = resp.read()
-        if content_encoding == "gzip":
-            fileobj = io.BytesIO(buf)
-            gzip_f = gzip.GzipFile(fileobj=fileobj, mode="rb")
-            content = gzip_f.read()
-            return resp.getcode(), response_headers, content
-        elif content_encoding != None:
-            raise Exception("暂不支持%s编码" % content_encoding)
-        return resp.getcode(), response_headers, codecs.decode(buf, charset)
+    try:
+        conn.request(method, url, data, headers = headers)
+        buf = None
+        response_headers = None
+        with conn.getresponse() as resp:
+            response_headers = resp.getheaders()
+            content_type = resp.getheader("Content-Type")
+            content_encoding = resp.getheader("Content-Encoding")
+            buf = resp.read()
+            return resp.getcode(), response_headers, _decode_resp_bytes(buf, charset, content_encoding)
+    finally:
+        conn.close()
+
+def _decode_resp_bytes(buf: bytes, charset: str, content_encoding:Optional[str] = None):
+    if content_encoding == "gzip":
+        fileobj = io.BytesIO(buf)
+        gzip_f = gzip.GzipFile(fileobj=fileobj, mode="rb")
+        content_bytes = gzip_f.read()
+        return codecs.decode(content_bytes, charset)
+    elif content_encoding != None:
+        raise Exception("暂不支持%s编码" % content_encoding)
+    return codecs.decode(buf, charset)
 
 def http_get_by_requests(url, charset = None):
     assert requests != None
@@ -238,7 +244,7 @@ def _join_url_and_params(url, params, *, skip_empty_value=False):
     else:
         return url + "?" + query_string
 
-def http_get(url:str, charset=None, params = None, skip_empty_value=False):
+def http_get(url:str, charset=None, params = None, skip_empty_value=False) -> str:
     """Http的GET请求"""
     url = _join_url_and_params(url, params, skip_empty_value=skip_empty_value)
 
@@ -269,17 +275,30 @@ def http_get(url:str, charset=None, params = None, skip_empty_value=False):
     finally:
         conn.close()
 
-def http_post(url:str, body='', charset='utf-8'):
+def http_post(url:str, data='', charset='utf-8') -> str:
     """HTTP的POST请求
-    :arg str url: 请求的地址
-    :arg str body: POST请求体
-    :arg str charset: 字符集，默认utf-8
+
+    :param url: 请求的地址
+    :param data: POST请求体
+    :param charset: 字符集，默认utf-8
+
+    :raise: 网络异常
     """
     if _mock != None:
-        return _mock.http_post(url, body, charset)
+        return _mock.http_post(url, data, charset)
+    
+    if requests != None:
+        return _http_post_by_request(url, data, charset)
         
-    status, headers, body = do_http("POST", url, None, body)
-    return body
+    status, headers, resp_data = _do_http("POST", url, None, data)
+    return resp_data
+
+def _http_post_by_request(url: str, data: str, charset='utf-8'):
+    assert requests != None
+    resp = requests.post(url=url, data=data)
+    if not resp.ok:
+        raise Exception(f"status_code={resp.status_code}, message={resp.reason}")
+    return resp.text
 
 def http_download_by_requests(url, destpath):
     assert requests != None
@@ -295,7 +314,7 @@ def http_download_by_requests(url, destpath):
             fp.write(chunk)
     return resp.headers # headers是key大小写不敏感的dict
 
-def http_download(address, destpath = None, dirname = None):
+def http_download(address: str, destpath: str, dirname = None):
     if dirname is not None:
         basename = os.path.basename(address)
         destpath = os.path.join(dirname, basename)

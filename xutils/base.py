@@ -110,6 +110,7 @@ def decode_bytes(bytes: bytes):
             exc = e
     if exc != None:
         raise exc
+    raise Exception("can not decode bytes")
 
 try_decode = decode_bytes
 
