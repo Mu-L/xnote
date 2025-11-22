@@ -448,7 +448,7 @@ def load_note_index(user_name):
             NoteLink("导入笔记", "/note/html_importer", "fa-internet-explorer"),
             NoteLink("时间视图", "/note/date", "fa-calendar"),
             NoteLink("数据统计", "/note/stat", "fa-bar-chart"),
-            NoteLink("上传管理", "/fs_upload", "fa-upload"),
+            NoteLink("上传管理", "/fs_upload/manage", "fa-upload"),
             NoteLink("回收站", "/note/removed", "fa-trash",
                      size=note_stat.removed_count),
         ])

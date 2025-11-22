@@ -58,7 +58,7 @@ def build_index_by_fpath(fpath, user_id=0, remark="", file_id=0):
     if file_id > 0:
         FileInfoDao.replace(file_info)
     else:
-        FileInfoDao.upsert(file_info)
+        FileInfoDao.save_by_fpath(file_info)
     logging.debug("更新文件索引:%s", file_info)
 
 class FileSyncIndexManager:

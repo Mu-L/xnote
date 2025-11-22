@@ -34,6 +34,7 @@
 {% set search_action = '/fs_upload/search' %}
 {% set search_placeholder = '搜索文件' %}
 {% init show_rename_file_link = False %}
+{% init is_upload_page = True %}
 
 {% include fs/component/css/fs_css.html %}
 
@@ -41,8 +42,6 @@
 
 {% block body_left %}
     
-    {% init page = "upload" %}
-
     <input type="hidden" id="dirname" value="{{dirname}}"/>
 
     <div class="card">
@@ -59,7 +58,7 @@
 
     {% include note/component/filter/type_filter.html %}
 
-    {% if page == "upload" %}
+    {% if is_upload_page %}
     <div class="card">
         日期
         <select name="year" value="{{year}}">
@@ -82,7 +81,7 @@
 
     {% import os %}
     <div class="card row">
-        {% if page == "upload" %}
+        {% if is_upload_page %}
             {% include fs/mod_fs_upload.html %}
         {% end %}
 
@@ -91,6 +90,10 @@
         {% end %}
 
         {% include fs/component/filelist_gallery.html %}
+    </div>
+
+    <div class="card">
+        {% include common/base/pagination.html %}
     </div>
 
     <script>

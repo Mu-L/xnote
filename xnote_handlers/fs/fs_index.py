@@ -43,7 +43,7 @@ class IndexBuilder:
         info.fpath = dirname
         info.fsize = size
         info.ftype = "dir"
-        FileInfoDao.upsert(info)
+        FileInfoDao.save_by_fpath(info)
         return size
 
 
@@ -84,7 +84,7 @@ class IndexBuilder:
         if not fsutil.is_parent_dir(xconfig.FileConfig.data_dir, info.fpath):
             logging.info("not in data dir, skip, fpath=%s", info.fpath)
             return
-        return FileInfoDao.upsert(info)
+        return FileInfoDao.save_by_fpath(info)
 
     @classmethod
     def build_fs_index(cls, dirname, sync=False):

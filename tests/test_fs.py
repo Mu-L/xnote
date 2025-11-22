@@ -7,7 +7,7 @@ from .a import *
 import os
 from xnote.core import xconfig
 from xnote.core import xauth
-from xutils import textutil
+from xutils import textutil, jsonutil
 from .test_base import json_request, BaseTestCase, request_html, json_request_return_dict
 from .test_base import init as init_app, get_test_file_path
 from xnote_handlers.fs.fs_index import build_fs_index
@@ -80,8 +80,8 @@ class TestMain(BaseTestCase):
         dao = FileInfoDao()
         info = FileInfo()
         info.fpath = "/data/xxx"
-        id1 = dao.upsert(info)
-        id2 = dao.upsert(info)
+        id1 = dao.save_by_fpath(info)
+        id2 = dao.save_by_fpath(info)
         assert id1 == id2
     
     def test_fs_index_manage_page(self):
@@ -146,3 +146,27 @@ class TestMain(BaseTestCase):
             self.check_OK(f"/fs_download?fpath={fpath_b64}&token={token_info.token}")
         finally:
             xauth.TestEnv.login_admin()
+
+    def test_file_info(self):
+        fpath = self.prepare_test_file("./test_info.txt", "test info")
+        user_id = xauth.current_user_id()
+
+        info = FileInfo()
+        info.fpath = fpath
+        info.user_id = user_id
+        file_id = FileInfoDao.save_by_fpath(info)
+
+        self.check_OK(f"/fs_upload/file_info?action=edit&file_id={file_id}")
+        data = dict(
+            action = "save",
+            data = jsonutil.tojson(dict(
+                file_id = file_id,
+                remark = "update remark",
+            ))
+        )
+        result = json_request_return_dict("/fs_upload/file_info", method="POST", data=data)
+        assert result["success"]
+
+        file_info = FileInfoDao.get_by_id(file_id=file_id, user_id=user_id)
+        assert file_info != None
+        assert file_info.remark == "update remark"

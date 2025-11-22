@@ -22,6 +22,7 @@ from .fs_helper import FileInfoDao
 from xnote_handlers.fs import fs_checker
 from xutils.fsutil import get_safe_file_name
 from xnote_handlers.note.models import NoteTypeInfo
+from xnote.plugin.table_plugin import BaseTablePlugin, FormRowType
 
 try:
     from PIL import Image
@@ -67,7 +68,7 @@ def get_webpath(fpath):
 def upload_link_by_month(year, month, delta=0):
     t_mon = (month - 1 + delta) % 12 + 1
     t_year = year + math.floor((month-1+delta)/12)
-    return "/fs_upload?year=%d&month=%02d" % (t_year, t_mon)
+    return "/fs_upload/manage?year=%d&month=%02d" % (t_year, t_mon)
 
 
 def try_touch_note(note_id):
@@ -279,16 +280,18 @@ class UploadHandler:
         result.link = get_link(file.filename, webpath)
         return result
 
+
+class UploadManageHandler:
     @xauth.login_required()
     def GET(self):
-        return self.get_upload_page_v2()
-
-    def get_upload_page_v2(self):
-        # TODO 基于数据库数据的上传页面
         user_info = xauth.current_user()
         assert user_info != None
         user_name = user_info.name
-        xmanager.add_visit_log(user_name, "/fs_upload")
+        xmanager.add_visit_log(user_name, "/fs_upload/manage")
+        page = xutils.get_argument_int("page", 1)
+        assert page >= 1
+        page_size = 50
+        offset = (page-1) * page_size
 
         year = xutils.get_argument_int("year", dateutil.get_current_year())
         month = xutils.get_argument_int("month", dateutil.get_current_month())
@@ -298,7 +301,7 @@ class UploadHandler:
         user_id = user_info.id
         start_time = date_info.format_date()
         end_time = date_info.next_month().format_date()
-        files = FileInfoDao.list(user_id=user_id, limit=50, start_time_inclusive=start_time, end_time_exclusive=end_time)
+        files, total = FileInfoDao.query_page(user_id=user_id, offset=offset, limit=page_size, start_time_inclusive=start_time, end_time_exclusive=end_time)
         pathlist = []
         for item in files:
             pathlist.append(item.realpath)
@@ -317,8 +320,12 @@ class UploadHandler:
         kw.get_display_name = get_display_name
         kw.type_list = NoteTypeInfo.get_type_list()
         kw.note_type = "file"
+        kw.page = page
+        kw.page_total = total
+        kw.page_size = page_size
+        kw.page_url = f"?year={year}&month={month}&page="
 
-        return xtemplate.render("fs/page/fs_upload.html",**kw)
+        return xtemplate.render("fs/page/fs_upload_manage.html",**kw)
     
 
 class RangeUploadHandler:
@@ -473,27 +480,25 @@ class UploadSearchHandler:
     @xauth.login_required()
     def GET(self):
         key = xutils.get_argument_str("key")
-        user_name = xauth.current_name_str()
-        user_dir = os.path.join(xconfig.UPLOAD_DIR, user_name)
+        user_id = xauth.current_user_id()
 
-        find_key = "*" + key + "*"
-        if find_key == "**":
-            plist = []
-        else:
-            plist = sorted(xutils.search_path(user_dir, find_key, "file"))
-
+        files = FileInfoDao.search(user_id=user_id, search_key = key)
         kw = Storage()
         kw.title = T("文件搜索结果")
-        kw.page = "search"
+        kw.is_upload_page = False
         kw.type_list = NoteTypeInfo.get_type_list()
         kw.note_type = "file"
+        kw.dirname = "_empty"
+        kw.files = files
 
-        return xtemplate.render("fs/page/fs_upload.html",
+        pathlist = []
+        for item in files:
+            pathlist.append(item.realpath)
+
+        return xtemplate.render("fs/page/fs_upload_manage.html",
                                 show_aside=False,
                                 html_title=T("文件"),
-                                pathlist=plist,
-                                path=user_dir,
-                                dirname=user_dir,
+                                pathlist=pathlist,
                                 get_webpath=get_webpath,
                                 upload_link_by_month=upload_link_by_month,
                                 get_display_name=get_display_name, **kw)
@@ -506,6 +511,45 @@ class CheckHandler:
         pass
 
 
+class FileInfoHandler(BaseTablePlugin):
+    require_admin = False
+    require_admin = True
+
+    def handle_edit(self):
+        form = self.create_form()
+        form.path = "/fs_upload/file_info"
+        file_id = xutils.get_argument_int("file_id")
+        user_id = xauth.current_user_id()
+        file_info = FileInfoDao.get_by_id(file_id, user_id)
+
+        if file_info is None:
+            return "文件不存在"
+        
+        form.add_row("file_id", field="file_id", value=str(file_info.id), css_class="hide")
+        form.add_row("创建时间", field="ctime", value=file_info.ctime, readonly=True)
+        form.add_textarea("文件路径", field="fpath", value=file_info.fpath, readonly=True)
+        form.add_textarea("备注", field="remark", value=file_info.remark)
+            
+        kw = Storage()
+        kw.form = form
+        return self.response_form(**kw)
+    
+    def handle_save(self):
+        param = self.get_param_dict()
+        file_id = param.get_int("file_id")
+        user_id = xauth.current_user_id()
+        file_info = FileInfoDao.get_by_id(file_id, user_id)
+
+        if file_info is None:
+            return webutil.FailedResult(code="404", message="文件不存在")
+        
+        file_info.remark = param.get_str("remark")
+        FileInfoDao.save(file_info)
+        return webutil.SuccessResult()
+    
+
+
+
 xutils.register_func("fs.get_upload_file_path", get_upload_file_path)
 
 xurls = (
@@ -513,5 +557,7 @@ xurls = (
     r"/fs_upload", UploadHandler,
     r"/fs_upload/check", CheckHandler,
     r"/fs_upload/search", UploadSearchHandler,
-    r"/fs_upload/range", RangeUploadHandler
+    r"/fs_upload/range", RangeUploadHandler,
+    r"/fs_upload/manage", UploadManageHandler,
+    r"/fs_upload/file_info", FileInfoHandler,
 )

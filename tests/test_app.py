@@ -118,7 +118,7 @@ class TestMain(BaseTestCase):
         self.check_OK("/fs/~/?mode=shell")
 
     def test_fs_upload(self):
-        self.check_OK("/fs_upload")
+        self.check_OK("/fs_upload/manage")
 
     def test_code_analyze(self):
         # TODO 解决JSON的循环问题

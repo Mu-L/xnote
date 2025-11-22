@@ -77,7 +77,9 @@ if (window.xnote === undefined) {
     // 自定义模块-管理后台
     xnote.admin = {};
     // 自定义模块-视图
-    xnote.view = {}
+    xnote.view = {};
+    // 自定义模块-文件
+    xnote.file = {};
 }
 
 xnote.registerApiModule = function (name) {

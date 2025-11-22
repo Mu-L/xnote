@@ -113,7 +113,7 @@ NOTE_TOOLS = [
     # 词典可以用 language 图标
     user_link("词典", "/note/dict", img_src="/static/image/icon_dict.svg"),
     user_link("搜索历史", "/search", "search"),
-    user_link("上传管理", "/fs_upload", "upload"),
+    user_link("上传管理", "/fs_upload/manage", "upload"),
     user_link("数据统计", "/note/stat", "bar-chart"),
     user_link("月度计划", "/plan/month", "calendar"),
 ]
