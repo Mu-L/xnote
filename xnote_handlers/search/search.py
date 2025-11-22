@@ -221,6 +221,10 @@ class SearchHandler:
         parent_id = xutils.get_argument_int("parent_id")
         words = textutil.split_words(key)
 
+        from xnote_handlers.search.note import search_tag
+
+        tag_result = search_tag(ctx)
+
         if ctx.category == "content":
             notes = note_dao.search_content(words, user_name)
         else:
@@ -237,7 +241,9 @@ class SearchHandler:
 
         offset = ctx.offset
         limit  = ctx.limit
-        return notes[offset:offset+limit], len(notes)
+
+        result = tag_result + notes
+        return result[offset:offset+limit], len(result)
     
     def do_search_message(self, ctx: SearchContext, key: str):
         from xnote_handlers.message.message_search import handle_search_event
@@ -413,14 +419,14 @@ class RuleManager:
     _RULES = []
 
     @classmethod
-    def add_rule(cls, pattern, func_str):
+    def add_rule(cls, pattern: str, func_str: str):
         try:
             mod, func_name = func_str.rsplit('.', 1)
             # mod = __import__(mod, None, None, [''])
             mod = six._import_module("xnote_handlers.search." + mod)
             func = getattr(mod, func_name)
             func.modfunc = func_str
-            rule = BaseRule(r"^%s\Z" % u(pattern), func)
+            rule = BaseRule(r"^%s\Z" % pattern, func)
             rule.func_str = func_str
             cls._RULES.append(rule)
         except Exception as e:

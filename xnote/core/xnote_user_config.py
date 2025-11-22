@@ -55,7 +55,8 @@ _filter_text_help = """
 类别2 #Tag3# #Tag4#
 
 特殊标签
-#_all# 清空筛选条件，即选择全部
+#_reset# 清空筛选条件
+#_all# 选择全部，等同于清空筛选条件
 """
 
 class UserConfig:

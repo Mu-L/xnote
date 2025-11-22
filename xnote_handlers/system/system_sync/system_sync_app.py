@@ -10,9 +10,9 @@ from .system_sync_controller import get_system_sync_tab
 
 class AppHandler(BaseTablePlugin):
 
-    title = "集群应用管理"
+    title = "应用管理"
     require_admin = True
-    parent_link = LinkConfig.app_index
+    parent_link = LinkConfig.system_sync
 
     NAV_HTML = """
 <div class="card">

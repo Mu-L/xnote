@@ -9,6 +9,7 @@
 @Description  : 数据库表-API
 """
 
+from typing import Union
 from xutils import Storage
 from xutils.db.dbutil_base import *
 from xutils.db.encode import decode_str
@@ -41,8 +42,8 @@ class KvTableV2:
     def set_binlog_enabled(self, enabled=True):
         self.binlog_enabled = enabled
 
-    def _build_key(self, id):
-        return self.prefix + str(id)
+    def _build_key(self, row_id):
+        return self.prefix + str(row_id)
 
     def _get_key_from_obj(self, obj:dict):
         validate_dict(obj, "obj is not dict")
@@ -114,7 +115,7 @@ class KvTableV2:
         assert isinstance(key, str)
         return key.startswith(self.prefix)
 
-    def get_by_id(self, row_id, default_value=None):
+    def get_by_id(self, row_id: Union[int, str], default_value=None):
         """通过ID查询记录
         :param row_id: 记录ID
         :param default_value: 默认值
@@ -232,20 +233,20 @@ class KvTableV2:
 
     update = put
 
-    def put_by_id(self, id, obj:dict, encode_key=True):
+    def put_by_id(self, id: Union[int, str], obj:dict, encode_key=True):
         """通过ID进行更新，如果key包含用户，必须有user_name(初始化定义或者传入参数)
         :param {str} id: 指定ID
         :param {dict} obj: 写入的对象
         :param encode_key=True: 是否对key进行编码,用于处理特殊字符
         """
-        id = str(id)
+        id_str = str(id)
         if encode_key:
-            id = encode_str(id)
+            id_str = encode_str(id_str)
 
-        key = self._build_key(id)
+        key = self._build_key(id_str)
         self.put_by_key(key, obj)
 
-    def put_by_key(self, key, obj:dict, fix_index=False):
+    def put_by_key(self, key: str, obj:dict, fix_index=False):
         """直接通过`key`进行更新"""
         self._check_key(key)
         self._check_value(obj, key=key)
@@ -273,9 +274,9 @@ class KvTableV2:
         db_batch_delete(keys)
         self.index_db.delete(where="id in $ids", vars=dict(ids=ids))
 
-    def delete_by_id(self, id: typing.Union[int, str]):
-        id = str(id)
-        key = self._build_key(id)
+    def delete_by_id(self, id: Union[int, str]):
+        id_str = str(id)
+        key = self._build_key(id_str)
         self.delete_by_key(key)
 
     def delete_by_key(self, key: str):
@@ -299,11 +300,11 @@ class KvTableV2:
         batch.commit()
         self.index_db.delete(where=dict(id=id))
 
-    def delete_index_by_key(self, key):
+    def delete_index_by_key(self, key: str):
         id = self._get_int_id_from_key(key)
         self.index_db.delete(where=dict(id=id))
 
-    def update_index(self, record):
+    def update_index(self, record: dict):
         sql_record = self.build_sql_record(record)
         id = self._get_int_id_from_obj(record)
         self.index_db.update(where=dict(id=id), **sql_record)

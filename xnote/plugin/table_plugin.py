@@ -14,7 +14,7 @@ import json
 from xnote.core.xtemplate import BasePlugin
 from xutils import Storage
 from xutils import webutil
-from xnote.plugin import DataForm, FormRowType, FormRowDateType, DataTable, TableActionType
+from xnote.plugin import DataForm, FormRowType, FormRowDateType, DataTable, TableActionType, TableRowType
 
 
 class ParamDict:

@@ -33,7 +33,7 @@ class CacheHandler(BaseTablePlugin):
 <div class="card">
     <div class="x-tab-box" data-tab-key="type" data-tab-default="local">
         <a class="x-tab" href="{{_server_home}}/system/cache?type=local" data-tab-value="local">单机缓存</a>
-        <a class="x-tab" href="{{_server_home}}/system/cache?type=db" data-tab-value="db">数据库缓存</a>
+        <a class="x-tab" href="{{_server_home}}/system/cache?type=shared" data-tab-value="shared">共享缓存</a>
     </div>
 </div>
 
@@ -58,10 +58,10 @@ class CacheHandler(BaseTablePlugin):
         cache_size = 0
         cache_list = []
 
-        if type == "db":
+        if type == "shared":
             cache = cacheutil.DatabaseCache()
             key_page = cache.list_keys(offset=offset, limit=limit)
-            total = dbutil.count_table(cache.prefix)
+            total = cache.count()
             cache_size = -1
         else:
             cache = cacheutil.get_global_cache()

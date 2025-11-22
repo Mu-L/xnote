@@ -99,6 +99,7 @@ class SystemMetaEnum:
     # 运行状态
     db_backup_file = SystemMetaEnumItem("数据库备份文件", "db.backup.file")
     db_backup_count = SystemMetaEnumItem("数据总量", "db.backup.rows")
+    db_backup_binlog_id = SystemMetaEnumItem("备份时的binlog_id", "db.backup.binlog_id")
 
     # 配置信息
     trace_malloc_enabled = SystemMetaEnumItem("trace_malloc开关", "config.trace_malloc.enabled")

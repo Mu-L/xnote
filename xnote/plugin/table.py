@@ -34,12 +34,17 @@ class LinkTargetType:
     parent = "_parent"
     top = "_top"
 
+class TableRowType:
+    empty = ""
+    date = "date"
+    datetime = "datetime"
+
 class _TypeInfo:
     def __init__(self, name="", min_width=""):
         self.name = name
         self.min_width = min_width
 
-class TableRowType:
+class TableRowEnum:
     date = _TypeInfo(name="date", min_width="120px")
     datetime = _TypeInfo(name="datetime", min_width="200px")
 
@@ -51,7 +56,6 @@ class TableRowType:
             if type_.name == name:
                 return type_
         return None
-
 
 def _get_px_value(value: str):
     """获取像素px的数字值,内部函数,请勿使用"""
@@ -80,6 +84,7 @@ class TableHead:
 
     """表格的标题单元"""
     def __init__(self, table: "DataTable"):
+        self.table = table
         self.title = ""
         self.field = ""
         self.link_field = ""
@@ -91,7 +96,6 @@ class TableHead:
         self.min_width = ""
         self.css_class_field = ""
         self.detail_field = ""
-        self.table = table
         self.default_style = DEFAULT_HEAD_STYLE
     
     def get_css_class(self, row: dict):
@@ -122,7 +126,7 @@ class TableHead:
         if self.min_width != "":
             return self.min_width
         
-        type_info = TableRowType.get_by_name(self.type)
+        type_info = TableRowEnum.get_by_name(self.type)
         if type_info:
             return type_info.min_width
         
@@ -221,7 +225,7 @@ class DataTable:
         # 分页html
         self.pagination_html = ""
     
-    def add_head(self, title="", field = "", type="", link_field="", 
+    def add_head(self, title="", field = "", type=TableRowType.empty, link_field="", 
                  width=DEFAULT_WIDTH, width_weight=0, min_width="", max_width="",
                  css_class_field="", link_target="", detail_field=""):
         """添加表头

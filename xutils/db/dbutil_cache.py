@@ -26,13 +26,23 @@ ttl的几种方案
 import time
 import random
 import logging
-from xutils.db.dbutil_base import db_get, db_put, db_delete, register_table, prefix_iter
+import typing
+
+from xutils.db.dbutil_base import db_get, db_put, db_delete, count_table, register_table, prefix_iter
 from xutils.db import encode
 from xutils import interfaces
+from xutils.base import BaseDataRecord
 
 
 register_table("_ttl", "有效期", is_deleted = True)
 register_table("_cache", "缓存")
+
+
+
+class CacheRecord(BaseDataRecord):
+    def __init__(self):
+        self.value = None
+        self.expire = -1
 
 class DatabaseCache(interfaces.CacheInterface):
 
@@ -42,37 +52,39 @@ class DatabaseCache(interfaces.CacheInterface):
     def __init__(self):
         self.last_scan_key = ""
 
-    def _get_dict_value(self, key):
+    def _get_dict_value(self, key: str):
         cache_key = self.prefix + key
         result = db_get(cache_key)
         if not isinstance(result, dict):
             db_delete(cache_key)
             return None
-        return result
+        return CacheRecord.from_dict(result)
         
-    def get(self, key, default_value=None):
+    def get(self, key: str, default_value=None):
         result = self._get_dict_value(key)
         if result == None:
             return default_value
 
-        expire = result.get("expire", -1)
+        expire = result.expire
         if expire < 0:
-            return result.get("value")
+            return result.value
         
         if expire < time.time():
             # 已失效
             db_delete(self.prefix + key)
             return default_value
         
-        return result.get("value")
+        return result.value
 
-    def put(self, key, value, expire = -1,  expire_random = 600):
+    def put(self, key: str, value: typing.Any, expire = -1,  expire_random = 600):
         assert len(key) < self.MAX_KEY_LEN, "cache key too long"
         assert expire > 0
         expire = int(time.time() + expire)
         expire += random.randint(0, expire_random)
         # TODO 失效信息记录到内存中
-        obj = dict(value = value, expire = expire)
+        obj = CacheRecord()
+        obj.value = value
+        obj.expire = expire
         return db_put(self.prefix + key, obj)
     
     set = put
@@ -117,3 +129,6 @@ class DatabaseCache(interfaces.CacheInterface):
             prefix, cache_key = key.split(":",1)
             result.append(cache_key)
         return result
+    
+    def count(self):
+        return count_table(self.prefix)

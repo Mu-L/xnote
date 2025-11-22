@@ -26,6 +26,7 @@ from xnote.service import JobService, SysJob, JobStatusEnum, DatabaseLockService
 from xnote.plugin import LinkConfig
 from xnote.service.system_meta_service import SystemMetaEnum
 from xnote.plugin.list import ListView, ListViewItem, ActionButton
+from xutils.db.binlog import BinLog
 
 config = xconfig
 
@@ -189,6 +190,11 @@ class DBBackup:
 
         db2 = SqliteKV(self.db_backup_file, debug = False)
         count = 0
+
+        # record binlog_id first, so the backup will contains this value
+        start_binlog_id = BinLog.get_instance().get_max_id()
+        SystemMetaEnum.db_backup_binlog_id.save_meta(str(start_binlog_id))
+
         try:
             batch = dbutil.create_write_batch()
             for key, value in dbutil.get_instance().RangeIter(include_value = True):
@@ -426,6 +432,7 @@ class BackupHandler:
         view.add_item(ListViewItem(text="运行时间", css_class="list-item-black", badge_info=DBBackup.run_time()))
         view.add_item(ListViewItem(text="剩余时间", css_class="list-item-black", badge_info=DBBackup.rest_time()))
         view.add_item(ListViewItem(text="最新备份文件", css_class="list-item-black", badge_info=SystemMetaEnum.db_backup_file.meta_value))
+        view.add_item(ListViewItem(text="备份binlog_id", css_class="list-item-black", badge_info=SystemMetaEnum.db_backup_binlog_id.meta_value))
         return view
 
     @xauth.login_required("admin")

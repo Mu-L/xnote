@@ -102,6 +102,10 @@ def build_filter_html(link_type="task", key="", selected_key=""):
         quoted_key = ""
         if selected_key == "":
             css_class = "active"
+    
+    if key == "#_reset#":
+        key = "重置"
+        quoted_key = ""
 
     if link_type == "task":
         return f"<a class=\"link {css_class}\" href=\"{server_home}/message/task?filterKey={quoted_key}\">{key}</a>"

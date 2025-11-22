@@ -3,7 +3,7 @@ import xutils
 from xutils.base import Storage
 from xutils import webutil
 from xutils import dateutil
-from xnote.plugin.table_plugin import BaseTablePlugin, TableActionType
+from xnote.plugin.table_plugin import BaseTablePlugin, TableActionType, TableRowType
 from xnote_handlers.config import LinkConfig
 from xutils.db.binlog import BinLogRecord, BinLog
 from .system_sync_controller import get_system_sync_tab
@@ -12,7 +12,7 @@ class BinlogHandler(BaseTablePlugin):
 
     title = "binlog"
     require_admin = True
-    parent_link = LinkConfig.app_index
+    parent_link = LinkConfig.system_sync
 
     NAV_HTML = """
 <div class="card">
@@ -28,9 +28,10 @@ class BinlogHandler(BaseTablePlugin):
         table = self.create_table()
         table.add_head("binlog_id", field="binlog_id")
         table.add_head("table_name", field="table_name")
+        table.add_head("op_type", field="op_type")
         table.add_head("record_key", field="record_key")
         table.add_head("record_value", field="record_value")
-        table.add_head("create_time", field="create_time_str")
+        table.add_head("create_time", field="create_time_str", type=TableRowType.datetime)
 
         binlog = BinLog.get_instance()
 

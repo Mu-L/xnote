@@ -890,7 +890,7 @@ def delete_index_count_cache(table_name, index_name):
     _cache.delete(cache_key)
 
 
-def count_table(table_name, use_cache=False):
+def count_table(table_name:str, use_cache=False):
     assert table_name != None
     assert table_name != ""
 

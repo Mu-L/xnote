@@ -16,6 +16,7 @@ class LinkConfig:
     dict_list = TextLink(text="词典", href="/note/dict")
     message = TextLink(text="随手记", href="/message")
     admin_settings = TextLink(text="管理员设置", href="/system/settings?category=admin")
+    system_sync = TextLink(text="集群管理", href="/system/sync")
 
 
 class TabConfig:

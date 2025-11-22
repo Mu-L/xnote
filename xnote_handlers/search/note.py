@@ -26,6 +26,10 @@ def filter_symbols(words):
 
 
 def search_tag(ctx: SearchContext, max_result=5):
+    if ctx.offset > 0:
+        # only search for first page
+        return []
+    
     from xnote_handlers.note.dao_tag import NoteTagInfoDao
     key = ctx.key
     result = [] # type: list[SearchResult]
