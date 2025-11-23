@@ -123,6 +123,10 @@ class DBBackup:
 
     def dump_db(self, backup_kv = True, backup_sql=True):
         count = 0
+        # record binlog_id first, so the backup will contains this value
+        start_binlog_id = BinLog.get_instance().get_max_id()
+        SystemMetaEnum.db_backup_binlog_id.save_meta(str(start_binlog_id))
+        
         if backup_sql:
             self.backup_sql_tables()
         if backup_kv:
@@ -190,10 +194,6 @@ class DBBackup:
 
         db2 = SqliteKV(self.db_backup_file, debug = False)
         count = 0
-
-        # record binlog_id first, so the backup will contains this value
-        start_binlog_id = BinLog.get_instance().get_max_id()
-        SystemMetaEnum.db_backup_binlog_id.save_meta(str(start_binlog_id))
 
         try:
             batch = dbutil.create_write_batch()
