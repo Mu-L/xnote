@@ -56,7 +56,10 @@
         </p>
         <div>
             <input type="submit" class="btn" value="抓取网页"/>
-            <input type="button" id="saveToDbBtn" class="btn" value="保存到资料库">
+            <input type="button" class="btn" value="保存到资料库" 
+                data-url="{{_server_home}}/note/html_importer/form?action=edit"
+                data-title="保存文档"
+                onclick="xnote.handleSaveNote(this)">
         </div>
     </form>
 </div>
@@ -112,50 +115,28 @@
     </div>
 </div>
 
+{% include common/script/load_select2.html %}
+
 <script type="text/javascript">
-$("#saveToDbBtn").on("click", function () {
-    var articleTitle = $("#articleTitle").val();
-
-    var options = {
-        area: ["300px", "300px"],
-        title: "输入资料名称",
-        template: ".confirm-dialog",
-        defaultValues: {
-            name: articleTitle,
-        },
-        shadeClose: false,
-        buttons: ["确定", "取消"],
-        functions: function (index, layero, dialogInfo) {
-            var dialogId = dialogInfo.id;
-            var name = $("#" + dialogId).find("[name=name]").val();
-            var parentId = $("#" + dialogId).find("[name=parent_id]").val();
-            var content = $("#content").val();
-            var params = {"_format": "json", "name": name, "content": content, "type": "md", "tags": "来自网络"};
-
-            params.parent_id = parentId;
-
-            xnote.http.post("/note/create", 
-                params,
-                function (responseText) {
-                    console.log(responseText);
-                    var data = responseText;
-                    if (data.success) {
-                        location.href = data.url;
-                    } else {
-                        layer.alert(data.message);
-                    }
-            });
-        }
-    }
-
-    xnote.openDialogEx(options);
-});
-
 $("#readText").click(function () {
     $.post("/api/tts", {content: $("#plainText").text()}, function (resp) {
 
     });
-})
+});
+
+xnote.handleSaveNote = function () {
+    var articleTitle = $("#articleTitle").val();
+    var params = {};
+    params.action = "edit";
+    params.title = articleTitle;
+    params.content = $("#content").val();
+    xnote.http.get("/note/html_importer/form", params, function (respHtml) {
+        var options = {};
+        options.title = "保存文档";
+        options.html = respHtml;
+        xnote.showDialogEx(options);
+    });
+}
 </script>
 
 {% end %}

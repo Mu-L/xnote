@@ -15,11 +15,7 @@
                     <textarea name="{{row.field}}" class="form-row-value" placeholder="{{row.placeholder}}" {% raw row.html_attr %}>{{row.value}}</textarea>
                 {% end %}
                 {% if row.type == "select" %}
-                    <select id="{{row.id}}" name="{{row.field}}" class="form-row-value" value="{{row.value}}" {% raw row.html_attr %}>
-                        {% for option in row.options %}
-                            <option value="{{option.value}}">{{option.title}}</option>
-                        {% end %}
-                    </select>
+                    {% render row %}
                 {% end %}
                 {% if row.type == "date" %}
                     <input id="{{row.id}}" name="{{row.field}}" class="form-row-value form-date" data-date-type="{{row.date_type}}" 
@@ -81,7 +77,11 @@
             if (resp.success) {
                 xnote.toast("保存成功");
                 setTimeout(function() {
-                    window.location.reload();
+                    if (resp.redirect_url) {
+                        window.location.href = resp.redirect_url;
+                    } else {
+                        window.location.reload();
+                    }
                 }, 500);
             } else {
                 xnote.toast(resp.message);

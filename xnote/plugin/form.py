@@ -29,6 +29,17 @@ class FormRowOption:
         self.title = ""
         self.value = ""
 
+class FormRowOptGroup:
+    def __init__(self):
+        self.label = ""
+        self.options = []
+    
+    def add_option(self, title = "", value = ""):
+        option = FormRowOption()
+        option.title = title
+        option.value = value
+        self.options.append(option)
+
 class FormRowDateType:
     """日期的类型"""
     year = "year"
@@ -45,6 +56,21 @@ class FormRow:
     multiple = False
     html : typing.Union[str, bytes] = ""
 
+    _select_html = """
+<select id="{{row.id}}" name="{{row.field}}" class="form-row-value" value="{{row.value}}" {% raw row.html_attr %}>
+    {% for opt_group in row.opt_groups %}
+        <optgroup label="{{opt_group.label}}">
+            {% for option in opt_group.options %}
+                <option value="{{option.value}}">{{option.title}}</option>
+            {% end %}
+        </optgroup>
+    {% end %}
+    {% for option in row.options %}
+        <option value="{{option.value}}">{{option.title}}</option>
+    {% end %}
+</select>
+"""
+    _select_template = xtemplate.compile_template(_select_html, name="plugin.form.row.select")
 
     """数据行"""
     def __init__(self):
@@ -56,6 +82,7 @@ class FormRow:
         self.type = FormRowType.input
         self.css_class = ""
         self.options = []
+        self.opt_groups = []
 
     def add_option(self, title="", value=""):
         option = FormRowOption()
@@ -63,6 +90,12 @@ class FormRow:
         option.value = value
         self.options.append(option)
         return self
+    
+    def add_opt_group(self, label = ""):
+        opt_group = FormRowOptGroup()
+        opt_group.label = label
+        self.opt_groups.append(opt_group)
+        return opt_group
     
     @property
     def html_attr(self):
@@ -74,6 +107,16 @@ class FormRow:
             result += f" multiple=\"multiple\""
         
         return result
+    
+    def render(self):
+        if self.type == FormRowType.select:
+            return self.render_select()
+        
+        return ""
+            
+    def render_select(self):
+        return self._select_template.generate(row = self)
+
     
 class DataForm:
     """数据表格"""

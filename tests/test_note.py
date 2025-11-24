@@ -31,7 +31,7 @@ from xnote_handlers.note.dao_relation import NoteRelationDao
 from xnote_handlers.note.models import NoteIndexDO
 
 from xutils import Storage
-from xutils import textutil
+from xutils import textutil, jsonutil
 from tests.test_base_note import delete_note_for_test, create_note_for_test, get_default_group_id
 
 app          = test_base.init()
@@ -586,6 +586,27 @@ class TestMain(BaseTestCase):
 
         self.assertEqual("MyTitle", result.title)
         self.assertTrue(result.texts[0].find("# Head1") >= 0)
+
+        note_name = "html-importer-test"
+
+        delete_note_for_test(name=note_name)
+
+        self.check_OK("/note/html_importer/form?action=edit&title=test")
+        save_data = dict(
+            action = "save",
+            data = jsonutil.tojson(dict(
+                name = note_name,
+                content = "html-importer-test",
+                group_id = get_default_group_id()
+            ))
+        )
+        resp = json_request_return_dict("/note/html_importer/form", data=save_data, method="POST")
+        assert resp["success"]
+
+        user_id = xauth.current_user_id()
+        note = note_dao.get_by_name(name = note_name, creator_id=user_id)
+        assert note != None
+
 
     def test_markdown_img_parser(self):
         from xnote_handlers.note.html_importer import MarkdownImageParser

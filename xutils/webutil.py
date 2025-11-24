@@ -8,6 +8,7 @@ import time
 import web
 import math
 
+from typing import Optional
 from http.server import BaseHTTPRequestHandler
 from io import BytesIO
 from web import utils
@@ -256,18 +257,22 @@ class LogMiddleware:
         print(utils.safestr(msg), file=outfile)
 
 class WebResult(web.Storage):
+    redirect_url: Optional[str]
+    
     def __init__(self):
         self.success = True
         self.code = "success"
         self.data = None # type: object
         self.message = ""
 
-def SuccessResult(data=None, message=""):
+def SuccessResult(data=None, message="", redirect_url = ""):
     result = WebResult()
     result.success = True
     result.code = "success"
     result.data = data
     result.message = message
+    if redirect_url:
+        result.redirect_url = redirect_url
     return result
 
 

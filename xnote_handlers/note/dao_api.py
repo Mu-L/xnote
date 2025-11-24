@@ -10,13 +10,14 @@
 """
 
 from xnote.core import xauth
+from .models import NoteDO
 
 class NoteDao:
 
     """笔记的DAO接口"""
 
     @staticmethod
-    def create(note_dict) -> int:
+    def create(note_dict: NoteDO) -> int:
         """创建笔记接口"""
         from . import dao
         return dao.create_note(note_dict)

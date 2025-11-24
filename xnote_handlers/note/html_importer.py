@@ -5,6 +5,8 @@ import logging
 import os
 import time
 import xutils
+import web
+
 from xnote.core import xtemplate
 from xnote.core import xauth
 from xnote.core import xmanager
@@ -30,6 +32,8 @@ from .dao_api import NoteDao
 from xnote_handlers.note.models import NoteDO
 from xnote_handlers.note import dao_edit
 from xnote_handlers.config import LinkConfig
+from xnote.plugin.table_plugin import BaseTablePlugin
+from . import note_helper
 
 class FsMapRecord(BaseDataRecord):
     url = ""
@@ -420,10 +424,62 @@ def has_external_image(note: NoteDO):
     p.parse(note.content, user_name = note.creator)
     return p.has_external_image()
 
+
+class ImportNoteFormHandler(BaseTablePlugin):
+
+    require_admin = True
+    
+    def handle_edit(self):
+        user_id = xauth.current_user_id()
+        title = xutils.get_argument_str("title")
+        content = xutils.get_argument_str("content")
+        form = self.create_form()
+        form.path = "/note/html_importer/form"
+        form.add_row("content", field="content", value=content, css_class="hide")
+        form.add_row("标题", field="name", value=title)
+        row = form.add_select(title="笔记本", field="parent_id")
+        groups = dao.list_group_v2(creator_id = user_id)
+
+        converter = note_helper.NoteGroupConverter(groups)
+        for item in converter.get_opt_groups():
+            opt_group = row.add_opt_group(item.label)
+            for child in item.children:
+                opt_group.add_option(title=child.name, value=str(child.note_id))
+        
+        kw = Storage()
+        kw.form = form
+        return self.response_form(**kw)
+    
+    def handle_save(self):
+        param = self.get_param_dict()
+        name = param.get_str("name")
+        parent_id = param.get_int("parent_id")
+        content = param.get_str("content")
+
+        user_name = xauth.current_name_str()
+        user_id = xauth.current_user_id()
+
+        new_note_dict = NoteDO()
+        new_note_dict.name = name
+        new_note_dict.content = content
+        new_note_dict.type = "md"
+        new_note_dict.parent_id = parent_id
+        new_note_dict.creator = user_name
+        new_note_dict.creator_id = user_id
+
+        try:
+            note_id = NoteDao.create(new_note_dict)
+            url = xconfig.WebConfig.resolve_path(f"/note/view?id={note_id}")
+            return webutil.SuccessResult(redirect_url = url)
+        except Exception as e:
+            return webutil.FailedResult(code="500", message=str(e))
+        
+
 xutils.register_func("note.import_from_html", import_from_html)
 xutils.register_func("note.has_external_image", has_external_image)
 
 xurls = (
     r"/note/html_importer", ImportNoteHandler,
+    r"/note/html_importer/form", ImportNoteFormHandler,
     r"/note/cache_external", CacheExternalHandler,
 )
