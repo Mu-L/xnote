@@ -16,6 +16,7 @@ from xnote.service import TagTypeEnum, TagInfoDO
 from xutils.db.dbutil_helper import new_from_dict
 from xutils.base import BaseEnum, EnumItem
 from xnote.service.tag_service import SystemTagEnum
+from xnote_handlers.config import LinkConfig
 from xutils import quote
 
 """消息模型相关的内容
@@ -192,6 +193,7 @@ class MessageStatItem(BaseMsgDO):
         if tag == "task":
             self.name = T("待办任务")
             self.icon = "fa-calendar-check-o"
+            self.url = LinkConfig.task_list.href
 
     @classmethod
     def get_second_type_by_code(cls, code=""):

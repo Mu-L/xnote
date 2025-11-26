@@ -86,7 +86,7 @@ class TaskGroup(Storage):
         self.icon = "fa-calendar-check-o"
         self.ctime = dateutil.format_time()
         self.mtime = dateutil.format_time()
-        self.url = "/message?tag=task"
+        self.url = "/message/task"
         self.priority = 1
         self.level = self.priority
         self.size = MessageDao.get_message_stat(self.user).task_count

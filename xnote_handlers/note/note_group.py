@@ -421,7 +421,7 @@ def load_note_index(user_name):
 
     return [
         NoteCard("分类", [
-            NoteLink("任务", "/message?tag=task",
+            NoteLink("任务", "/message/task",
                      "fa-calendar-check-o", size=msg_stat.task_count),
             NoteLink("备忘", "/message?tag=log",
                      "fa-sticky-note", size=msg_stat.log_count),

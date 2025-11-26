@@ -17,6 +17,7 @@ class LinkConfig:
     message = TextLink(text="随手记", href="/message")
     admin_settings = TextLink(text="管理员设置", href="/system/settings?category=admin")
     system_sync = TextLink(text="集群管理", href="/system/sync")
+    task_list = TextLink(text="待办任务", href="/message/task")
 
 
 class TabConfig:
