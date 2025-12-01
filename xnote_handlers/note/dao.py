@@ -32,6 +32,7 @@ from xnote.core import xmanager
 from xnote.core import xtables
 from xnote.core import xauth
 from xnote.core import xtables
+from xnote.core.models import SearchResult
 from xnote.service.search_service import SearchHistoryDO, SearchHistoryService, SearchHistoryType
 from xutils import Storage
 from xutils import dateutil, dbutil, textutil, fsutil
@@ -45,6 +46,7 @@ from xnote_handlers.note.models import NotePathInfo
 from xnote_handlers.note.models import NOTE_ICON_DICT
 from xnote_handlers.note.models import OrderTypeEnum
 from xutils.base import BaseDataRecord
+from xnote.plugin import TagSpan
 
 NOTE_DAO = xutils.DAO("note")
 
@@ -220,7 +222,7 @@ class NoteIndexDao:
     @classmethod
     def list(cls, creator_id=0, parent_id=0, offset=0, limit=20, type=None, type_list=[], is_deleted=0, 
             level=None, date=None, date_start=None, date_end=None, date_end_exclusive=None, 
-            name_like="", query_root=False, order="id desc"):
+            exclude_types=[], name_like="", query_root=False, order="id desc"):
         order = cls.to_sql_order(order)
 
         if type == "table":
@@ -254,15 +256,17 @@ class NoteIndexDao:
             where += " AND ctime < $date_end"
         if date_end_exclusive != None:
             where += " AND ctime < $date_end_exclusive"
-
         if name_like != "":
             where += " AND name LIKE $name_like"
         if len(type_list) > 0:
             where += " AND type IN $type_list"
+        if len(exclude_types) > 0:
+            where += " AND type NOT IN $exclude_types"
+
         vars = dict(creator_id=creator_id, parent_id=parent_id, type=type, level=level, 
                     is_deleted=is_deleted, date_like=date_like, name_like=name_like, 
                     type_list=type_list, date_start=date_start, date_end=date_end, 
-                    date_end_exclusive=date_end_exclusive)
+                    date_end_exclusive=date_end_exclusive, exclude_types=exclude_types)
         result = cls.db.select(where=where, vars=vars, offset=offset, limit=limit, order=order)
         return cls.fix_result(result)
     
@@ -271,7 +275,7 @@ class NoteIndexDao:
         where = "AND creator_id=$creator_id"
         vars = dict(creator_id=creator_id)
         for batch_records in cls.db.iter_batch(batch_size=batch_size, where = where, vars=vars):
-            yield batch_records
+            yield NoteIndexDO.from_dict_list(batch_records)
 
     @classmethod
     def count(cls, creator_id=0, type=None, type_list=[], level=None, is_deleted=0, parent_id=0, 
@@ -1581,7 +1585,8 @@ def get_history(note_id, version):
     return _note_history_db.with_user(note_id).get(version_str)
 
 
-def search_name(words: typing.List[str], creator="", parent_id=0, orderby="hot_index", limit=1000):
+def search_name(words: typing.List[str], creator="", creator_id = 0, parent_id=0, orderby="hot_index", limit=1000, 
+                exclude_types=[], type_list=[]):
     # TODO 搜索排序使用索引
     assert isinstance(words, list)
 
@@ -1591,9 +1596,11 @@ def search_name(words: typing.List[str], creator="", parent_id=0, orderby="hot_i
     if len(words) > 0:
         name_like = "%" + "%".join(words) + "%"
     
-    creator_id = xauth.UserDao.get_id_by_name(creator)
+    if creator_id == 0:
+        creator_id = xauth.UserDao.get_id_by_name(creator)
+
     result = NoteIndexDao.list(creator_id=creator_id, parent_id=parent_id, limit=limit, 
-                               name_like=name_like)
+                               name_like=name_like, exclude_types=exclude_types, type_list=type_list)
 
     # 补全信息
     build_note_list_info(result, order_type=OrderTypeEnum.hot.int_value)
@@ -1603,8 +1610,7 @@ def search_name(words: typing.List[str], creator="", parent_id=0, orderby="hot_i
     sort_by_priority(result)
     return result
 
-
-def search_content(words, creator="", orderby="hot_index", limit=1000):
+def search_content(words: typing.List[str], creator="", orderby="hot_index", limit=1000):
     # TODO 全文搜索排序使用索引
     assert isinstance(words, list)
     words = [word.lower() for word in words]
@@ -1653,6 +1659,21 @@ def search_public(words):
     notes = [build_note_info(item) for item in result]
     sort_notes(notes)
     return notes
+
+def search_group(words: typing.List[str], creator_id=0, parent_id=0) -> typing.List[SearchResult]:
+    groups = search_name(words, creator_id = creator_id, parent_id = parent_id, type_list=["group"])
+    if len(groups) == 0:
+        return []
+    
+    result = SearchResult()
+    result.name = f"搜索到{len(groups)}个笔记本"
+    result.icon = "fa fa-folder"
+
+    html = ""
+    for group in groups:
+        html += TagSpan(text=group.name, href=group.url).render()
+    result.html = html
+    return [result]
 
 def count_removed(creator):
     creator_id = xauth.UserDao.get_id_by_name(creator)

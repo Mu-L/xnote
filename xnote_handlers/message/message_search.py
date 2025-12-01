@@ -8,6 +8,7 @@ from xnote.core import xmanager, xconfig, xauth, xtemplate
 from xnote.core.models import SearchContext
 from xnote_handlers.message import dao, message_utils
 from xnote.service import TagInfoService
+from xnote.core.xnote_user_config import UserConfig
 
 
 @xmanager.searchable()
@@ -52,10 +53,8 @@ def handle_search_event(ctx: SearchContext, tag_name="", search_tag="log"):
         # print(message)
         
     if not ctx.option.show_message_detail:
-        show_message_detail = xconfig.get_user_config(
-            ctx.user_name, "search_message_detail_show")
-
-        if show_message_detail == "false":
+        show_message_detail = UserConfig.search_message_detail_show.get_bool_v2(user_id=ctx.user_id)
+        if not show_message_detail:
             search_result = []
 
     if count > 0:

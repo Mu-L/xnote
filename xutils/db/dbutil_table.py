@@ -255,7 +255,7 @@ class LdbTable:
         key = self._build_key_with_user(row_id, user_name=user_name)
         return self.get_by_key(key, default_value)
 
-    def batch_get_by_id(self, row_id_list, default_value=None, user_name=None):
+    def batch_get_by_id(self, row_id_list: typing.List[str], default_value=None, user_name=None):
         for row_id in row_id_list:
             validate_str(row_id, "invalid row_id:{!r}", row_id)
             if self._need_check_user:

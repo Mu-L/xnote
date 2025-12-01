@@ -266,6 +266,7 @@ class TestMain(BaseTestCase):
         ctx.search_message = True
         ctx.user_name = user_name
         ctx.user_id = xauth.current_user_id()
+        ctx.option.show_message_detail = True
         
         on_search_message(ctx)
         # 两条记录（第一个是汇总，第二个是实际数据）

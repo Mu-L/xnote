@@ -22,6 +22,7 @@ from xnote.core.xtemplate import T
 from xnote.core.models import SearchContext, SearchResult
 from xnote.service.search_service import SearchHistoryDO
 from xnote.plugin.tab import TabBox
+from xnote.plugin import TagSpan
 
 SEARCH_TYPE_DICT = dict() # type: dict[str, Storage]
 
@@ -220,15 +221,19 @@ class SearchHandler:
         user_name = xauth.current_name_str()
         parent_id = xutils.get_argument_int("parent_id")
         words = textutil.split_words(key)
+        user_id = xauth.current_user_id()
 
         from xnote_handlers.search.note import search_tag
 
         tag_result = search_tag(ctx)
+        group_result = []
 
         if ctx.category == "content":
             notes = note_dao.search_content(words, user_name)
         else:
-            notes = note_dao.search_name(words, user_name, parent_id = parent_id)
+            group_result = note_dao.search_group(words, user_id, parent_id = parent_id)
+            notes = note_dao.search_name(words, user_name, parent_id = parent_id, exclude_types=["group"])
+
         
         notes = [SearchResult(**item) for item in notes]
         for note in notes:
@@ -242,7 +247,7 @@ class SearchHandler:
         offset = ctx.offset
         limit  = ctx.limit
 
-        result = tag_result + notes
+        result = tag_result + group_result +notes
         return result[offset:offset+limit], len(result)
     
     def do_search_message(self, ctx: SearchContext, key: str):

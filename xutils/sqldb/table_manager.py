@@ -389,7 +389,7 @@ class TableInfo:
         self.pk_type = DefaultValues.pk_type
         self.db_type = "" # 数据库类型, 比如 mysql/sqlite
         self.comment = "" # 表的描述
-        self.column_names = []
+        self.column_names = [] # type:list[str]
         self.columns = [] # type:list[ColumnDef] # 这个主要用于记录[args, kw]参数用于复制表结构
         self.indexes = [] # 这个主要用于记录[args, kw]参数用于复制表结构
         self.dbpath = "" # sqlite文件路径

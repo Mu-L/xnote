@@ -26,6 +26,12 @@ class UserConfigItem:
             return value.lower() in ("true", "1")
         return bool(value)
     
+    def get_bool_v2(self, user_id: int):
+        value = self.get_str(user_id)
+        if isinstance(value, str):
+            return value.lower() in ("true", "1")
+        return bool(value)
+    
     def get_str(self, user_id: int):
         if user_id <= 0:
             return self.default_value

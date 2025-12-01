@@ -44,6 +44,7 @@ import traceback
 import base64
 import typing
 
+from typing import Optional
 from xutils import dateutil
 from xutils import textutil
 from collections import OrderedDict, deque
@@ -318,14 +319,14 @@ class LocalCacheObject:
         value = self.get()
         return value in ("true", "1")
     
-    def _load(self):
+    def _load(self) -> Optional[str]:
         if self.load_func is None:
             return None
         value = self.load_func()
         self.update(value)
         return value
     
-    def update(self, value: typing.Optional[str]):
+    def update(self, value: Optional[str]):
         self.value = value
         self.expire_time = time.time() + self.expire_seconds
         self.loaded = True

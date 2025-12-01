@@ -236,7 +236,7 @@ class ProfileLog(web.Storage):
     def __init__(self):
         self.type = ""
         self.ctime = ""
-        self.cost_time = 0.0
+        self.cost_time = 0.0 # 单位秒
         self.table_name = ""
         self.op_type = ""
 
@@ -281,7 +281,7 @@ class SQLDBInterface:
     def delete(self, where, using=None, vars=None, _test=False):
         pass
 
-    def get_column_names(self):
+    def get_column_names(self) -> typing.List[str]:
         return []
     
     def count(self, where=None, sql=None, vars=None):

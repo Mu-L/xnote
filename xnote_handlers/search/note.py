@@ -60,8 +60,11 @@ def search_tag(ctx: SearchContext, max_result=5):
 def search(ctx: SearchContext, expression=None):
     from xnote_handlers.note import dao as note_dao
     words = ctx.words
+    user_id = ctx.user_id
+
     files = []
     tags = search_tag(ctx)
+    groups = note_dao.search_group(words, creator_id=user_id)
 
     words = filter_symbols(words)
 
@@ -72,16 +75,11 @@ def search(ctx: SearchContext, expression=None):
         files += note_dao.search_content(words, xauth.current_name_str())
     
     if ctx.search_note:
-        files += note_dao.search_name(words, xauth.current_name_str())
+        files = note_dao.search_name(words, creator_id=user_id, exclude_types=["group"])
 
     for item in files:
         item.category = 'note'
 
-    # group 放前面
-    groups = list(filter(lambda x: x.type == "group", files))
-    text_files = list(filter(lambda x: x.type != "group", files))
-    files = groups + text_files
-
     logging.debug("len(files)=%s", len(files))
-    return tags + files
+    return tags + groups + files
 
