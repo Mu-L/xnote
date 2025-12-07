@@ -584,6 +584,17 @@ def init_system_meta_table():
         manager.add_column("version", "int", default_value=0, comment="版本号")
         manager.add_index("meta_key", is_unique=True)
 
+def init_system_log_table():
+    """系统元日志表"""
+    table_name = "system_log"
+    comment = "系统日志表"
+    with create_default_table_manager(table_name, comment=comment) as manager:
+        manager.add_column("create_time", "bigint", default_value=0)
+        manager.add_column("log_level", "varchar(20)", default_value="")
+        manager.add_column("log_type", "varchar(100)", default_value="")
+        manager.add_column("log_content", "text", default_value="")
+        manager.add_column("cost_time", "int", default_value=0)
+
 def init_id_generator_table():
     """
     ID生成器
@@ -672,6 +683,10 @@ def init_kv_store_table():
     with create_table_manager_with_dbpath(table_name, dbpath=dbpath, **kw) as manager:
         manager.add_column("value", "longblob", default_value="")
         manager.add_column("version", "int", default_value=0)
+    
+    # this is an internal kv_store, skip backup
+    # the backup of kv_store will be processed in kv_store level
+    TableConfig.skip_backup(table_name)
 
 def init_kv_cache_table():
     """
@@ -688,6 +703,8 @@ def init_kv_cache_table():
         manager.add_column("user_id", "bigint", default_value=0, comment="用户ID，可选字段")
         manager.add_index("cache_key", is_unique=True)
         manager.add_index("expire_time")
+
+    TableConfig.skip_backup(table_name)
 
 def init_kv_zset_table(db=None):
     """使用关系型数据库模拟redis的zset结构"""
@@ -929,6 +946,7 @@ def init():
     # 其他系统表
     init_system_info_table() # 已删除, 占位
     init_system_meta_table()
+    init_system_log_table()
     init_id_generator_table()
     
     # 统计信息

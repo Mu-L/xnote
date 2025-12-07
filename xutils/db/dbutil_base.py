@@ -105,7 +105,12 @@ class IndexTypeEnum(enum.Enum):
     ref = "ref"
     copy = "copy" 
     sql = "sql" # 通SQL实现索引
-    
+
+class TableType:
+    table = "table"
+    sorted_set = "sorted_set"
+    set = "set"
+    index = "index"
 
 get_write_lock = interfaces.get_write_lock
 
@@ -319,9 +324,10 @@ class TableInfo:
         self.category = category
         self.type = "table"  # table/sorted_set
         self.check_user = False
-        self.user_attr = None
+        self.user_attr: typing.Optional[str] = None
         self.is_deleted = False
         self.index_db = None # type: None|SQLDBInterface
+        self.indexes: typing.List[SQLDBInterface] = []
         self.encode_user_func = None # type: None|typing.Callable
 
     def check_and_register(self):
@@ -461,40 +467,57 @@ def register_deleted_table(table_name, description, **kw):
     kw["is_deleted"] = True
     return register_table(table_name=table_name, description=description, **kw)
 
-def register_table(table_name:str, description:str, is_deleted=False, type="table", **kw):  
-    # type: (...)->TableInfo
+def register_table(
+        table_name:str, 
+        description:str, 
+        is_deleted=False, 
+        type=TableType.table, 
+        is_internal = False, 
+        index_db:typing.Optional[SQLDBInterface] = None,
+        indexes:typing.List[SQLDBInterface] = [], 
+        category="default",
+        check_user=False,
+        user_attr:typing.Optional[str]=None,
+        encode_user_func = None,
+    ):  
     """注册表定义
-    :param {str} table_name: 表名称
-    :param {str} category: 表所属的类目
-    :param {bool} check_user: 是否检查用户
-    :param {str} user_attr: 用户的属性名
-    :param {str} type: 表的类型 {table, index, sorted_set}
-    :param {bool} is_deleted: 是否删除
+
+    :param table_name: 表名称
+    :param category: 表所属的类目
+    :param check_user: 是否检查用户
+    :param user_attr: 用户的属性名
+    :param type: 表的类型 {table, index, sorted_set}
+    :param is_deleted: 是否删除
+    :param indexes: 索引列表
+    :param check_user: 【废弃】是否检查用户
+    :param user_attr: 【废弃】用户属性名
+    :param encode_user_func: 【废弃】用户编码函数
     """
-    # TODO 考虑过这个方法直接返回一个 LdbTable 实例
-    # LdbTable可能针对同一个`table`会有不同的实例
-    if not re.match(r"^[0-9a-z_]+$", table_name):
-        raise Exception("无效的表名:%r" % table_name)
+    _check_table_name_format(table_name, is_internal)
 
-    return _register_table_inner(table_name, description, is_deleted=is_deleted, type=type, **kw)
+    if index_db and len(indexes) == 0:
+        indexes = [index_db]
 
-
-def _register_table_inner(table_name, description, is_deleted=False, type="table", **kw):
-    if not re.match(r"^[0-9a-z_\$\.]+$", table_name):
-        # 内部校验更加宽松一些
-        raise Exception("无效的表名:%r" % table_name)
-    
-    info = TableInfo(table_name, description, kw.get("category", "default"))
-    info.check_user = kw.get("check_user", False)
-    info.user_attr = kw.get("user_attr")
+    info = TableInfo(table_name, description, category=category)
+    info.check_user = check_user
+    info.user_attr = user_attr
     info.type = type
-    info.index_db = kw.get("index_db")
+    info.index_db = index_db
+    info.indexes = indexes
     info.check_and_register()
     info.is_deleted = is_deleted
-    info.encode_user_func = kw.get("encode_user_func", None)
+    info.encode_user_func = encode_user_func
 
     return info
 
+def _check_table_name_format(table_name: str, is_internal: bool):
+    if is_internal:
+        if not re.match(r"^[0-9a-z_\$\.]+$", table_name):
+            # 内部校验更加宽松一些
+            raise Exception(f"无效的表名: {table_name}")
+    else:
+        if not re.match(r"^[0-9a-z_]+$", table_name):
+            raise Exception(f"无效的表名: {table_name}")
 
 def register_table_index(table_name, index_name, columns = [], comment="", index_type="ref", **kw):
     """注册表的索引"""
@@ -515,7 +538,7 @@ def register_table_index(table_name, index_name, columns = [], comment="", index
     # 注册索引表
     index_table = get_index_table_name(table_name, index_name)
     description = "%s表索引" % table_name
-    return _register_table_inner(index_table, description, type="index")
+    return register_table(index_table, description, type=TableType.index, is_internal=True)
 
 
 def register_table_user_attr(table_name, user_attr):

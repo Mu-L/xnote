@@ -105,7 +105,7 @@ ClipLogDao.init()
 
 class Main(BaseTablePlugin):
 
-    title = "剪切板日志"
+    title = "剪贴板日志"
     # 提示内容
     description = ""
     # 访问权限
@@ -151,7 +151,7 @@ class Main(BaseTablePlugin):
         kw.page = page
         kw.page_size = page_size
         kw.page_total = ClipLogDao.count()
-        kw.page_url = "?log_type=clip&page="
+        kw.tab_default = "clip"
         
         return self.response_page(**kw)
 

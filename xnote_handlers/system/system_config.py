@@ -91,7 +91,7 @@ SYS_TOOLS = [
     admin_link("任务实例", "/admin/jobs"),
     admin_link("事件注册", "/system/event"),
     admin_link("线程管理", "/system/thread_info"),
-    admin_link("Menu_Log",    "/system/log"),
+    admin_link("Menu_Log",    "/system/log/db"),
     admin_link("Shell",    "/tools/shell", "terminal"),
     admin_link("集群管理", "/system/sync?p=home", "server"),
     admin_link("开发者", "/plugin_list?category=develop", icon="fa-code"),

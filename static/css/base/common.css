@@ -749,6 +749,7 @@ li.menu-item:hover {
     width: 1000px;
     min-height: 20px;
     padding: 10px;
+    padding-left: 190px;
     background-color: #fff;
 }
 

@@ -93,7 +93,7 @@ INNER_TOOLS = [
     dev_plugin("编解码工具", "/tools/encode?tab=BASE64&nav=true"),
     dev_plugin("base64", "/tools/encode?tab=BASE64", visible_in_list=False),
     dev_plugin("HEX转换", "/tools/hex", visible_in_list=False),
-    dev_plugin("md5签名", "/tools/md5", visible_in_list=False),
+    dev_plugin("md5签名", "/tools/hash?tab=md5", visible_in_list=False),
     dev_plugin("sha1签名", "/tools/sha1", visible_in_list=False),
     dev_plugin("URL编解码", "/tools/urlcoder", visible_in_list=False),
     dev_plugin("条形码", "/tools/barcode", visible_in_list=False),
@@ -141,6 +141,7 @@ INNER_TOOLS = [
     admin_plugin("系统日志", "/system/log", visible_in_list=False),
     admin_plugin("缓存管理", "/system/cache", visible_in_list=False),
     admin_plugin("数据修复", "/admin/repair"),
+    admin_plugin("剪贴板", "/system/clipboard-monitor", visible_in_list=False)
     # 系统工具
     # system_plugin("系统日志", "/system/log"),
 ]

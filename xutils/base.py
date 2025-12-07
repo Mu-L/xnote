@@ -157,7 +157,7 @@ class BaseEnum:
     
 
 class BaseDataRecord(Storage):
-    _ignore_save_fields = set()
+    _ignore_save_fields = []
 
     def handle_from_dict(self):
         pass
@@ -189,8 +189,6 @@ class BaseDataRecord(Storage):
     def to_save_dict(self):
         """
         转换成字典用于保存操作(insert or update)
-        
-        :param remove_pk_name: 默认为True, 对于自增主键, insert的时候需要移除主键字段, update的时候也无需更新主键
         """
         result = dict(**self)
         for name in self._ignore_save_fields:

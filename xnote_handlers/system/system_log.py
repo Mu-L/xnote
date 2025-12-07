@@ -25,6 +25,7 @@ from xutils.functions import iter_exists
 from xnote.plugin.table_plugin import BaseTablePlugin
 from xnote.plugin import DataTable
 from xnote.plugin import TableActionType, LinkConfig
+from xnote.service.system_log_service import SystemLogService, SystemLogLevel, SystemLogType
 
 uv_db = dbutil.get_table("uv")
 
@@ -241,16 +242,14 @@ class LogVisitHandler:
             return
         return self.do_get(site=site, ip=ip)
 
-
 class DatabaseLogHandler(BaseTablePlugin):
-    
     title = "数据库日志"
     parent_link = LinkConfig.app_index
     
     NAV_HTML = """
     {% include system/component/system_log_tab.html %}
     
-    <div class="card x-tab-box" data-tab-key="table_name" data-tab-default="sys_log">
+    <div class="card x-tab-box" data-tab-key="table_name" data-tab-default="system_log">
         {% for table_name in table_name_list %}
             <a class="x-tab" data-tab-value="{{table_name}}" href="{{_server_home}}/system/log/db?log_type=db&table_name={{table_name}}">{{table_name}}</a>
         {% end %}
@@ -259,26 +258,30 @@ class DatabaseLogHandler(BaseTablePlugin):
         
     page_html = NAV_HTML + BaseTablePlugin.TABLE_HTML
     
+    table_name_list = ["system_log", "user_op_log"]
     table_type_dict = {
         "sys_log": "kv",
         "user_op_log": "sql",
+        "system_log": "sql",
     }
     
     def get_page_html(self):
         return self.page_html
     
     def handle_page(self):
-        table_name_list = ["sys_log", "user_op_log"]
-        table_name = xutils.get_argument_str("table_name", "sys_log")
+        table_name = xutils.get_argument_str("table_name", "system_log")
         page = xutils.get_argument_int("page", 1)
         page_size = 20
+
+        if table_name == "system_log":
+            return self.handle_system_log_page(table_name)
         
         table_type = self.table_type_dict.get(table_name, "sql")
         
         table = DataTable()
         table.add_head("时间", "ctime", width="200px")
         table.add_head("用户", "user_name", width="100px")
-        table.add_head("内容", "content", width = "min:200px")
+        table.add_head("内容", "content", min_width="200px")
         page_total = 0
         
         if table_type == "kv":
@@ -307,10 +310,38 @@ class DatabaseLogHandler(BaseTablePlugin):
 
         kw = Storage()
         kw.table = table
-        kw.table_name_list = table_name_list
+        kw.table_name_list = self.table_name_list
         kw.page = page
         kw.page_total = page_total
-        kw.page_url = f"?log_type=db&table_name={table_name}&page="
+        kw.page_url = f"?table_name={table_name}&page="
+        kw.tab_default = "db"
+        
+        return self.response_page(**kw)
+    
+    def handle_system_log_page(self, table_name: str):
+        page = xutils.get_argument_int("page", 1)
+        page_size = 20
+
+        table = DataTable()
+        table.add_head("时间", "create_time_str", width="200px")
+        table.add_head("类型", "log_type", width="50px")
+        table.add_head("级别", "log_level", width="50px")
+        table.add_head("内容", "log_content_short", min_width="200px", detail_field="log_content")
+        page_total = SystemLogService.count_logs()
+
+        offset = (page-1)*page_size
+        for row in SystemLogService.get_logs(offset=offset, limit=page_size):
+            row["log_content_short"] = textutil.get_short_text(row.log_content, 100)
+            row["create_time_str"] = dateutil.format_datetime(row.create_time, is_ms=True)
+            table.add_row(row)
+
+        kw = Storage()
+        kw.table = table
+        kw.table_name_list = self.table_name_list
+        kw.page = page
+        kw.page_total = page_total
+        kw.page_url = f"?table_name={table_name}&page="
+        kw.tab_default = "db"
         
         return self.response_page(**kw)
 

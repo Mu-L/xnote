@@ -27,6 +27,8 @@ from xnote.plugin import LinkConfig
 from xnote.service.system_meta_service import SystemMetaEnum
 from xnote.plugin.list import ListView, ListViewItem, ActionButton
 from xutils.db.binlog import BinLog
+from xutils import jsonutil
+from xutils.sqldb.table_config import TableConfig
 
 config = xconfig
 
@@ -133,6 +135,14 @@ class DBBackup:
             count = self.backup_kv_store()
         return count
     
+    def save_all_table_names(self):
+        table_names = []
+        for table in xtables.get_all_tables():
+            if TableConfig.is_skip_backup_table(table.tablename):
+                continue
+            table_names.append(table.tablename)
+        SystemMetaEnum.db_backup_table_names.save_meta(jsonutil.tojson(table_names))
+    
     def backup_sql_tables(self):
         logger = self.get_backup_logger()
         db = xtables.MySqliteDB(db = self.db_backup_file)
@@ -141,6 +151,8 @@ class DBBackup:
         db.query("PRAGMA journal_mode = WAL")
         db.query("PRAGMA page_size = 16384") # 16K
         batch_size = 100
+
+        self.save_all_table_names()
 
         try:
             for table in xtables.get_all_tables():

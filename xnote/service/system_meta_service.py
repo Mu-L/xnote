@@ -8,6 +8,7 @@ from xutils import dateutil
 from web.db import SQLLiteral
 from xutils import BaseEnum, EnumItem
 from xutils.cacheutil import LocalCacheObject
+from xutils import jsonutil
 
 class SystemMetaRecord(BaseDataRecord):
     def __init__(self):
@@ -80,6 +81,15 @@ class SystemMetaEnumItem:
         return value in ("1", "true")
     
     @property
+    def list_value(self):
+        value = self.value
+        if not value:
+            return []
+        result = jsonutil.fromjson(value)
+        assert isinstance(result, list)
+        return result
+    
+    @property
     def meta_value(self):
         cache_value = self._cache.get()
         if cache_value != None:
@@ -100,6 +110,7 @@ class SystemMetaEnum:
     db_backup_file = SystemMetaEnumItem("数据库备份文件", "db.backup.file")
     db_backup_count = SystemMetaEnumItem("数据总量", "db.backup.rows")
     db_backup_binlog_id = SystemMetaEnumItem("备份时的binlog_id", "db.backup.binlog_id")
+    db_backup_table_names = SystemMetaEnumItem("备份的表", "db.backup.table_names")
 
     # 配置信息
     trace_malloc_enabled = SystemMetaEnumItem("trace_malloc开关", "config.trace_malloc.enabled")

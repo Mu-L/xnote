@@ -17,6 +17,7 @@ class TableConfig:
     
     _disable_profile_tables = set() # type: set[str]
     _disable_binlog_tables = set() # type: set[str]
+    _skip_backup_tables = set() # type: set[str]
     _non_int_pk_tables = set(["kv_store"])
     
     @classmethod
@@ -26,4 +27,12 @@ class TableConfig:
     @classmethod
     def disable_binlog(cls, table_name=""):
         cls._disable_binlog_tables.add(table_name)
+
+    @classmethod
+    def skip_backup(cls, table_name: str):
+        cls._skip_backup_tables.add(table_name)
+
+    @classmethod
+    def is_skip_backup_table(cls, table_name: str) -> bool:
+        return table_name in cls._skip_backup_tables
     

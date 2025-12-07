@@ -18,6 +18,7 @@ from xnote.core import xconfig
 from xutils import mem_util, fsutil, Storage, attrget, ScriptMeta
 from xnote.core.xtemplate import BasePlugin
 from xnote.core import xtables
+from xnote.service.system_log_service import SystemLogService, SystemLogLevel, SystemLogType
 
 DEFAULT_PLUGIN_ICON_CLASS = "fa fa-cube"
 
@@ -187,8 +188,13 @@ def load_plugin_file(fpath: str, fname=None, raise_exception=False):
         main_class = vars.get("Main")
         return load_plugin_by_context_and_class(context, main_class)
     except Exception as e:
-        # TODO 增加异常日志
-        xutils.print_exc()
+        error_stack = xutils.print_exc()
+        log_content = f"加载插件文件失败：{fpath}\n错误信息：{str(e)}\n{error_stack}"
+        SystemLogService.save_log(
+            log_level=SystemLogLevel.ERROR,
+            log_type=SystemLogType.plugin,
+            log_content=log_content)
+        
         if raise_exception:
             raise e
 

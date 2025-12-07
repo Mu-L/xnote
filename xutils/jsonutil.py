@@ -55,3 +55,6 @@ def tojson(obj, ensure_ascii=False, format=False):
     else:
         return json.dumps(obj, cls=MyEncoder, ensure_ascii=ensure_ascii, separators=separators)
 
+def fromjson(json_str: typing.Union[str, bytes]):
+    """json转对象"""
+    return json.loads(json_str)

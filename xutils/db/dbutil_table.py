@@ -169,7 +169,7 @@ class LdbTable:
         if index_name not in self.index_names:
             raise Exception("invalid index_name:%r" % index_name)
         
-    def _get_user_name_by_attr(self, obj):
+    def _get_user_name_by_attr(self, obj: dict):
         user_value = obj.get(self.user_attr)
         if user_value is None:
             return user_value
