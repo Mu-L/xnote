@@ -529,7 +529,7 @@ rmfile = remove_file
 remove = rmfile
 
 
-def copy(src, dest):
+def copy(src: str, dest: str):
     bufsize = 64 * 1024  # 64k
     srcfp = open(src, "rb")
     destfp = open(dest, "wb")
@@ -561,7 +561,7 @@ def try_listdir(dirname):
         return []
 
 
-def fixed_dir_path(dirname):
+def fixed_dir_path(dirname: str):
     if not dirname.endswith("/"):
         return dirname + "/"
     return dirname
@@ -589,12 +589,13 @@ class FileStatInfo(Storage):
 class FileItem(Storage):
     """文件对象"""
 
-    def __init__(self,
-                 path: str,
-                 parent:typing.Optional[str] = None,
-                 merge=False,
-                 encode_path=True,
-                 name:typing.Optional[str]=None):
+    def __init__(
+            self,
+            path: str,
+            parent:typing.Optional[str] = None,
+            merge=False,
+            encode_path=True,
+            name:typing.Optional[str]=None):
         self.path = path
         self.path_b64 = textutil.encode_base64(path)
         realname = fixed_basename(path)
@@ -676,7 +677,7 @@ def touch(path):
         os.utime(path, times)
 
 
-def _search_path0(path, key, limit=200, option=""):
+def _search_path0(path: str, key: str, limit=200, option=""):
     result_dirs = []
     result_files = []
     key = key.lower()
@@ -703,11 +704,10 @@ def _search_path0(path, key, limit=200, option=""):
     return result_dirs + result_files
 
 
-def search_path(path, key, option=""):
+def search_path(path: str, key: str, option=""):
     """搜索文件系统，key支持通配符表示，具体见fnmatch模块
-    @param {string} path 
-    @param {string} key
-    @param {string} option 附加选项
+    
+    :param option: 附加选项
         - file 仅搜索文件
         - dir 仅搜索目录
     """

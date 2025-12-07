@@ -373,14 +373,14 @@ class DBSyncer:
             # 全量同步
             self.sync_db_full(proxy)
 
-    def sync_db_full(self, proxy):
-        steps = 0
-        while steps < self.FULL_SYNC_MAX_LOOPS:
-            last_key = self.get_db_last_key()
-            count = self.sync_db_full_step(proxy, last_key)
-            if count == 0:
-                break
-            steps+=1
+    def sync_db_full(self, proxy: HttpClient):
+        backup_info = proxy.get_backup_info()
+        if backup_info is None:
+            return
+        proxy.download_file(backup_info.backup_file_info)
+        self.put_db_sync_state("binlog")
+        self.put_binlog_last_seq(backup_info.backup_binlog_id)
+
 
     def sync_db_full_step(self, proxy, last_key: str):
         # type: (HttpClient, str) -> int

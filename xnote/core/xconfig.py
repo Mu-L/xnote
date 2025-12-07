@@ -1048,3 +1048,4 @@ class NavItem:
             return not xauth.has_login() and self.check_platform()
 
         return self.check_platform()
+

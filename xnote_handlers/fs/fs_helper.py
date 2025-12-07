@@ -24,42 +24,7 @@ from xutils.fsutil import FileItem
 from xutils.sqldb import TableProxy
 from xutils import Storage, BaseDataRecord
 from xnote.service.system_meta_service import SystemMetaEnum
-
-
-class FileInfo(BaseDataRecord):
-
-    def __init__(self):
-        self.id = 0
-        self.ctime = xutils.format_datetime()
-        self.mtime = xutils.format_datetime()
-        self.fpath = ""
-        self.ftype = ""
-        self.user_id = 0
-        self.fsize = 0
-        self.remark = ""
-        self.sha256 = ""
-
-    def to_replace_dict(self):
-        result = dict(**self)
-        if self.id == 0:
-            result.pop("id")
-        return result
-
-    def to_save_dict(self):
-        result = dict(**self)
-        result.pop("id")
-        if self.id != 0:
-            # 更新操作
-            result.pop("ctime", None) # 不更新创建时间
-            result.pop("user_id", None)
-        if self.remark == "":
-            # 不更新remark的空值
-            result.pop("remark", None)
-        return result
-
-    @property
-    def realpath(self):
-        return self.fpath.replace(xconfig.FileReplacement.data_dir, xconfig.FileConfig.data_dir)
+from .fs_models import FileInfoRecord, FileInfo
 
 class FileInfoDao:
     
@@ -200,10 +165,6 @@ class FileInfoDao:
 def get_index_db(): # type: ()-> TableProxy
     return FileInfoDao.db
 
-
-class FileInfoModel(FileInfoDao):
-    pass
-
 def handle_file_item(item: fsutil.FileItem):
     """文件的后置处理器"""
     if item.type == "dir":
@@ -281,7 +242,7 @@ def sort_files_by_size(filelist: typing.List[FileItem]):
         fpath = file.path
         fpath = os.path.abspath(fpath)
         realpath = os.path.realpath(fpath)
-        info = FileInfoModel.get_by_fpath(realpath)
+        info = FileInfoDao.get_by_fpath(realpath)
         if info != None and hasattr(info, "fsize"):
             file.fsize = info.fsize
             size_str = format_size(info.fsize)

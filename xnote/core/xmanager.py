@@ -21,6 +21,7 @@ import threading
 import logging
 import xnote_migrate
 
+from typing import Optional
 from xnote.core import xconfig, xauth, xnote_trace, xnote_hooks, xtemplate
 from collections import deque
 from threading import Thread
@@ -643,11 +644,13 @@ class EventHandler:
         else:
             self.key = func_name
 
-    def execute(self, ctx=None):
+    def execute(self, ctx=None, is_async = None):
         _debug_logger.log("event:(%s) key:(%s), is_async:(%s)",
                           self.event_type, self.key, self.is_async)
+        if is_async is None:
+            is_async = self.is_async
 
-        if self.is_async:
+        if is_async:
             # 异步执行
             put_task(self.func, ctx)
         else:
@@ -680,7 +683,7 @@ class SearchHandler(EventHandler):
 
     pattern = re.compile(r".*")
 
-    def execute(self, ctx):
+    def execute(self, ctx, is_async = None):
         try:
             matched = self.pattern.match(ctx.key)
             if not matched:
@@ -731,10 +734,10 @@ class EventManager:
         handlers.append(handler)
         self._handlers[event_type] = handlers
 
-    def fire(self, event_type: str, ctx=None):
+    def fire(self, event_type: str, ctx=None, is_async:Optional[bool] = None):
         handlers = self._handlers.get(event_type, [])
         for handler in handlers:
-            handler.execute(ctx)
+            handler.execute(ctx, is_async=is_async)
 
     def remove_handlers(self, event_type=None):
         """移除事件处理器"""
@@ -863,9 +866,9 @@ def quick_sleep(seconds):
         if xconfig.EXIT_CODE == 205:
             return
 
-def fire(event_type: str, ctx=None):
+def fire(event_type: str, ctx=None, is_async: Optional[bool] = None):
     """发布一个事件"""
-    get_event_manager().fire(event_type, ctx)
+    get_event_manager().fire(event_type, ctx, is_async = is_async)
 
 
 def listen(event_type_list, is_async=True, description=""):

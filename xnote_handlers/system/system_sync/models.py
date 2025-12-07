@@ -10,26 +10,11 @@ from xnote.core import xtables
 from datetime import datetime
 from .config import EXPIRE_TIME
 from xutils.db.binlog import BinLogRecord
+from xnote_handlers.fs.fs_models import FileInfoRecord, FileIndexInfo
 
 class ResultCode:
     success = "success"
     sync_broken = "sync_broken" # 同步损坏
-
-
-class FileIndexInfo(Storage):
-    """文件索引信息 (用于数据同步) """
-    def __init__(self, **kw):
-        self.id = 0
-        self.webpath = ""
-        self.fpath = ""
-        self.mtime = xtables.DEFAULT_DATETIME
-        self.user_id = 0
-        self.fsize = 0
-        self.ftype = ""
-        self.last_try_time = 0.0
-        self.exists = True # 默认存在
-        self.sha1_sum = ""
-        self.update(kw)
 
 class FollowerInfo(BaseDataRecord):
 
@@ -144,3 +129,19 @@ class ListDBResponse(BaseDataRecord):
     def __init__(self):
         self.binlog_last_seq = 0
         self.rows: typing.List[BinLogRecord] = []
+
+class GetBackupInfoResponse(BaseDataRecord):
+    backup_file_info: FileIndexInfo
+
+    def __init__(self):
+        self.backup_file = ""
+        self.backup_binlog_id = 0
+
+    @classmethod
+    def from_dict(cls, dict_value: dict):
+        result = cls()
+        result.update(dict_value)
+        result.backup_file_info = FileIndexInfo.from_dict(result.backup_file_info)
+        return result
+    
+

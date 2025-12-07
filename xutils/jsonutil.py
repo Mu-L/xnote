@@ -46,7 +46,7 @@ def parse_json_to_dict(text: typing.Union[str, bytes]):
     assert isinstance(result, dict)
     return result
 
-def tojson(obj, ensure_ascii=False, format=False):
+def to_json(obj, ensure_ascii=False, format=False):
     """对象转json"""
     separators=(',', ':')
     if format:
@@ -55,6 +55,10 @@ def tojson(obj, ensure_ascii=False, format=False):
     else:
         return json.dumps(obj, cls=MyEncoder, ensure_ascii=ensure_ascii, separators=separators)
 
-def fromjson(json_str: typing.Union[str, bytes]):
+def from_json(json_str: typing.Union[str, bytes]):
     """json转对象"""
     return json.loads(json_str)
+
+
+tojson = to_json
+fromjson = from_json

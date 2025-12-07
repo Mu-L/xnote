@@ -39,7 +39,7 @@ def print_debug_info(*args):
 def is_temp_file(fname):
     return fname in TEMP_FNAME_SET
 
-def build_index_by_fpath(fpath, user_id=0, remark="", file_id=0):
+def build_index_by_fpath(fpath: str, user_id=0, remark="", file_id=0):
     # TODO 如果 user_id=0 尝试根据路径推测用户
     from xnote_handlers.fs.fs_helper import FileInfo, FileInfoDao
     st = os.stat(fpath)
@@ -112,8 +112,11 @@ class FileSyncIndexManager:
 
     def list_files(self, last_id = 0, offset = 0, limit = 20):
         db = xtables.get_file_info_table()
-        record_list = db.select(where="id > $last_id", vars=dict(last_id=last_id), 
-                               offset=offset, limit=limit, order="id")
+        rows = db.select(
+            where="id > $last_id", vars=dict(last_id=last_id), 
+            offset=offset, limit=limit, order="id")
+        
+        record_list = FileInfo.from_dict_list(rows)
         result = [] # type: list[FileIndexInfo]
         for item0 in record_list:
             item = FileIndexInfo(**item0)

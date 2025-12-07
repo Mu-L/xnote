@@ -32,6 +32,7 @@ from xnote_handlers.system.system_sync.models import LeaderStat, ListDBResponse
 from xnote_handlers.system.system_sync import system_sync_proxy
 from xutils.db.binlog import BinLog, BinLogOpType, BinLogRecord
 from xnote.open_api import BaseResponse, FailedResponse, SuccessResponse
+from xnote.core.test_env import TestEnv
 
 app = test_base.init()
 json_request = test_base.json_request
@@ -157,6 +158,12 @@ class TestSystemSync(BaseTestCase):
         finally:
             netutil.set_net_mock(None)
 
+    def fast_backup(self):
+        TestEnv.is_test = True
+        TestEnv.skip_backup = False
+        self.check_OK("/system/backup")
+        TestEnv.skip_backup = True
+
     def test_system_sync_db_full(self):
         from xnote_handlers.system.system_sync.system_sync_controller import FollowerInstance
         netutil.set_net_mock(LeaderNetMock())
@@ -171,6 +178,7 @@ class TestSystemSync(BaseTestCase):
             db_syncer.debug = True
             db_syncer.put_db_sync_state("full")
 
+            self.fast_backup()
             max_id = binlog_obj.get_max_id()
             assert isinstance(max_id, int)
             
@@ -178,7 +186,8 @@ class TestSystemSync(BaseTestCase):
             FollowerInstance.sync_db_from_leader()
 
             self.assertEqual(db_syncer.get_db_sync_state(), "binlog")
-            self.assertEqual(db_syncer.get_binlog_last_seq(), max_id)
+            # 备份前第一步进行binlog id备份，但是备份完成后会插入一条新的文件索引记录，所以这里是max_id - 1
+            self.assertEqual(db_syncer.get_binlog_last_seq(), max_id - 1)
         finally:
             netutil.set_net_mock(None)
 
@@ -188,6 +197,8 @@ class TestSystemSync(BaseTestCase):
         netutil.set_net_mock(LeaderNetMock())
 
         binlog_instance = BinLog.get_instance()
+
+        self.fast_backup()
 
         try:
             self.get_access_token()
@@ -226,26 +237,17 @@ class TestSystemSync(BaseTestCase):
 
     def test_system_sync_db_broken(self):
         from xnote_handlers.system.system_sync.system_sync_controller import FollowerInstance
-        admin_token = self.get_access_token()
+
+        binlog = BinLog.get_instance()
+
+        self.get_access_token()
         self.init_leader_config()
-
-        class MockedClient(system_sync_proxy.HttpClient):
-            def __init__(self, **kw):
-                pass
-            
-            def list_binlog(self, last_seq):
-                return FailedResponse(code="sync_broken", message="sync broken"), []
-            
-            def list_db(self, last_key=""):
-                resp = ListDBResponse()
-                resp.binlog_last_seq = 1234
-                return SuccessResponse(""), resp
-
+        self.fast_backup()
         FollowerInstance._debug = True
         FollowerInstance.db_syncer.put_db_sync_state("binlog")
-        result = FollowerInstance.db_syncer.sync_by_binlog(MockedClient())
+        FollowerInstance.db_syncer.put_binlog_last_seq(binlog.get_max_id() + 10000)
+        result = FollowerInstance.db_syncer.sync_by_binlog(FollowerInstance.get_client())
         self.assertEqual(result, "sync_by_full")
-        self.assertEqual(1234, FollowerInstance.db_syncer.get_binlog_last_seq())
     
     def test_is_token_active(self):
         from xnote_handlers.system.system_sync.system_sync_controller import FollowerInstance

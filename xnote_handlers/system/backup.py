@@ -15,6 +15,7 @@ import sqlite3
 import xutils
 import web.db
 
+from xnote.core.xnote_event import FileUploadEvent
 from xnote.core import xconfig, xauth, xtemplate
 from xutils import Storage
 from xutils import dbutil
@@ -29,6 +30,7 @@ from xnote.plugin.list import ListView, ListViewItem, ActionButton
 from xutils.db.binlog import BinLog
 from xutils import jsonutil
 from xutils.sqldb.table_config import TableConfig
+from xnote.core.test_env import TestEnv
 
 config = xconfig
 
@@ -148,13 +150,17 @@ class DBBackup:
         db = xtables.MySqliteDB(db = self.db_backup_file)
         # 备份可以关闭同步，加快速度
         db.query("PRAGMA synchronous = OFF")
-        db.query("PRAGMA journal_mode = WAL")
+        db.query("PRAGMA journal_mode = DELETE")
         db.query("PRAGMA page_size = 16384") # 16K
         batch_size = 100
 
         self.save_all_table_names()
 
         try:
+            if TestEnv.is_test and TestEnv.skip_backup:
+                logging.info("test env, skip sql backup")
+                return
+            
             for table in xtables.get_all_tables():
                 backup_table = xtables.init_backup_table(table.tablename, db, dbpath=self.db_backup_file)
                 backup_table.writable = True
@@ -208,6 +214,10 @@ class DBBackup:
         count = 0
 
         try:
+            if TestEnv.is_test and TestEnv.skip_backup:
+                logging.info("test env, skip sql backup")
+                return
+            
             batch = dbutil.create_write_batch()
             for key, value in dbutil.get_instance().RangeIter(include_value = True):
                 # 可能是bytearray
@@ -286,6 +296,12 @@ class DBBackup:
             fsutil.mvfile(self.db_backup_file, destfile)
             SystemMetaEnum.db_backup_file.save_meta(destfile)
 
+            event = FileUploadEvent()
+            event.fpath = destfile
+            event.user_id = xauth.current_user_id()
+            # build index synchronously
+            event.fire(is_async = False)
+
             # 再次清理
             self.clean()
             
@@ -352,8 +368,8 @@ class DBImporter:
 
         try:
             for table in xtables.get_all_tables():
-                if table.table_name == xconfig.DatabaseConfig.kv_store:
-                    logger.info(f"skip kv_store table: {table.table_name}")
+                if TableConfig.is_skip_backup_table(table.tablename):
+                    logger.info(f"skip backup table: {table.table_name}")
                     continue
                 backup_table = xtables.init_backup_table(table.tablename, backup_db, dbpath=db_file)
                 total_count = backup_table.count()
@@ -364,13 +380,7 @@ class DBImporter:
                 for records in backup_table.iter_batch(batch_size=batch_size):
                     with table.transaction():
                         for record in records:
-                            new_record = table.filter_record(record)
-                            where_dict = dict(id = record.id)
-                            old_record = table.select_first(where=where_dict)
-                            if old_record == None:
-                                table.insert(**new_record)
-                            else:
-                                table.update(where=where_dict, **new_record)
+                            table.replace(**record)
                             count+=1
                             cost_time = time.time() - start_time
                             qps = calc_qps(count, cost_time)
@@ -447,7 +457,7 @@ class BackupHandler:
         view.add_item(ListViewItem(text="备份binlog_id", css_class="list-item-black", badge_info=SystemMetaEnum.db_backup_binlog_id.meta_value))
         return view
 
-    @xauth.login_required("admin")
+    @xauth.admin_required()
     def GET(self):
         """触发备份事件"""
         p = xutils.get_argument_str("p", "")

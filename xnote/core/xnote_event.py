@@ -47,10 +47,10 @@ class BaseEvent(Storage):
         for field_desc in self._fields:
             field_desc.validate(self)
 
-    def fire(self):
+    def fire(self, is_async = None):
         self.validate()
         from xnote.core import xmanager
-        xmanager.fire(self.event_type, self)
+        xmanager.fire(self.event_type, self, is_async)
 
 class FileUploadEvent(BaseEvent):
     """文件上传事件"""

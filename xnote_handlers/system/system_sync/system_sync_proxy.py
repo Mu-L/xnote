@@ -17,6 +17,7 @@ import json
 
 import xutils
 from xnote.core import xconfig
+from xnote.core import xauth
 
 from xutils import Storage
 from xutils import netutil
@@ -29,10 +30,11 @@ from xutils.mem_util import log_mem_info_deco
 from xutils.netutil import HttpFileNotFoundError, HttpError
 from .models import FileIndexInfo
 from .models import LeaderStat
-from .models import SystemSyncToken, ListBinlogRequest, ListDBRequest, ListDBResponse
+from .models import SystemSyncToken, ListBinlogRequest, ListDBRequest, ListDBResponse, GetBackupInfoResponse
 from .system_sync_indexer import build_index_by_fpath
 from xnote.open_api import invoke_remote_api, BaseRequest
 from xutils.db.binlog import BinLogRecord
+from xnote_handlers.fs.fs_helper import FileInfoDao
 
 RETRY_INTERVAL = 60
 MAX_KEY_SIZE = 511
@@ -71,6 +73,21 @@ class HttpClient:
         self.refresh_token()
 
     def refresh_token(self):
+        if xconfig.IS_TEST:
+            from xnote_handlers.system.system_sync.dao import SystemSyncTokenDao
+            logging.info("test env, skip refresh_token")
+            user_info = xauth.get_user_by_name("admin")
+            assert user_info != None
+            admin_token = user_info.token
+
+            token_info = SystemSyncTokenDao.get_by_holder("test")
+            assert token_info != None
+
+            self.access_token = token_info.token
+            self.token = admin_token
+            self.admin_token = admin_token
+            return
+        
         node_id = self.node_id
         port = self.port
         url = f"{self.host}/system/sync?p=refresh_token&leader_token={self.token}&node_id={node_id}&port={port}"
@@ -238,7 +255,7 @@ class HttpClient:
         logging.debug("目标文件:%s", dest_path)
 
         try:
-            netutil.http_download(url, dest_path)
+            self._do_http_download(url, dest_path, item)
         except HttpFileNotFoundError:
             logging.error("file not found: %s", webpath)
             return
@@ -261,6 +278,14 @@ class HttpClient:
         build_index_by_fpath(dest_path, user_id=item.user_id, file_id=item.id)
         self.fs_sync_failed_msg = ""
 
+    def _do_http_download(self, url: str, dest_path: str, item: FileIndexInfo):
+        if xconfig.IS_TEST:
+            logging.info("test env, copy file:%s to %s", item.fpath, dest_path)
+            fsutil.copy(item.realpath, dest_path)
+            return
+
+        return netutil.http_download(url, dest_path)
+
     def download_files(self, result):
         for item in result.data:
             self.download_file(FileIndexInfo(**item))
@@ -282,7 +307,7 @@ class HttpClient:
         data = resp.data
         binlog_list = []
         if data != "":
-            dict_list = json.loads(data)
+            dict_list = jsonutil.fromjson(data)
             binlog_list = BinLogRecord.from_dict_list(dict_list)
         
         return resp, binlog_list
@@ -302,6 +327,15 @@ class HttpClient:
             assert db_resp != None
             db_resp.rows = BinLogRecord.from_dict_list(db_resp.rows)
         return resp, db_resp
-
+    
+    def get_backup_info(self):
+        req = BaseRequest()
+        req.api_name = "system.sync.get_backup_info"
+        resp = invoke_remote_api(req)
+        if not resp.success:
+            logging.error("get_backup_info failed, resp=%s", resp)
+            raise Exception(f"get_backup_info failed: {resp.message}")
+        data = resp.data
+        return GetBackupInfoResponse.from_json(data)
 
 empty_http_client = HttpClient("", "", "")

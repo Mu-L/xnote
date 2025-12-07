@@ -231,7 +231,7 @@ class TableProxy(SQLDBInterface):
         pk_name = self.table_info.pk_name
         pk_value = row.get(pk_name)
 
-        BinLog.get_instance().add_log(BinLogOpType.sql_upsert, pk_value, table_name=self.tablename)
+        BinLog.get_instance().add_log(BinLogOpType.sql_upsert, key = pk_value, table_name=self.tablename)
 
     def _add_insert_binlog(self, new_id, _test=False):
         if _test:

@@ -26,6 +26,7 @@ import logging
 from xnote.core import xtables, xconfig
 from xnote.core import xnote_event
 from xnote.core.models import UserMetaRecord
+from xnote.core.test_env import TestEnv
 from xutils import textutil, dbutil, fsutil, dateutil
 from xutils import Storage
 from xutils import logutil
@@ -37,6 +38,7 @@ from xutils import interfaces
 from xutils.base import BaseDataRecord
 from xutils import cacheutil
 from web.db import SQLLiteral
+
 
 session_cache = cacheutil.PrefixedCache(prefix="session:")
 user_cache = cacheutil.PrefixedCache(prefix="user:")
@@ -53,31 +55,6 @@ INVALID_NAMES = None
 # 会话有效期(7天)
 SESSION_EXPIRE = 24 * 3600 * 7
 PRINT_DEBUG_LOG = False
-
-
-class TestEnv:
-    """用于测试的运行时环境"""
-    is_admin = False
-    has_login = False
-    login_user_name = "test"
-    
-    @classmethod
-    def login_admin(cls):
-        cls.is_admin = True
-        cls.has_login = True
-        cls.login_user_name = "admin"
-        
-    @classmethod
-    def login_user(cls, user_name=""):
-        cls.is_admin = (user_name == "admin")
-        cls.has_login = True
-        cls.login_user_name = user_name
-        
-    @classmethod
-    def logout(cls):
-        cls.has_login = False
-        cls.is_admin = False
-
 
 def get_user_db():
     return UserDao._get_db()
@@ -470,7 +447,7 @@ def get_user(name):
     return find_by_name(name)
 
 
-def get_user_by_name(user_name):
+def get_user_by_name(user_name: str):
     return UserDao.get_by_name(user_name)
 
 def get_valid_session_by_id(sid):
