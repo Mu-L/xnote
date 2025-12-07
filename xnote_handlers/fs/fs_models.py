@@ -49,6 +49,7 @@ class FileInfoRecord(BaseDataRecord):
         result.ftype = self.ftype
         result.sha256 = self.sha256
         result.sha1_sum = fsutil.get_sha1_sum(self.realpath)
+        result.webpath = fsutil.get_webpath(self.realpath)
         return result
 
 FileInfo = FileInfoRecord

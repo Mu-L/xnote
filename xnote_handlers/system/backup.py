@@ -361,7 +361,7 @@ class DBImporter:
     def get_logger(self):
         return _import_logger
 
-    def import_sql(self, db_file):
+    def import_sql(self, db_file: str):
         logger = self.get_logger()
         backup_db = xtables.MySqliteDB(db = db_file)
         batch_size = 100
