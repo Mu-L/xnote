@@ -380,7 +380,7 @@ class DBImporter:
                 for records in backup_table.iter_batch(batch_size=batch_size):
                     with table.transaction():
                         for record in records:
-                            table.replace(**record)
+                            table.replace(_skip_binlog = True, **record)
                             count+=1
                             cost_time = time.time() - start_time
                             qps = calc_qps(count, cost_time)

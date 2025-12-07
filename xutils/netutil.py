@@ -131,7 +131,7 @@ class HttpResource:
     def __init__(self, url: str):
         self.url = get_http_url(url)
         self.protocol = url.split("://")[0]
-        self.domain, _ = splithost(url)
+        self.domain: str = splithost(url)[0]
 
     def get_res_url(self, url: str):
         """
@@ -302,16 +302,24 @@ def _http_post_by_request(url: str, data: str, charset='utf-8'):
 
 def http_download_by_requests(url, destpath):
     assert requests != None
-    resp = requests.get(url, headers = {"User-Agent": USER_AGENT})
+    resp = requests.get(url, headers = {"User-Agent": USER_AGENT}, stream=True)
     if resp.status_code == 404:
         raise HttpFileNotFoundError(404, f"file {url} not found")
     
     if resp.status_code != 200:
         raise HttpError(resp.status_code, f"StatusCode {resp.status_code}")
 
+    try:
+        total_size = int(resp.headers.get('content-length', 0))
+    except:
+        total_size = -1
+
     with open(destpath, "wb") as fp:
+        readsize = 0
         for chunk in resp.iter_content(chunk_size = BUFSIZE):
             fp.write(chunk)
+            readsize += len(chunk)
+            logging.info(f"download {readsize} bytes, progress={readsize/total_size*100:.2f}%")
     return resp.headers # headers是key大小写不敏感的dict
 
 def http_download(address: str, destpath: str, dirname = None):
@@ -339,10 +347,10 @@ def http_download(address: str, destpath: str, dirname = None):
         readsize = 0
         while chunk:
             readsize += len(chunk)
-            print("download %s bytes" % readsize)
+            logging.info("download %s bytes" % readsize)
             dest.write(chunk)
             chunk = stream.read(bufsize)
-        print("download %s bytes, saved to %s" % (readsize, destpath))
+        logging.info("download %s bytes, saved to %s" % (readsize, destpath))
     finally:
         dest.close()
 

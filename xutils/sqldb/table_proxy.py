@@ -274,7 +274,7 @@ class TableProxy(SQLDBInterface):
     def get_column_names(self):
         return self.table_info.column_names
 
-    def replace(self, seqname=None, _test=False, **values):
+    def replace(self, seqname=None, _test=False, _skip_binlog=False, **values):
         """XXX: 测试中
         执行replace into操作
         """
@@ -292,7 +292,10 @@ class TableProxy(SQLDBInterface):
         sql_query = (
             "REPLACE INTO %s " % tablename + q(_keys) + " VALUES " + q(_values)
         )
-        self._add_row_binlog(values)
+        
+        if not _skip_binlog:
+            self._add_row_binlog(values)
+
         try:
             return self.db.query(sql_query)
         except Exception as e:

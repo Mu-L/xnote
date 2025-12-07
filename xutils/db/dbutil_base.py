@@ -75,7 +75,7 @@ LDB_TABLE_DICT = dict()
 # leveldb的全局实例
 _leveldb = interfaces.empty_db
 
-class KvDataBase:
+class KvDatabase:
     """KV数据库"""
 
     # 只读模式
@@ -228,7 +228,7 @@ class WriteBatchProxy(BatchInterface):
 
 
 def config(**kw):
-    KvDataBase.init(kw)
+    KvDatabase.init(kw)
 
 
 def get_instance():
@@ -255,7 +255,7 @@ def check_leveldb():
 
 
 def check_write_state():
-    if KvDataBase.read_only:
+    if KvDatabase.read_only:
         raise Exception("read_only mode!")
 
 
@@ -879,10 +879,10 @@ def prefix_count(*args, **kw):
 
 
 def set_db_cache(cache):
-    KvDataBase.cache = cache
+    KvDatabase.cache = cache
 
 def get_db_cache():
-    KvDataBase.cache
+    KvDatabase.cache
 
 
 def set_db_instance(db_instance: DBInterface):
@@ -896,7 +896,7 @@ def get_db_instance():
     return _leveldb
 
 def delete_table_count_cache(table_name):
-    _cache = KvDataBase.cache
+    _cache = KvDatabase.cache
     if _cache == None:
         return
 
@@ -904,7 +904,7 @@ def delete_table_count_cache(table_name):
     _cache.delete(cache_key)
 
 def delete_index_count_cache(table_name, index_name):
-    _cache = KvDataBase.cache
+    _cache = KvDatabase.cache
     if _cache == None:
         return
 
@@ -922,7 +922,7 @@ def count_table(table_name:str, use_cache=False):
     if table_name[-1] != ":":
         table_name += ":"
 
-    cache = KvDataBase.cache
+    cache = KvDatabase.cache
     if use_cache and cache != None:
         value = cache.get(cache_key)
         if value != None:
@@ -967,11 +967,11 @@ def run_test():
 
 
 def set_driver_name(driver_name):
-    KvDataBase.driver_name = driver_name
+    KvDatabase.driver_name = driver_name
 
 
 def get_driver_name():
-    return KvDataBase.driver_name
+    return KvDatabase.driver_name
 
 # 别名
 put = db_put

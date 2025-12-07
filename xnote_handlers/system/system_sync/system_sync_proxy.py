@@ -202,7 +202,7 @@ class HttpClient:
         path = os.path.join(data_dir, temp_path)
         return os.path.abspath(path)
 
-    def download_file(self, item: FileIndexInfo):
+    def download_file(self, item: FileIndexInfo, force_download=False):
         self.check_access_token()
 
         if not self.check_disk_space():
@@ -222,11 +222,13 @@ class HttpClient:
             assert item.sha1_sum != "", item
         
         # 数据库文件不能下载
-        if self.is_ignore_file(item.webpath):
+        if not force_download and self.is_ignore_file(item.webpath):
             logging.info("跳过系统/临时文件, fpath=%s", item.fpath)
             return
 
         webpath = item.webpath
+        if webpath == "":
+            raise Exception("invalid webpath")
 
         if isinstance(item.mtime, float):
             mtime = item.mtime

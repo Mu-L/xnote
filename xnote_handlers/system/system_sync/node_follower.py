@@ -378,11 +378,11 @@ class DBSyncer:
         backup_info = proxy.get_backup_info()
         if backup_info is None:
             return
-        proxy.download_file(backup_info.backup_file_info)
-        self.put_db_sync_state("binlog")
-        self.put_binlog_last_seq(backup_info.backup_binlog_id)
+        proxy.download_file(backup_info.backup_file_info, force_download=True)
         filepath = backup_info.backup_file_info.realpath
         DBImporter().import_db(filepath)
+        self.put_db_sync_state("binlog")
+        self.put_binlog_last_seq(backup_info.backup_binlog_id)
 
 
     def sync_db_full_step(self, proxy, last_key: str):
