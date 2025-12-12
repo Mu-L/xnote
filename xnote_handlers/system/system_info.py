@@ -16,6 +16,8 @@ from xutils import fsutil
 from xutils import mem_util
 from xutils import Storage
 from xnote_handlers.config import LinkConfig
+from xnote.plugin.table_plugin import BaseTablePlugin
+from xnote.plugin.sidebar import get_admin_sidebar_html
 
 try:
     import sqlite3
@@ -139,8 +141,6 @@ class InfoHandler:
             return self.render_python_lib()
 
         mem_info = mem_util.get_mem_info()
-        sys_mem_info = "%s/%s" % (mem_info.sys_mem_used, mem_info.sys_mem_total)
-
         items = [
             SystemInfoItem("Python版本", value = get_python_version()),
             SystemInfoItem("Xnote版本", value = get_xnote_version()),
@@ -153,7 +153,7 @@ class InfoHandler:
             SystemInfoItem("操作系统", platform.system()),
             SystemInfoItem("操作系统版本", platform.version()),
             SystemInfoItem("系统启动时间", get_startup_time()),
-            SystemInfoItem("系统配置", "查看", link = "/system/info/boot_config"),
+            SystemInfoItem("启动配置", "查看", link = "/system/info/boot_config"),
             SystemInfoItem("Python第三方库", "查看", link = "/system/info?p=python_lib"),
             SystemInfoItem("详细系统信息", "查看", link="/system/info?p=sys_info_detail"),
             SystemInfoItem("浏览器信息", "查看", link = "/tools/browser_info"),
@@ -185,17 +185,35 @@ class InfoHandler:
             item_list=item_list,
         )
 
-class BootConfigHandler:
+class BootConfigHandler(BaseTablePlugin):
+    require_admin = True
+    title = "启动配置"
+    parent_link = LinkConfig.system_info
 
-    @xauth.admin_required()
-    def GET(self):
-        text = xconfig.get_config_dict()
-        text = xutils.tojson(text, format=True)
+    def handle_page(self):
+        self.write_aside(get_admin_sidebar_html())
+        table = self.create_table()
+        table.add_head("配置项", "name")
+        table.add_head("类型", "type", width="50px")
+        table.add_head("值", "value")
+
+        type_dict = {}
+        value_dict = {}
+
+        for key, value in xconfig.get_config_dict().items():
+            assert isinstance(key, str)
+            if key.endswith(".type"):
+                type_dict[key] = value
+            else:
+                value_dict[key] = value
+        
+        for key, value in value_dict.items():
+            row = dict(name = key, value = value, type = type_dict.get(f"{key}.type", ""))
+            table.add_row(row)
         kw = Storage()
-        kw.title = "启动配置"
-        kw.text = text
-        kw.parent_link = LinkConfig.system_info
-        return xtemplate.render("system/page/system_info_text.html", **kw)
+        kw.table = table
+        return self.response_page(**kw)
+
 
 xurls = (
     r"/system/info", InfoHandler,

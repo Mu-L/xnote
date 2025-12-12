@@ -176,7 +176,7 @@ class DbScanHandler:
         if need_reverse:
             key_to = key_from.encode("utf8") + b'\xff'
 
-        dbutil.scan(key_from=key_from, key_to=key_to, func=func,
+        dbutil.db_scan(key_from=key_from, key_to=key_to, func=func,
                     reverse=need_reverse, parse_json=False)
 
         kw = Storage()

@@ -5,13 +5,14 @@ autoreload会自动搜索指定目录下的文件
 一旦修改时间发生变化会立即触发回调函数
 """
 
-from threading import Thread
 import time
 import sys
 import types
 import os
 import sys
 import traceback
+
+from threading import Thread
 from xutils import dateutil
 
 BLOCKED_EXT_LIST = [".pyc", ".class"]
@@ -104,7 +105,7 @@ def check_sys_modules(modify_times):
         if not isinstance(module, types.ModuleType):
             continue
         path = getattr(module, "__file__", None)
-        if not path:
+        if not isinstance(path, str):
             continue
         if path.endswith(".pyc") or path.endswith(".pyo"):
             path = path[:-1]

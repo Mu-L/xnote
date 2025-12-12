@@ -14,11 +14,11 @@
 import os
 import warnings
 import math
-import web # type: ignore
-import xutils
 import functools
 import time
 import typing
+import xutils
+import web # type: ignore
 
 from xnote.core import xconfig, xauth, xnote_trace, xnote_hooks
 from xnote.core import xnote_user_config
@@ -30,6 +30,7 @@ from xutils import tojson
 from xutils import Storage
 from xutils import textutil
 from urllib.parse import quote
+from typing import Union
 
 TEMPLATE_DIR = xconfig.HANDLERS_DIR
 NAMESPACE = dict(
@@ -156,7 +157,7 @@ class XnoteLoader(Loader):
             template = Template(f.read(), name=name, loader=self)
             return template
 
-    def init_template(self, name: str, text: str):
+    def init_template(self, name: str, text: Union[str, bytes]):
         self.templates[name] = Template(text, name=name, loader=self)
 
 
@@ -317,10 +318,10 @@ def register_memory_template(name: str, text: str):
     loader.init_template(name=name, text=text)
 
 @functools.lru_cache(maxsize=128)
-def get_md5_hex_with_cache(text=""):
+def get_md5_hex_with_cache(text:Union[str, bytes] = ""):
     return xutils.md5_hex(text)
 
-def render_text(text: str, template_name="<string>", **kw):
+def render_text(text: Union[str, bytes], template_name="<string>", **kw):
     """使用模板引擎渲染文本信息,使用缓存
     """
     _loader = XnoteLoader.get_instance()
@@ -478,18 +479,18 @@ class BasePlugin:
         self.html += u(html.decode("utf-8"))
         return self.html
 
-    def write_aside(self, template, **kw):
+    def write_aside(self, template_text: Union[str, bytes], **kw):
         self.show_aside = True
-        self.aside_html = render_text(template, **kw)
+        self.aside_html = render_text(template_text, **kw)
 
-    def ajax_response(self, template, **kw):
+    def ajax_response(self, template_text, **kw):
         warnings.warn("use response_ajax instead", DeprecationWarning)
-        return self.do_render_text(template, **kw)
+        return self.do_render_text(template_text, **kw)
 
-    def text_response(self, template, **kw):
+    def text_response(self, template_text, **kw):
         """返回纯文本格式的内容"""
         warnings.warn("use response_text instead", DeprecationWarning)
-        return self.do_render_text(template, **kw)
+        return self.do_render_text(template_text, **kw)
 
     def response_ajax(self, template, **kw):
         return self.do_render_text(template, **kw)

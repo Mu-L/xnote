@@ -559,6 +559,7 @@ def init_system_sync_binlog_table():
         
     TableConfig.disable_binlog(table_name)
     TableConfig.disable_profile(table_name)
+    TableConfig.skip_backup(table_name)
 
 def init_system_info_table():
     """系统信息表"""

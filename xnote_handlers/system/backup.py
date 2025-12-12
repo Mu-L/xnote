@@ -166,8 +166,7 @@ class DBBackup:
                 backup_table.writable = True
                 backup_table.log_profile = False # 备份的时候不需要profile
 
-                if backup_table.table_name == xconfig.DatabaseConfig.kv_store:
-                    # kv_store在kv备份里面处理
+                if TableConfig.is_skip_backup_table(table_name=backup_table.table_name):
                     logger.info("skip table (%s)", backup_table.table_name)
                     continue
                 

@@ -8,6 +8,7 @@ import os
 import re
 import logging
 import time
+from xutils.base import Storage
 
 try:
     import psutil
@@ -20,9 +21,15 @@ from xutils.base import Storage
 _ignored_name_set = set()
 _ignored_group_set = set()
 
+class MemoryInfo(Storage):
+    def __init__(self, mem_used = "", sys_mem_used = "", sys_mem_total = ""):
+        self.mem_used = mem_used
+        self.sys_mem_used = sys_mem_used
+        self.sys_mem_total = sys_mem_total
+
 def get_mem_info_by_psutil():
     if psutil is None:
-        return Storage()
+        return MemoryInfo()
     p                 = psutil.Process(pid=os.getpid())
     mem_info          = p.memory_info()
     mem_used          = xutils.format_size(mem_info.rss)
@@ -31,7 +38,7 @@ def get_mem_info_by_psutil():
     sys_mem_total     = xutils.format_size(sys_mem.total)
     if xutils.is_mac():
         sys_mem_used = xutils.format_size(sys_mem.total * sys_mem.percent / 100)
-    return Storage(mem_used = mem_used, sys_mem_used = sys_mem_used, sys_mem_total = sys_mem_total)
+    return MemoryInfo(mem_used = mem_used, sys_mem_used = sys_mem_used, sys_mem_total = sys_mem_total)
 
 def get_mem_info_by_tasklist():
     mem_usage         = os.popen("tasklist /FI \"PID eq %s\" /FO csv" % os.getpid()).read()
@@ -42,7 +49,7 @@ def get_mem_info_by_tasklist():
         formated_mem_size = mem_list[-1]
     else:
         formated_mem_size = "-1"
-    return Storage(mem_used = formated_mem_size, sys_mem_used = "-1", sys_mem_total = "-1")
+    return MemoryInfo(mem_used = formated_mem_size, sys_mem_used = "-1", sys_mem_total = "-1")
 
 def get_mem_info():
     if psutil:
@@ -51,7 +58,7 @@ def get_mem_info():
         result = get_mem_info_by_tasklist()
     else:
         # ps -C -p 10538
-        result = Storage(mem_used = "-1", sys_mem_used = "-1", sys_mem_total = "-1")
+        result = MemoryInfo(mem_used = "-1", sys_mem_used = "-1", sys_mem_total = "-1")
     return result
 
 def ignore_log_mem_info_deco(name=None, group=None):

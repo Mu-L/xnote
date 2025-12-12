@@ -684,7 +684,7 @@ def create_write_batch(db_instance=None):
     return WriteBatchProxy(db_instance=db_instance)
 
 
-def scan(key_from=None,
+def db_scan(key_from=None,
          key_to=None,
          func=None, # type: typing.Callable[[str, typing.Any], bool]|None
          reverse=False,
@@ -977,7 +977,6 @@ def get_driver_name():
 put = db_put
 get = db_get
 delete = db_delete
-
 
 if __name__ == "__main__":
     run_test()

@@ -867,17 +867,13 @@ def get_str(key, default_value=""):
     assert isinstance(value, str)
     return value
 
-def set(name, value):
-    """和set函数冲突了，建议使用 set_global_config"""
-    return set_global_config(name, value)
-
-
-def put(name, value):
-    return set_global_config(name, value)
-
 
 def set_global_config(name, value):
     _config[name] = value
+
+put_config = set_global_config
+set_config = set_global_config
+
 
 def set_system_config(name, value):
     set_global_config("system." + name, value)

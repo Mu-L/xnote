@@ -10,7 +10,7 @@
 """
 from __future__ import print_function
 
-"""xnote - Xnote is Not Only Text Editor
+__doc__ = """xnote - Xnote is Not Only Text Editor
 Copyright (C) 2016-2022  xupingmao 578749341@qq.com
 
 This program is free software: you can redistribute it and/or modify

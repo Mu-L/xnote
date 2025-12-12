@@ -172,7 +172,7 @@ def do_wrap_handler(pattern, handler_clz):
 
 def notfound():
     """404请求处理器"""
-    import xtemplate
+    from xnote.core import xtemplate
     raise web.notfound(xtemplate.render(
         "common/page/notfound.html", show_aside=False))
 

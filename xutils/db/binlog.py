@@ -190,6 +190,8 @@ class BinLog:
         max_id = self.get_max_id()
         min_keep_id = max_id - self._max_size + 1
         batch_size = 100
+        
+        logging.info("max_id:%s, min_keep_id:%s", max_id, min_keep_id)
 
         if min_keep_id > 0:
             with self._delete_lock:
