@@ -19,7 +19,7 @@ from xnote.core import xtables
 from xnote.core import xauth
 from xutils import functions, lists
 from xutils import dbutil
-from xutils import attrget, Storage
+from xutils import Storage
 from xutils.base import BaseDataRecord, BaseEnum, EnumItem
 from xnote_handlers.note.dao_api import NoteDao
 from xnote.service import NoteTagBindService, TagTypeEnum, TagBindDO

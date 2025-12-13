@@ -13,14 +13,7 @@ import typing
 from web.db import SqliteDB
 from xutils.base import BaseDataRecord
 from typing import Optional
-
-def safe_str(obj, max_length=-1):
-    if obj == None:
-        return ""
-    value = str(obj)
-    if max_length > 0:
-        return value[:max_length]
-    return value
+from xutils.textutil import safe_str
 
     
 def escape_like(value: str, escape_char: str = "!") -> str:

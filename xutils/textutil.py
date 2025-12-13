@@ -850,6 +850,21 @@ class Properties(object):
     def reload(self):
         self.load_properties()
 
+
+def safe_str(obj, max_length=-1):
+    if obj == None:
+        return ""
+    
+    if isinstance(obj, bytes):
+        value = obj.decode("utf-8", errors="ignore")
+    else:
+        value = str(obj)
+    
+    if max_length > 0:
+        return value[:max_length]
+    return value
+
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod(verbose=True)

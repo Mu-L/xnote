@@ -19,8 +19,8 @@ from xutils import webutil
 from xutils.number_util import IntCounter
 from xnote_handlers.config import LinkConfig
 
-def get_example_tab():
-    tab = TabBox(tab_key="name", title="案例:", css_class="btn-style")
+def get_example_tab(tab_default=""):
+    tab = TabBox(tab_key="name", title="案例:", css_class="btn-style", tab_default=tab_default)
     tab.add_tab("文本示例", value="text", href=f"/test/example?name=text")
     tab.add_tab("按钮示例", value="btn", href=f"/test/example?name=btn")
     tab.add_tab("Tab示例", value="tab", href=f"/test/example?name=tab")
@@ -29,6 +29,7 @@ def get_example_tab():
     tab.add_tab("Dropdown示例", value="dropdown", href=f"/test/example?name=dropdown")
     tab.add_tab("Table示例", value="table", href=f"/test/example/table?name=table")
     tab.add_tab("ListView示例", value="list", href=f"/test/example/list?name=list")
+    tab.add_tab("ListPlugin", value="list_plugin", href=f"/test/example/list_plugin")
     tab.add_tab("日历组件", value="calendar", href="/test/example/calendar?name=calendar")
     tab.add_tab("Hammer示例", value="hammer", href=f"/test/example?name=hammer")
     return tab
@@ -106,7 +107,7 @@ class TableExampleHandler(BaseTablePlugin):
         kw.weight_table = self.get_weight_table()
         kw.empty_table = self.get_empty_table()
         kw.tab = self.get_tab_component()
-        kw.example_tab = get_example_tab()
+        kw.example_tab = get_example_tab(tab_default="table")
         kw.info_table = self.get_info_table()
 
         return self.response_page(**kw)
@@ -300,63 +301,8 @@ class CalendarExampleHandler(BasePlugin):
         kw.calendar = calendar
         self.writehtml(self.HTML, **kw)
 
-class ListExampleHandler(BasePlugin):
-    parent_link = LinkConfig.develop_index
-    title = "ListView示例"
-    rows = 0
-    body_html = """
-{% include test/component/example_nav_tab.html %}
-
-<div class="card">
-    <span class="card-title">ListView: 外层链接</span>
-    {% render item_list %}
-</div>
-
-<div class="card">
-    <span class="card-title">ListView: 内层链接</span>
-    {% render item_list2 %}
-</div>
-"""
-    def handle(self, input=""):
-        item_list = ListView()
-        item_list2 = ListView()
-
-        action = xutils.get_argument_str("action")
-        if action == "delete":
-            return self.handle_delete()
-
-        for index in range(5):
-            text = f"物品-{index+1}"
-            item = ListItem(text=text, href=f"javascript:xnote.alert({index+1})", badge_info=f"徽标{index+1}")
-            item.show_chevron_right = True
-            if index % 2 == 0:
-                item.icon_class = "fa fa-file-text-o"
-            else:
-                item.icon_class = "fa fa-list"
-                item.tags.append(TextTag(text="标签", css_class="lightblue"))
-                item.tags.append(TextTag(text="标签2", css_class="orange"))
-            item.action_btn = ConfirmButton(text="删除", url="?action=delete", message=f"确认删除[{text}]吗", css_class="btn danger")
-            
-            item_list.add_item(item)
-
-            item2 = copy.deepcopy(item)
-            item2.is_link_outside = False
-            item2.show_chevron_right = False
-            item_list2.add_item(item2)
-
-        kw = Storage()
-        kw.item_list = item_list
-        kw.item_list2 = item_list2
-        kw.example_tab = get_example_tab()
-
-        self.writehtml(html=self.body_html, **kw)
-
-    def handle_delete(self):
-        return webutil.FailedResult(code="500", message="mock删除失败")
-
 xurls = (
     r"/test/example", ExampleHandler,
     r"/test/example/table", TableExampleHandler,
-    r"/test/example/list", ListExampleHandler,
     r"/test/example/calendar", CalendarExampleHandler,
 )

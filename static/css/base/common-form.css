@@ -88,6 +88,10 @@
     line-height: normal;
 }
 
+.form-heading label {
+    line-height: normal;
+}
+
 /* 查询表单相关样式 */
 .query-form.form-body {
     position: static;

@@ -29,6 +29,7 @@ from xutils import dateutil, u
 from xutils import tojson
 from xutils import Storage
 from xutils import textutil
+from xutils.textutil import safe_str
 from urllib.parse import quote
 from typing import Union
 
@@ -469,9 +470,13 @@ class BasePlugin:
         """写内容区"""
         self.writetemplate(html, **kw)
 
-    def writehtml(self, html, **kw):
+    def writehtml(self, html: Union[str, bytes], render_template = True, **kw):
         """@deprecated 请使用 #writebody
         这个方法现在和 `writetemplate` 等价"""
+        if not render_template:
+            self.html += safe_str(html)
+            return self.html
+        
         return self.writetemplate(html, **kw)
 
     def writetemplate(self, template_text, **kw):

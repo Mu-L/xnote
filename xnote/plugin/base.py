@@ -1,4 +1,5 @@
 import typing
+from xutils.textutil import safe_str
 
 class BaseComponent:
     """UI组件的基类"""
@@ -26,6 +27,7 @@ class BaseContainer(BaseComponent):
         out = []
         out.append(f"""<div class="{self.css_class}">""")
         for item in self.children:
-            out.append(item.render())
+            item_html = safe_str(item.render())
+            out.append(item_html)
         out.append("""</div>""")
         return "".join(out)

@@ -57,6 +57,7 @@ class MessageListByDayHandler():
         kw.tag = "log.date"
         kw.search_type = "message"
         kw.search_ext_dict = dict(tag="log.search")
+        kw.tab_default = "log.date"
 
         return xtemplate.render("message/page/message_list_by_day.html",
                                 date=date,
@@ -74,7 +75,7 @@ class CalendarHandler:
     @xauth.login_required()
     def GET(self):
         user_id = xauth.current_user_id()
-        date = xutils.get_argument("date")
+        date = xutils.get_argument_str("date")
 
         year, month, mday = do_split_date(date)
 

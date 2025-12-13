@@ -1,7 +1,13 @@
-from xnote.core import xconfig
 from xnote.core import xtables
 
-def create_plugin_table(table_name="", comment="", pk_name="id", **kw):
+def create_plugin_table(
+        table_name="", 
+        comment="", 
+        pk_name="id", 
+        **kw):
+    if not table_name.startswith("plugin_"):
+        raise Exception("plugin table must startswith `plugin_`")
+    
     kw["comment"] = comment
     return xtables.create_default_table_manager(
         table_name=table_name, pk_name=pk_name,

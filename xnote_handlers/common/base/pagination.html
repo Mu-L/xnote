@@ -7,6 +7,9 @@
 {% if "page_totalsize" in globals() %}
     {% set-global page_total = page_totalsize %}
 {% end %}
+{% if "page_current" not in globals() %}
+    {% set-global page_current = page %}
+{% end %}
 
 {% if page_max == 0 %}
     {% if page_total == 0 %}

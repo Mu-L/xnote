@@ -228,7 +228,7 @@ def format_message_stat(stat):
     return stat
 
 
-def do_split_date(date):
+def do_split_date(date: str):
     year = dateutil.get_current_year()
     month = dateutil.get_current_month()
     day = dateutil.get_current_mday()

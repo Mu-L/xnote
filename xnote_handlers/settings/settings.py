@@ -111,6 +111,11 @@ class SettingsHandler:
         d.add_option(name="关闭", value="0")
         return d
     
+    def add_link(self, list_view: ListView, link: TextLink):
+        list_view.add_item(ListViewItem(
+            text=link.text, href=link.href, 
+            css_class="list-item-black", show_chevron_right=True))
+    
     def add_text_config(self, list_view: ListView, info_enum: SystemMetaEnumItem):
         list_view.add_item(ListViewItem(
             text=info_enum.meta_name, 
@@ -138,14 +143,11 @@ class SettingsHandler:
         self.add_system_bool_config(result, SystemMetaEnum.dev_mode)
         self.add_system_bool_config(result, SystemMetaEnum.trace_malloc_enabled)
 
-        result.add_item(ListViewItem(text="自定义CSS", href="/code/edit?type=script&path=user.css", 
-                                     css_class="list-item-black",
-                                     show_chevron_right=True))
-        result.add_item(ListViewItem(text="自定义JavaScript", href="/code/edit?type=script&path=user.js", 
-                                     css_class="list-item-black",
-                                     show_chevron_right=True))
-        
+        self.add_link(result, LinkConfig.customized_css)
+        self.add_link(result, LinkConfig.customized_js)
         self.add_text_config(result, SystemMetaEnum.init_script)
+        self.add_link(result, LinkConfig.system_info)
+        
         return result
     
     

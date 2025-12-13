@@ -10,6 +10,8 @@ class ListViewItem(BaseComponent):
     show_chevron_right = False
     # 操作按钮
     action_btn : typing.Optional[ActionButton] = None
+    # 操作部分
+    action_html = ""
     # 标签列表
     tags: typing.List[TextTag]
     # 默认链接在外部
@@ -28,6 +30,7 @@ class ListViewItem(BaseComponent):
             {% if item.action_btn %}
                 {% render item.action_btn %}
             {% end %}
+            {% raw item.action_html %}
             {% if item.show_chevron_right %}
                 <i class="fa fa-chevron-right"></i>
             {% end %}
@@ -48,6 +51,7 @@ class ListViewItem(BaseComponent):
         {% if item.action_btn %}
             {% render item.action_btn %}
         {% end %}
+        {% raw item.action_html %}
         {% if item.show_chevron_right %}
             <i class="fa fa-chevron-right"></i>
         {% end %}
@@ -58,7 +62,10 @@ class ListViewItem(BaseComponent):
     _outside_code = xtemplate.compile_template(_outside_html)
     _intside_code = xtemplate.compile_template(_inside_html)
 
-    def __init__(self, text="", href="", icon_class="", badge_info="", show_chevron_right = False, css_class="") -> None:
+    def __init__(
+            self, text="", href="", icon_class="", badge_info="", 
+            show_chevron_right = False, action_html = "",
+            css_class="") -> None:
         self.text = text
         self.css_class = css_class
         self.icon_class = icon_class
@@ -66,6 +73,7 @@ class ListViewItem(BaseComponent):
         self.badge_info = badge_info
         self.show_chevron_right = show_chevron_right
         self.tags = []
+        self.action_html = action_html
 
         if href == "":
             self.is_link_outside = False
