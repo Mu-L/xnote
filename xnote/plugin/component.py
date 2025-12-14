@@ -195,3 +195,20 @@ class Dropdown(BaseContainer):
 class LinkConfig:
     """废弃了, 请到 handlers/config 模块进行配置"""
     app_index = TextLink(text="应用", href="/system/index")
+
+
+class BlockTitle(BaseComponent):
+    _code = """
+<div class="block-title">
+    <span>{{item.text}}</span>
+</div>
+"""
+    _template = xtemplate.compile_template(_code, "xnote.plugin.blocktitle")
+
+    def __init__(self, text = ""):
+        self.text = text
+
+    def render(self):
+        if self.text == "":
+            return ""
+        return self._template.generate(item = self)

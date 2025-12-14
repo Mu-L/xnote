@@ -481,7 +481,7 @@ class BasePlugin:
 
     def writetemplate(self, template_text, **kw):
         html = render_text(template_text, template_name=self.title, **kw)
-        self.html += u(html.decode("utf-8"))
+        self.html += html.decode("utf-8")
         return self.html
 
     def write_aside(self, template_text: Union[str, bytes], **kw):

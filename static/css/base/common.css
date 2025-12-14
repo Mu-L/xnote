@@ -872,7 +872,7 @@ li.menu-item:hover {
     border-bottom: 1px solid #eee;
 }
 
-.split-title {
+.split-title, .block-title {
     width: 100%;
     float: left;
     background-color: #eee;

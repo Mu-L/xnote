@@ -54,6 +54,22 @@
 	<a class="x-tab" data-tab-value="tab3">TAB3</a>
 </div>""" %}
 
+{% init html6 = """
+<div class="x-tab-box border-style" 
+		data-tab-key="tab_test6" 
+		data-tab-default="tab1">
+	<div class="block-title">
+		<span>块标题</span>
+		<div class="float-right">
+			<a onclick="xnote.showCode(this);" data-code-id="html6">[展示代码]</a>
+		</div>
+	</div>
+	<a class="x-tab" data-tab-value="tab1">TAB1</a>
+	<a class="x-tab" data-tab-value="tab2">TAB2</a>
+	<a class="x-tab" data-tab-value="tab3">TAB3</a>
+</div>
+""" %}
+
 <h3 class="card-title">
 	<span>默认tab样式</span>
 	<button class="btn link-style" onclick="xnote.showCode(this);" data-code-id="html2">展示代码</button>
@@ -100,6 +116,12 @@
 	<pre id="html5" class="marked-code hide">{{html5}}</pre>
 	{% raw html5 %}
 </div>
+
+<div class="card">
+	<pre id="html6" class="marked-code hide">{{html6}}</pre>
+	{% raw html6 %}
+</div>
+
 
 {% include test/page/example_script.html %}
 

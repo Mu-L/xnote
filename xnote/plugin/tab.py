@@ -10,6 +10,7 @@
 """
 from xnote.core import xtemplate
 from xnote.core import xconfig
+from xnote.plugin.component import BlockTitle
 
 # TODO: 支持多级tab, 例如 tab=dev.text
 
@@ -17,6 +18,7 @@ class TabBox:
     
     TAB_HTML = """
 <div class="x-tab-box {{css_class}}" data-tab-key="{{tab_key}}" data-tab-default="{{tab_default}}">
+{% render block_title %}
 {% if title %}
     <span class="x-tab title">{{title}}</span>
 {% end %}
@@ -36,6 +38,7 @@ class TabBox:
         self.css_class = css_class
         self.title = title
         self.tab_list = [] # type: list[TabItem]
+        self.block_title = BlockTitle()
     
     def add_item(self, title="", value="", href="", css_class="", onclick="", item_id=""):
         item = TabItem(title=title, value=value, href=href, css_class=css_class, onclick=onclick, item_id=item_id)
@@ -59,7 +62,8 @@ class TabBox:
             tab_key=self.tab_key,
             tab_default=tab_default,
             title=self.title,
-            tab_list=self.tab_list)
+            tab_list=self.tab_list,
+            block_title=self.block_title)
 
 
 class TabItem:

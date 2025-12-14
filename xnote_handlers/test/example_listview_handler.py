@@ -5,6 +5,7 @@ from xutils import webutil, Storage
 from xnote.plugin.list_plugin import BaseListPlugin, BasePlugin
 from xnote.plugin.list import ListView, ListViewItem, ListItem, TextTag
 from xnote.plugin.component import ConfirmButton, BaseContainer, ActionButton
+from xnote.plugin import TabBox
 from xnote_handlers.config import LinkConfig
 from .example_handler import get_example_tab
 
@@ -16,9 +17,24 @@ class ListPluginHandler(BaseListPlugin):
 <div class="card">
     {% render example_tab %}
 </div>
+
+<div class="card">
+    {% render tab1 %}
+    {% render tab2 %}
+</div>
 """
 
     def handle_page(self):
+        tab1 = TabBox(tab_key="list_key", css_class="btn-style")
+        tab1.add_item(title="Option1", value="option1")
+        tab1.add_item(title="Option2", value="option2")
+        tab1.block_title.text = "Tab1"
+
+        tab2 = TabBox(tab_key="tab2", css_class="btn-style")
+        tab2.add_item(title="Tab2Op1", value="op1")
+        tab2.add_item(title="Tab2Op2", value="op2")
+        tab2.block_title.text = "Tab2"
+    
         list_view = self.create_list_view()
 
         for i in range(1, 6):
@@ -38,7 +54,11 @@ class ListPluginHandler(BaseListPlugin):
         kw.page_total = 100
         kw.page_url = "?page="
 
-        self.writehtml(self.tab_html, example_tab = get_example_tab(tab_default="list_plugin"))
+        self.writehtml(
+            self.tab_html, 
+            tab1 = tab1,
+            tab2 = tab2,
+            example_tab = get_example_tab(tab_default="list_plugin"))
         return self.response_page(**kw)
     
 
