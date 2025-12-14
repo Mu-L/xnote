@@ -148,4 +148,5 @@
 .x-tab-table td {
     border: none;
     padding: 0px;
+    vertical-align: top;
 }
