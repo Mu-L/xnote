@@ -16,7 +16,7 @@ from xnote.plugin.component import BlockTitle
 
 class TabBox:
     
-    TAB_HTML = """
+    _tab_html_v1 = """
 <div class="x-tab-box {{css_class}}" data-tab-key="{{tab_key}}" data-tab-default="{{tab_default}}">
 {% render block_title %}
 {% if title %}
@@ -30,13 +30,34 @@ class TabBox:
 {% end %}
 </div>
 """
-    _compiled_template = xtemplate.compile_template(TAB_HTML, "xnote.plugin.tab")
+    _template_v1 = xtemplate.compile_template(_tab_html_v1, "xnote.plugin.tab_v1")
 
-    def __init__(self, tab_key="tab", tab_default="", title = "", css_class=""):
+    _tab_html_v2 = """
+<div class="x-tab-box {{css_class}}" data-tab-key="{{tab_key}}" data-tab-default="{{tab_default}}">
+{% render block_title %}
+<table class="x-tab-table">
+    <td style="{{title_style}}">
+        <span class="x-tab title">{{title}}</span>
+    </td>
+    <td>
+        {% for item in tab_list %}
+        <a class="x-tab {{item.css_class}}" 
+            {% if item.href != "" %} href="{{item.href}}" {% end %}
+            {% if item.onclick != "" %} onclick="{{item.onclick}}" {% end %}
+            data-tab-value="{{item.value}}">{{item.title}}</a>
+        {% end %}
+    </td>
+</table>
+</div>
+"""
+    _template_v2 = xtemplate.compile_template(_tab_html_v2, "xnote.plugin.tab_v2")
+
+    def __init__(self, tab_key="tab", tab_default="", title = "", css_class="", title_width=""):
         self.tab_key = tab_key
         self.tab_default = tab_default
         self.css_class = css_class
         self.title = title
+        self.title_width = title_width
         self.tab_list = [] # type: list[TabItem]
         self.block_title = BlockTitle()
     
@@ -57,13 +78,21 @@ class TabBox:
         tab_default = self.tab_default
         if tab_value != "":
             tab_default = tab_value
-        return self._compiled_template.generate(
+            
+        template = self._template_v1
+        title_style = ""
+        if self.title_width:
+            template = self._template_v2
+            title_style = f"width: {self.title_width}"
+
+        return template.generate(
             css_class=self.css_class, 
             tab_key=self.tab_key,
             tab_default=tab_default,
             title=self.title,
             tab_list=self.tab_list,
-            block_title=self.block_title)
+            block_title=self.block_title,
+            title_style=title_style)
 
 
 class TabItem:

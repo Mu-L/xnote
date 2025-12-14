@@ -49,6 +49,7 @@ class TableExampleHandler(BaseTablePlugin):
 
 <div class="card">
     {% render tab %}
+    {% render tab2 %}
 </div>
 
 <div class="card">
@@ -72,6 +73,8 @@ class TableExampleHandler(BaseTablePlugin):
     {% render empty_table %}
 </div>
 """
+
+    tab_title_width = "120px"
 
     def handle_page(self):
         table = DataTable()
@@ -107,6 +110,7 @@ class TableExampleHandler(BaseTablePlugin):
         kw.weight_table = self.get_weight_table()
         kw.empty_table = self.get_empty_table()
         kw.tab = self.get_tab_component()
+        kw.tab2 = self.get_tab2()
         kw.example_tab = get_example_tab(tab_default="table")
         kw.info_table = self.get_info_table()
 
@@ -151,11 +155,21 @@ class TableExampleHandler(BaseTablePlugin):
         return webutil.FailedResult(code="500", message=f"data_dict={data_dict}")
     
     def get_tab_component(self):
-        tab = TabBox(tab_key="tab", tab_default="2", css_class="btn-style", title="后端tab组件")
+        tab = TabBox(
+            tab_key="tab", tab_default="2", css_class="btn-style", 
+            title="后端tab组件", title_width=self.tab_title_width)
         tab.add_tab(title="选项1", value="1", href="?tab=1")
         tab.add_tab(title="选项2", value="2")
         tab.add_tab(title="选项3", value="3", css_class="hide")
         tab.add_tab(title="onclick", href="#", onclick="javascript:alert('onclick!')")
+        return tab
+    
+    def get_tab2(self):
+        tab = TabBox(
+            tab_key="tab2", css_class="btn-style", 
+            title="状态", title_width=self.tab_title_width)
+        tab.add_tab(title="正常", value="1")
+        tab.add_tab(title="停用", value="2")
         return tab
     
     def get_query_form(self):
