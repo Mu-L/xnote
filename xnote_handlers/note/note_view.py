@@ -6,6 +6,7 @@ import math
 import web
 import os
 import xutils
+import typing
 import xnote_handlers.note.dao as note_dao
 import xnote_handlers.note.dao_share as dao_share
 
@@ -18,6 +19,7 @@ from xutils import textutil
 from xutils import webutil
 from xutils import dbutil, dateutil
 from xutils import encode_uri_component
+from xutils import quote
 from xnote.core.xtemplate import T
 from xnote.core.xnote_user_config import UserConfig
 from .constant import CREATE_BTN_TEXT_DICT
@@ -212,6 +214,16 @@ def view_or_edit_md_func(file: NoteDO, kw: NoteViewContext):
 def view_group_timeline_func(note, kw):
     raise web.found("/note/timeline?type=default&parent_id=%s" % note.id)
 
+def build_tag_meta_tab(user_id=0, file_id=0):
+    meta_list = NoteTagInfoDao.list(user_id=user_id, group_id=file_id)
+    tab = TabBox(tab_key="tag", tab_default="", css_class="btn-style", title="标签")
+    tab.add_item(title="全部")
+
+    for item in meta_list:
+        tab.add_item(
+            title=item.tag_name, value=item.tag_code, 
+            href=f"/note/{file_id}?tag={quote(item.tag_code)}")
+    return tab
 
 def view_group_detail_func(file: note_dao.NoteDO, kw: NoteViewContext):
     page = kw.page
@@ -261,7 +273,7 @@ def view_group_detail_func(file: note_dao.NoteDO, kw: NoteViewContext):
     kw.page_max = math.ceil(amount/pagesize)
     kw.parent_id = file.id
     kw.q_tag = q_tag
-    kw.tag_meta_list = NoteTagInfoDao.list(user_id=user_id, group_id=file.id)
+    kw.tag_meta_tab = build_tag_meta_tab(user_id=user_id, file_id=file.id)
     kw.show_orderby = True
     kw.order_type = file.order_type
 

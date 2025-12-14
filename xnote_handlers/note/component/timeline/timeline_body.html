@@ -12,7 +12,9 @@
   {% include note/component/sort/note_sort_tab.html %}
 </div>
 
-{% include note/component/filter/note_tag_filter.html %}
+<div class="card">
+  {% render tag_meta_tab %}
+</div>
 {% end %}
 
 <div id="app" class="content card">

@@ -8,8 +8,6 @@
 
 /** TAB页的容器 **/
 .x-tab-box {
-    float: left;
-    width: 100%;
 }
 
 .x-tab-box.pad0 {

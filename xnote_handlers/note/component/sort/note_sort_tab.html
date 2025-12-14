@@ -12,10 +12,8 @@
 {% init order_type = 0 %}
 
 <div class="row">
-    <div class="float-left">
-        <a class="x-tab title">排序</a>
-    </div>
     <div class="x-tab-box btn-style float-left" data-tab-default="{{order_type}}" data-tab-key="order_type">
+        <span class="x-tab title">排序</span>
         {% for item in OrderTypeEnum.enums() %}
             <a class="x-tab" href="#" data-tab-value="{{item.value}}" data-id="{{file.id}}" data-value="{{item.value}}" 
                 onclick="javascript:xnote.note.updateOrderType(this)">{{item.name}}</a>

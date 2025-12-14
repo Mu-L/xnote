@@ -40,7 +40,7 @@ class MessageListByDayHandler():
     @xauth.login_required()
     def GET(self):
         user_name = xauth.current_name()
-        date = xutils.get_argument("date", "")
+        date = xutils.get_argument_str("date", "")
         show_empty = xutils.get_argument("show_empty", True, type=bool)
 
         if date == "":

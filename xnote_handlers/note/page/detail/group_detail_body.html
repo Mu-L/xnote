@@ -22,7 +22,9 @@
   </div>
 {% end %}
 
-{% include note/page/detail/group_detail_filter.html %}
+<div class="card">
+    {% render tag_meta_tab %}
+</div>
 
 <div class="grid-row note-list">
     {% if _has_login and show_parent_link and file.id != 0 %}
