@@ -36,9 +36,9 @@ class UserConfigItem:
         if user_id <= 0:
             return self.default_value
         
-        value = xauth.get_user_config(user_id=user_id, config_key=self.key)
+        value = xauth.get_user_config(user_id=user_id, config_key=self.key, default_value=self.default_value)
         if value is None:
-            return ""
+            return self.default_value
         return str(value)
     
     def get_int(self, user_id: int):
