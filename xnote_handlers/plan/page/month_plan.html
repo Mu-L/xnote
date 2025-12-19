@@ -7,25 +7,6 @@
 {% init sticky_position = "left" %} 
 
     <script type="text/javascript" src="/static/js/plan/plan.js?ts={{_ts}}"></script>
-
-    <script type="text/template" id="select_note_tpl">
-        <div class="row note-search-dialog-body" style="padding-top: 10px;">
-            {{!each itemList item}}
-            <h3 class="card-title-2">{{!item.title}}</h3>
-
-                {{!each item.children subItem }}
-                <p class="card-row share-dialog-row">
-                    <i class="fa {{!subItem.icon}}"></i>
-                    <a href="{{!subItem.url}}">{{!subItem.name}}</a>
-                    <input type="checkbox"
-                        class="select-note-checkbox float-right" 
-                        data-id="{{!subItem.id}}">
-                <p>
-                {{!/each}}
-            {{!/each}}
-        </div>
-    </script>
-
     <div id="select-note-dialog" class="hide" style="padding: 10px;">
         <div class="row">
             <input type="text" class="nav-search-input" id="plan-note-search-text" placeholder="搜索笔记" 
@@ -44,6 +25,7 @@
         <div class="card-title">
             <span>月度计划</span>
             <div class="float-right">
+                <a class="btn btn-default" href="{{_server_home}}/note/add">新建笔记</a>
                 <a class="btn btn-default" href="{{_server_home}}/note/group?type=year">笔记日历</a>
                 {% if show_back %}
                     {% include common/button/back_button.html %}
@@ -53,30 +35,7 @@
     </div>
 
     {% include common/date/month_picker.html %}
-
-    <div class="card">
-        <div class="card-title">
-            <span>关注</span>
-            <div class="float-right">
-                <button class="btn btn-default" onclick="xnote.action.plan.addNote(this)">添加笔记</button>
-            </div>
-        </div>
-
-        <div class="row">
-            {% for item in record.notes %}
-                <a class="list-item" href="{{_server_home}}{{item.url}}">
-                    <i class="fa {{item.icon}}"></i>
-                    <span>{{item.name}}</span>
-                    {% include note/component/note_list_item_tags.html %}
-                    <div class="float-right">
-                        <button class="btn btn-default" data-id="{{item.id}}" 
-                            onclick="xnote.action.plan.removeNote(this)">移除</button>
-                    </div>
-                </a>
-            {% end %}
-
-        </div>
-    </div>
+    {% include plan/page/month_plan_stared.html %}
 
     <div class="card">
         <div class="x-tab-box" data-content-id="tab-content">
@@ -98,7 +57,7 @@
     </div>
 
     <script type="text/javascript">
-        PlanView.state.id = "{{record._id}}";
+        PlanView.state.id = "{{plan_record._id}}";
         xnote.on("date.month.selected", function (event) {
             var dateStr = event.target;
             var href = xnote.addUrlParam(window.location.href, "date", dateStr);

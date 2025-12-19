@@ -63,7 +63,7 @@ def get_argument(key, default_value=None, type = None, strip=False):
         if default_value != None:
             return default_value
         return None
-    ctx_key = "_xnote.input"
+    ctx_key = "_xnote_input"
     if isinstance(default_value, (dict, list)):
         return web.input(**{key: default_value}).get(key)
     _input = web.ctx.get(ctx_key)
@@ -81,10 +81,16 @@ def get_argument(key, default_value=None, type = None, strip=False):
     type = _detect_type(default_value, type)
 
     if type == bool:
+        if isinstance(value, bool):
+            return value
+        assert isinstance(value, str)
+        value = value.strip()
         # bool函数对非空字符串都默认返回true，需要处理一下
-        value = value.lower() in ("true", "yes", "y", "on", "1")
-        _input[key] = value
-    elif type != None:
+        bool_value = value.lower() in ("true", "yes", "y", "on", "1")
+        _input[key] = bool_value
+        return bool_value
+    
+    if type != None:
         value = type(value)
         _input[key] = value
     
@@ -114,7 +120,8 @@ def get_argument_float(key: str, default_value = 0.0) -> float:
 def get_argument_bool(key: str, default_value = False) -> bool:
     """获取bool参数"""
     value = get_argument(key, default_value=default_value, type = bool, strip = True)
-    assert isinstance(value, bool)
+    if not isinstance(value, bool):
+        raise TypeError(f"expect bool but got {type(value)}")
     return value
 
 def get_argument_dict(key="", default_value={}):

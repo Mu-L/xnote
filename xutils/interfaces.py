@@ -264,8 +264,8 @@ class SortedSetInterface:
 class SQLDBInterface:
     table_name = ""
     
-    def insert(self, seqname=None, _test=False, **values):
-        return 0
+    def insert(self, seqname=None, _test=False, **values) -> int:
+        raise NotImplementedError("sqldb.insert")
 
     def select(self, vars=None, what='*', where=None, order=None, group=None,
                limit=None, offset=None, _test=False):

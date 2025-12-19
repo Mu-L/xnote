@@ -20,13 +20,13 @@
         width: 100px;
     }
     select.month {
-        width: 60px;
+        width: 70px;
     }
 </style>
 
 <div class="card">
     <div class="date-box">
-        <a class="prev-month-link btn btn-default">上个月</a>
+        <a class="btn btn-default prev-month-link" onclick="xnote.note.prevMonth()">上个月</a>
         <select class="year" name="year" value="{{year}}">
             {% for j in range(year-5,year+6) %}
                 <option value="{{j}}">{{j}}年</option>
@@ -43,7 +43,7 @@
                 {% end %}
             {% end %}
         </select>
-        <a class="next-month-link btn btn-default">下个月</a>
+        <a class="btn btn-default next-month-link" onclick="xnote.note.nextMonth()">下个月</a>
     </div>
 </div>
 
@@ -82,23 +82,22 @@
             return formatDate(year, month);
         }
 
-        $(".next-month-link").click(function (e) {
+        xnote.note.nextMonth = function () {
             var year  = parseInt("{{year}}");
             var month = parseInt("{{month}}");
-
             var prevMonth = getNextMonth(year, month);
 
             xnote.fire("date.month.selected", prevMonth);
-        })
+        }
 
-        $(".prev-month-link").click(function (e) {
+        xnote.note.prevMonth = function () {
             var year  = parseInt("{{year}}");
             var month = parseInt("{{month}}");
 
             var prevMonth = getPrevMonth(year, month);
 
             xnote.fire("date.month.selected", prevMonth);
-        });
+        };
 
         $("select").change(function (e) {
             var year = $("[name=year]").val();
@@ -107,5 +106,5 @@
 
             xnote.fire("date.month.selected", date);
         });
-    })
+    });
 </script>

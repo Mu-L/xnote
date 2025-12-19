@@ -209,7 +209,7 @@ def render_before_kw(kw: dict):
         kw["warn"] = "; ".join(xconfig.errors)
 
     # 处理用户输入
-    _input = web.ctx.get("_xnote.input")
+    _input = web.ctx.get("_xnote_input")
     if _input is not None:
         kw.update(_input)
 

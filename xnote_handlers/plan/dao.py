@@ -9,10 +9,13 @@
 @Description  : 计划管理
 """
 import time
+
+from typing import Union
 from xnote.core import xauth
 from xutils import dbutil, Storage
+from xutils import BaseDataRecord
 
-class MonthPlanRecord(Storage):
+class MonthPlanRecord(BaseDataRecord):
 
     def __init__(self, **kw):
         self._id = ""
@@ -33,34 +36,45 @@ class MonthPlanDao:
     db = dbutil.get_table_v2("month_plan")
 
     @classmethod
-    def get_or_create(cls, user_info: xauth.UserDO, month = "2020-03"):
+    def get_or_create(cls, user_info: xauth.UserDO, month = "2020-03", fill_notes_info = False):
         db = cls.db
         if month == "now":
             month = time.strftime("%Y-%m")
-        user_id = user_info.id
+        user_id = user_info.user_id
         user_name = user_info.name
 
-        record = db.select_first(where = dict(user_id=user_id, month = month))
-        if record == None:
+        db_record = db.select_first(where = dict(user_id=user_id, month = month))
+        if db_record == None:
             record = MonthPlanRecord()
             record.user_id = user_id
             record.user = user_name
             record.month = month
-            id = db.insert(record)
-            record = db.get_by_id(id)
+            new_id = db.insert(record)
+            record = cls.get_by_id(user_id=user_id, plan_id=new_id)
+        else:
+            record = MonthPlanRecord.from_dict(db_record)
         
-        assert isinstance(record, dict)
-        return MonthPlanRecord(**record)
+        if record is None:
+            raise Exception("plan record is None")
+
+        if fill_notes_info and len(record.note_ids) > 0:
+            from xnote_handlers.note import dao as note_dao
+            note_ids = list(filter(lambda x:x!="", record.note_ids))
+            record.notes = note_dao.batch_query_list(note_ids)
+            record.notes.sort(key = lambda x:x.name)
+
+        return record
 
     @classmethod
-    def get_by_id(cls, user_id = 0, id = ""):
+    def get_by_id(cls, user_id = 0, plan_id: Union[str, int] = ""):
         db = cls.db
-        record = db.get_by_id(id)
+        record = db.get_by_id(plan_id)
         if record == None:
             return None
-        if record.user_id != user_id:
+        result = MonthPlanRecord(**record)
+        if result.user_id != user_id:
             return None
-        return MonthPlanRecord(**record)
+        return result
     
     @classmethod
     def get_by_month(cls, user_id = 0, month = "2020-03"):

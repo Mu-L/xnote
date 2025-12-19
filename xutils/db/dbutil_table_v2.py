@@ -42,7 +42,7 @@ class KvTableV2:
     def set_binlog_enabled(self, enabled=True):
         self.binlog_enabled = enabled
 
-    def _build_key(self, row_id):
+    def _build_key(self, row_id: Union[str, int]):
         return self.prefix + str(row_id)
 
     def _get_key_from_obj(self, obj:dict):

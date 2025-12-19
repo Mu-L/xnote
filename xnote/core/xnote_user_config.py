@@ -80,6 +80,7 @@ class UserConfig:
     search_plugin_detail_show = UserConfigItem("search_plugin_detail_show", "自动展开插件详情", default_value="0")
     task_filter = UserConfigItem("task.filter", "待办过滤器", help_text=_filter_text_help)
     msg_filter = UserConfigItem("msg.filter", "随手记过滤器", help_text=_filter_text_help)
+    calendar_toolbar_tab = UserConfigItem("calendar_toolbar_tab", "日历标签页", default_value="calendar")
 
     @classmethod
     def init(cls):

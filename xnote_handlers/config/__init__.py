@@ -20,6 +20,8 @@ class LinkConfig:
     task_list = TextLink(text="待办任务", href="/message/task")
     customized_css = TextLink(text="自定义CSS", href="/code/edit?type=script&path=user.css")
     customized_js = TextLink(text="自定义JavaScript", href="/code/edit?type=script&path=user.js")
+    create_note = TextLink(text="新建笔记", href="/note/create")
+    calendar = TextLink(text="今天", href="/note/calendar")
 
 
 class TabConfig:

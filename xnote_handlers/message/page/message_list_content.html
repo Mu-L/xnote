@@ -24,6 +24,7 @@ xnote.execute(function () {
             date: date,
             page: getCurrentPage()
         };
+        params.tag = "log";
         params.filterKey = xnote.getUrlParam("filterKey");
 
         xnote.http.get("/message/date", params,function (respText) {

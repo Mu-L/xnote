@@ -864,6 +864,14 @@ def safe_str(obj, max_length=-1):
         return value[:max_length]
     return value
 
+def append_text(text="", new_item="", sep = ", "):
+    if new_item == "":
+        return text
+    if text == "":
+        return new_item
+    
+    return text + sep + new_item
+
 
 if __name__ == '__main__':
     import doctest

@@ -1,0 +1,23 @@
+<div class="card">
+    <div class="card-title">
+        <span>关注</span>
+        <div class="float-right">
+            <button class="btn btn-default" onclick="xnote.action.plan.addNote(this)">添加笔记</button>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for item in plan_record.notes %}
+            <a class="list-item" href="{{_server_home}}{{item.url}}">
+                <i class="fa {{item.icon}}"></i>
+                <span>{{item.name}}</span>
+                {% include note/component/note_list_item_tags.html %}
+                <div class="float-right">
+                    <button class="btn btn-default" data-id="{{item.id}}" data-name="{{item.name}}"
+                        onclick="xnote.action.plan.removeNote(this)">移除</button>
+                </div>
+            </a>
+        {% end %}
+
+    </div>
+</div>
