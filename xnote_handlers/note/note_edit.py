@@ -38,6 +38,7 @@ from xutils.base import BaseDataRecord
 from .dao import NoteIndexDao
 from xnote.plugin.table_plugin import BaseTablePlugin, TableActionType
 from xnote.plugin import sidebar
+from xnote.plugin import TabBox
 
 NOTE_DAO = xutils.DAO("note")
 
@@ -194,7 +195,9 @@ class CreateHandler:
         group_list = note_dao.list_group_v2(creator, orderby = "name")
         converter = note_helper.NoteGroupConverter(group_list)
 
-        return xtemplate.render("note/page/create.html", 
+        return xtemplate.render(
+            "note/page/create.html", 
+            create_type_tab = self.get_create_type_tab(),
             show_search = False,
             heading  = heading,
             type     = type,
@@ -209,6 +212,13 @@ class CreateHandler:
 
     def GET(self):
         return self.POST('GET')
+    
+    def get_create_type_tab(self):
+        tab = TabBox(tab_key="type", tab_default="md", css_class="btn-style", title="类型", title_width="50px")
+        for type_info in NOTE_TYPE_LIST:
+            if type_info.visible:
+                tab.add_item(title=type_info.name, value=type_info.type)
+        return tab
     
 
     def check_before_create(self, ctx: CreateNoteContext, note: note_dao.NoteDO):
@@ -296,11 +306,11 @@ class RecoverAjaxHandler:
 
     @xauth.login_required()
     def GET(self):
-        id = xutils.get_argument("id", "")
+        id = xutils.get_argument_int("id")
         name = xutils.get_argument_str("name", "")
         file = None
 
-        if id != "" and id != None:
+        if id > 0:
             file = note_dao.get_by_id(id)
         elif name != "":
             file = note_dao.get_by_name(xauth.current_name_str(), name)
@@ -536,7 +546,7 @@ class ResetHandler:
 
     @xauth.login_required()
     def GET(self):
-        id = xutils.get_argument("id")
+        id = xutils.get_argument_int("id")
         note = check_get_note(id)
         note_dao.update_note(id, archived=False, priority = 0)
         raise web.found(note.url)
@@ -922,8 +932,11 @@ class NoteAliasEditHandler(BaseTablePlugin):
 class CheckCreateHandler:
 
     _template = """
+{% if len(notes) == 0 %}
+    <span>无相似笔记</span>
+{% end %}
 {% for note in notes %}
-    <a href="{{note.url}}">{{note.name}}</a>
+    <a href="{{note.url}}">{{note.name}}</a><br/>
 {% end %}
 """
     _code = xtemplate.compile_template(_template, "note.check")
@@ -936,8 +949,6 @@ class CheckCreateHandler:
         user_id = xauth.current_user_id()
         name_like = "%" + name + "%"
         notes = NoteIndexDao.list(creator_id=user_id, name_like=name_like, limit=5)
-        if len(notes) == 0:
-            return ""
         return self._code.generate(notes = notes)
 
 

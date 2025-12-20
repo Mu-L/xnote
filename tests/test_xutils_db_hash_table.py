@@ -13,7 +13,7 @@ from . import test_base
 from xutils import dbutil, Storage
 
 app = test_base.init()
-dbutil.register_table("hash_test", "测试数据库")
+dbutil.register_table("hash_test", "hash表测试")
 dbutil.register_table("lk_hash_test", "测试数据库")
 
 class TestMain(test_base.BaseTestCase):

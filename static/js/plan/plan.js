@@ -25,10 +25,10 @@ PlanView.removeNote = function (target) {
         note_id: noteId
     };
 
-    xnote.confirm("确认要移除[" + noteName + "]吗?", function () {
+    xnote.confirm("确认要取消关注[" + noteName + "]吗?", function () {
         xnote.http.post("/plan/month/remove", params, function (resp) {
-            if (resp.code == "success") {
-                xnote.toast("移除成功");
+            if (resp.success) {
+                xnote.toast("取消关注成功");
                 window.location.reload();
             } else {
                 xnote.alert(resp.message);

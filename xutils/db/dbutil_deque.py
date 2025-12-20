@@ -12,6 +12,7 @@
 import threading
 import typing
 
+from typing import Optional
 from xutils import Storage
 from xutils.db.dbutil_base import create_write_batch, db_get, db_put
 from xutils.db.encode import encode_index_value
@@ -60,7 +61,7 @@ class DequeTable:
         key = self.build_key(id)
         return db_get(key)
 
-    def append(self, value, batch=None):
+    def append(self, value, batch:Optional[WriteBatchProxy]=None):
         with self._lock:
             meta = self.get_meta_info()
             last_id = meta.last_id
@@ -91,7 +92,7 @@ class DequeTable:
                 batch.put(self.meta_key, meta)
                 batch.commit()
 
-    def appendleft(self, value, batch: typing.Optional[WriteBatchProxy]=None):
+    def appendleft(self, value, batch: Optional[WriteBatchProxy]=None):
         with self._lock:
             meta = self.get_meta_info()
             first_id = meta.first_id

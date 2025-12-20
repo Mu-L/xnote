@@ -129,9 +129,9 @@ INNER_TOOLS = [
     note_plugin("常用笔记", "/note/recent?orderby=hot", "fa-file-text-o", visible_in_list=False),
     note_plugin("词典", "/note/dict", "icon-dict", visible_in_list=False),
     note_plugin("时光轴", "/note/timeline", "fa-clock-o"),
-    note_plugin("笔记统计", "/note/group/year", "fa-file-text-o"),
-    note_plugin("月度计划", "/plan/month", "fa-calendar"),
-    note_plugin("日历", "/note/calendar", "fa-calendar"),
+    note_plugin("笔记统计", "/note/group/year", "fa-file-text-o", visible_in_list=False),
+    note_plugin("月度计划", "/plan/month", "fa-calendar", visible_in_list=False),
+    note_plugin("日历", "/note/calendar", "fa-calendar", visible_in_list=False),
 
     # 文件工具
     file_plugin("文件索引", "/fs_index"),

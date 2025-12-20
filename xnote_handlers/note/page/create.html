@@ -10,6 +10,10 @@ label {
 .create-tag {
     margin-bottom: 5px;
 }
+
+td.title {
+    min-width: 100px;
+}
 </style>
 {% end %}
 
@@ -25,54 +29,50 @@ label {
 </div>
 
 <div class="card">
+    {% render create_type_tab %}
+</div>
+
+<div class="card">
     <form class="create-form">
-        <div class="input-group-row">
-            <label>{{T("标题")}}</label> 
-            <input type="text" class="mid-text" name="name" value="{{name}}"/>
-        </div>
-
-        <!-- 选择日期 -->
-        <div class="input-group-row">
-            <label>日期</label>
-            <input name="date" id="selectDate" autocomplete="off" class="create-input"/>
-        </div>
-        
-        <div class="input-group-row">
-            <label>{{T("类型")}}</label>
-            <select class="note-type-select" name="type" value="{{type}}">
-                {% for item in NOTE_TYPE_LIST %}
-                    {% if item.visible %}
-                        <option value="{{item.type}}">{{T(item.name)}}</option>
-                    {% end %}
-                {% end %}
-            </select>
-        </div>
-
-        <div class="input-group-row group-select-box">
-            <label>{{T("笔记本")}}</label>
-            <select name="parent_id" value="{{parent_id}}">
-                {%for opt_group in opt_groups %}
-                    <optgroup label="{{opt_group.label}}">
-                        {% for item in opt_group.children %}
-                            <option value="{{item.id}}">{{item.name}}</option>
+        <input type="hidden" name="type" value="{{type}}">
+        <table class="no-border">
+            <tr>
+                <td class="title">{{T("标题")}}</td>
+                <td><input type="text" class="mid-text" name="name" value="{{name}}"/></td>
+            </tr>
+            <tr>
+                <td class="title">日期</td>
+                <td><input name="date" id="selectDate" autocomplete="off" class="create-input"/></td>
+            </tr>
+            <tr>
+                <td>{{T("笔记本")}}</td>
+                <td>
+                    <select name="parent_id" value="{{parent_id}}">
+                        {%for opt_group in opt_groups %}
+                            <optgroup label="{{opt_group.label}}">
+                                {% for item in opt_group.children %}
+                                    <option value="{{item.id}}">{{item.name}}</option>
+                                {% end %}
+                            </optgroup>
                         {% end %}
-                    </optgroup>
-                {% end %}
-            </select>
-        </div>
-
-        <div class="tag-box"></div>
-
-        <div class="input-group-row">
-            <label>名称检测</label>
-            <div class="input-group-value" id="checkResult"></div>
-        </div>
-
-        <div class="row top-offset-1">
-            <label>&nbsp;</label>
-            <input type="button" class="btn mid-text create-btn" value="{{create_btn_text}}" 
-                onclick="xnote.note.clickCreate()">
-        </div>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>标签</td>
+                <td><div class="tag-box"></div></td>
+            </tr>
+            <tr>
+                <td>名称检测</td>
+                <td><div id="checkResult"></div></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <input type="button" class="btn mid-text create-btn" value="{{create_btn_text}}" onclick="xnote.note.clickCreate()">
+                </td>
+            </tr>
+        </table>
     </form>
 </div>
 

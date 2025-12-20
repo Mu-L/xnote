@@ -61,12 +61,12 @@
     {% if is_upload_page %}
     <div class="card">
         日期
-        <select name="year" value="{{year}}">
+        <select name="year" value="{{year}}" style="width: 80px;">
             {% for j in range(year-5,year+6) %}
                 <option value="{{j}}">{{j}}</option>
             {% end %}
         </select>
-        <select name="month" value="{{month}}">
+        <select name="month" value="{{month}}" style="width: 60px;">
             {% for i in range(1,13) %}
                 <option value="{{i}}">{{i}}</option>
             {% end %}

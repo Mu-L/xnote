@@ -71,18 +71,18 @@ class MonthPlanRemoveAjaxHandler:
         id = xutils.get_argument_str("id", "")
         note_id = xutils.get_argument_str("note_id", "")
         if id == "":
-            return dict(code="400", message="参数id不能为空")
+            return webutil.FailedResult(code="400", message="参数id不能为空")
         if note_id == "":
-            return dict(code="400", message="参数note_id不能为空")
+            return webutil.FailedResult(code="400", message="参数note_id不能为空")
 
         user_id = xauth.current_user_id()
         record = MonthPlanDao.get_by_id(user_id, id)
         if record != None:
             functions.listremove(record.note_ids, note_id)
             record.save()
-            return dict(code="success")
+            return webutil.SuccessResult()
         else:
-            return dict(code="500", message="计划不存在")
+            return webutil.FailedResult(code="500", message="计划不存在")
 
 xurls = (
     r"/plan/month", MonthPlanHandler,

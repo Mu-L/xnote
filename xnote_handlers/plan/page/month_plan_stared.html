@@ -1,8 +1,8 @@
 <div class="card">
-    <div class="card-title">
-        <span>关注</span>
+    <div class="split-title">
+        <span>本月关注笔记</span>
         <div class="float-right">
-            <button class="btn btn-default" onclick="xnote.action.plan.addNote(this)">添加笔记</button>
+            <a onclick="xnote.action.plan.addNote(this)">关注笔记</a>
         </div>
     </div>
 
@@ -14,7 +14,7 @@
                 {% include note/component/note_list_item_tags.html %}
                 <div class="float-right">
                     <button class="btn btn-default" data-id="{{item.id}}" data-name="{{item.name}}"
-                        onclick="xnote.action.plan.removeNote(this)">移除</button>
+                        onclick="xnote.action.plan.removeNote(this)">取消关注</button>
                 </div>
             </a>
         {% end %}

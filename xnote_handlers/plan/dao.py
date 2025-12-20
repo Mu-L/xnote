@@ -10,22 +10,24 @@
 """
 import time
 
-from typing import Union
+from typing import Union, List
 from xnote.core import xauth
 from xutils import dbutil, Storage
 from xutils import BaseDataRecord
+from xnote_handlers.note.models import NoteIndexDO
 
 class MonthPlanRecord(BaseDataRecord):
+    _ignore_save_fields = ["notes", "create_notes", "update_notes"]
 
     def __init__(self, **kw):
         self._id = ""
         self.user = ""
         self.user_id = 0
         self.month = ""
-        self.notes = []
-        self.note_ids = []
-        self.create_notes = []
-        self.update_notes = []
+        self.notes: List[NoteIndexDO] = [] # stared note ids details
+        self.note_ids = [] # stared note ids
+        self.create_notes: List[NoteIndexDO] = []
+        self.update_notes: List[NoteIndexDO] = []
         self.update(kw)
     
     def save(self):
@@ -49,7 +51,7 @@ class MonthPlanDao:
             record.user_id = user_id
             record.user = user_name
             record.month = month
-            new_id = db.insert(record)
+            new_id = db.insert(record.to_save_dict())
             record = cls.get_by_id(user_id=user_id, plan_id=new_id)
         else:
             record = MonthPlanRecord.from_dict(db_record)
@@ -86,4 +88,5 @@ class MonthPlanDao:
     
     @classmethod
     def update(cls, record: MonthPlanRecord):
-        return cls.db.update(record)
+        dict_values = record.to_save_dict()
+        return cls.db.update(dict_values)

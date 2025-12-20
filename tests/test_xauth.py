@@ -111,6 +111,11 @@ class TestXauth(BaseTestCase):
 
         xauth.delete_user(user_name)
 
+    def test_user_config_default_value(self):
+        user_id = xauth.current_user_id()
+        config = xnote_user_config.UserConfig.calendar_toolbar_tab
+        assert config.get_str(user_id=user_id) == config.default_value
+
 
     def test_create_quick_user(self):
         user_info = xauth.create_quick_user()

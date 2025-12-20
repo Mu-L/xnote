@@ -346,6 +346,7 @@ class KvTableV2:
 
     def rebuild_index(self, version="v1", **kw):
         """重建索引
+
         :param version="v1": 版本
         :param ignore_error=False: 忽略错误
         :param ignore_invalid_id=False: 忽略无效的ID
@@ -363,7 +364,7 @@ class KvTableV2:
     def rebuild_index_no_check(self, **kw):
         # TODO 可以通过复制表的方式重建索引,减少数据库的锁时间
         for key, item in prefix_iter(self.prefix, include_key=True):
-            self.rebuild_record_index(key, item, **kw)
+            self.rebuild_record_index(key, item, **kw) # type: ignore
 
     def rebuild_record_index(self, key: str, item: dict, **kw):
         ignore_invalid_id = kw.get("ignore_invalid_id", False)

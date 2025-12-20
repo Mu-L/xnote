@@ -331,11 +331,18 @@ class TableInfo:
         self.encode_user_func = None # type: None|typing.Callable
 
     def check_and_register(self):
+        if self.description == "":
+            raise Exception(f"table description is empty, name={self.name}")
+        
         if self.user_attr != None:
             self.check_user = True
 
         old_table = TableInfo.get_by_name(self.name)
         if old_table != None:
+            if old_table.description != self.description:
+                raise Exception(
+                    f"table name with different description,"
+                    f" name={self.name}, old={old_table.description}, new={self.description}")
             # 检查结构是否一致，不能注册不一致的结构
             assert old_table.check_user == self.check_user, "conflict table registry: %s" % self.name
             assert old_table.user_attr == self.user_attr, "confilct table registry: %s" % self.name

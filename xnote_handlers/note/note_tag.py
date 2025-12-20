@@ -262,15 +262,8 @@ class SuggestTagHandler:
 class TagListHtmlHandler:
 
     html = """
-{% if len(tag_list) > 0 %}
-    <div class="input-group-row">
-        <label>标签</label>
-        <div class="input-group-value">
-        {% for tag in tag_list %}
-            <a class="tag lightgray large create-tag">{{ tag.tag_name }}</a>
-        {% end %}
-        </div>
-    </div>
+{% for tag in tag_list %}
+    <a class="tag lightgray large create-tag">{{ tag.tag_name }}</a>
 {% end %}
 """
 
