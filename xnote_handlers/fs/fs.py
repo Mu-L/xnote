@@ -457,9 +457,7 @@ class RemoveAjaxHandler:
             event.fpath = path
             event.user_name = user_name
             event.user_id = user_id
-            
-            xmanager.fire("fs.remove", event)
-            xmanager.fire("fs.delete", event)
+            event.fire()
 
             return webutil.SuccessResult()
         except Exception as e:

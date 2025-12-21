@@ -177,7 +177,11 @@ class CreateHandler:
             create_func = CREATE_FUNC_DICT.get(type, default_create_func)
             inserted_id = create_func(note, ctx)
 
-            new_note = note_dao.get_by_id_creator(inserted_id, creator)
+            if inserted_id is None:
+                new_note = None
+            else:
+                new_note = note_dao.get_by_id_creator(inserted_id, creator)
+            
             if method == "POST":
                 if new_note is None:
                     return webutil.FailedResult(message="创建笔记失败")

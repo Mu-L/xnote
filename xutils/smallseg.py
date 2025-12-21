@@ -7,11 +7,7 @@ from __future__ import print_function
 import re
 import os
 import sys
-
-PY3K = sys.version_info >= (3, 0)
-
-if not PY3K:
-    range = xrange
+from typing import Sequence
 
 # 特殊字符，包括副词、助词、介词、姓氏
 specialwords = "和是了中有都的来在次还但为里用外上下就以去即丁万乔余候傅冯刘单卢史叶吕吴唐夏姚姜孔孙孟宋尹崔常康廖张彭徐戴文方易曹曾朱李杜杨林梁武段毛江汤沈潘熊王田白石秦罗肖胡苏范董蒋薛袁谢谭贾赖赵邓邱邵邹郑郝郭金钟钱阎陆陈雷韩顾马高魏黄黎龙龚"
@@ -35,7 +31,7 @@ class SEG(object):
         pass
 
     #set dictionary(a list)
-    def load_words(self,keywords):
+    def load_words(self,keywords:Sequence[str]):
         """构造字典树（逆序）
         """
         p = self.d
@@ -93,7 +89,7 @@ class SEG(object):
         return R
         
         
-    def cut(self,text):
+    def cut(self,text:str):
         """切分单词，返回单词列表
         """
         # text = text

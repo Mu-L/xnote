@@ -319,7 +319,10 @@ def http_download_by_requests(url, destpath):
         for chunk in resp.iter_content(chunk_size = BUFSIZE):
             fp.write(chunk)
             readsize += len(chunk)
-            logging.info(f"download {readsize} bytes, progress={readsize/total_size*100:.2f}%")
+            if total_size > 0:
+                logging.info(f"download {readsize} bytes, progress={readsize/total_size*100:.2f}%")
+            else:
+                logging.info(f"download {readsize} bytes")
     return resp.headers # headers是key大小写不敏感的dict
 
 def http_download(address: str, destpath: str, dirname = None):

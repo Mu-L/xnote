@@ -12,6 +12,8 @@ from xnote.core import xauth
 from xutils import dateutil
 from xutils.db.binlog import BinLog
 from xnote.service.system_meta_service import SystemMetaEnum
+from xnote.core.xnote_event import FileDeleteEvent
+from xnote_handlers.fs.fs_dao import FileInfoDao
 
 MAX_DEPTH = 3
 NOTE_DAO  = xutils.DAO("note")
@@ -22,6 +24,15 @@ def is_empty_dir(dirname):
 def is_system_dir(dirname):
     return dirname in xconfig.get_system_files()
 
+def _send_rm_file_event(fpath: str):
+    file_info = FileInfoDao.get_by_fpath(fpath)
+    if file_info:
+        event = FileDeleteEvent()
+        event.fpath = fpath
+        event.user_id = file_info.user_id
+        event.fire()
+
+
 def rm_expired_files(dirname, expired_time, depth=0, hard=False):
     if not os.path.exists(dirname):
         xutils.error("DiskClean", "dirname `%s` not eixsts" % dirname)
@@ -29,8 +40,9 @@ def rm_expired_files(dirname, expired_time, depth=0, hard=False):
     if depth > MAX_DEPTH:
         xutils.error("DiskClean", "too deep path, dirname: %s" % dirname)
         return
+    
     xutils.info("DiskClean", "check dirname `%s`" % dirname)
-    now = time.time()
+    now = time.time()    
     for fname in os.listdir(dirname):
         fpath = os.path.join(dirname, fname)
         fpath = os.path.abspath(fpath)
@@ -41,11 +53,13 @@ def rm_expired_files(dirname, expired_time, depth=0, hard=False):
             rm_expired_files(fpath, expired_time, depth+1, hard=hard)
             if is_empty_dir(fpath) and not is_system_dir(fpath):
                 xutils.rmfile(fpath)
+                _send_rm_file_event(fpath)
         else:
             st = os.stat(fpath)
             if now - st.st_ctime >= expired_time:
                 xutils.info("DiskClean", "%s is expired" % fname)
                 xutils.rmfile(fpath, hard=hard)
+                _send_rm_file_event(fpath)
 
 def rm_expired_notes(expired_time):
     for user_info in xauth.iter_user(limit = -1):

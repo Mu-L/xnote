@@ -31,6 +31,7 @@ class FieldDesc:
 
 class BaseEvent(Storage):
     event_type = ""
+    event_type_alias = []
 
     def __init__(self):
         super().__init__()
@@ -52,6 +53,9 @@ class BaseEvent(Storage):
         from xnote.core import xmanager
         xmanager.fire(self.event_type, self, is_async)
 
+        for type_alias in self.event_type_alias:
+            xmanager.fire(type_alias, self, is_async)
+
 class FileUploadEvent(BaseEvent):
     """文件上传事件"""
 
@@ -70,6 +74,7 @@ class FileUploadEvent(BaseEvent):
 class FileDeleteEvent(FileUploadEvent):
     """文件删除事件"""
     event_type = "fs.delete"
+    event_type_alias = ["fs.remove"]
 
 class FileRenameEvent(BaseEvent):
 

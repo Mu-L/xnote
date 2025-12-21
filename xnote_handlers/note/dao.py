@@ -27,6 +27,7 @@ import xutils
 import logging
 import datetime
 
+from typing import Union
 from xnote.core import xconfig
 from xnote.core import xmanager
 from xnote.core import xtables
@@ -754,7 +755,7 @@ def get_by_id(id: typing.Union[str, int], include_full=True, creator=None) -> ty
     build_note_info(note)
     return note
 
-def get_by_id_creator(id, creator, db=None):
+def get_by_id_creator(id: Union[str, int], creator: str, db=None):
     note = get_by_id(id, creator=creator)
     if note and note.creator == creator:
         return note

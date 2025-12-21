@@ -490,3 +490,11 @@ class TestMain(unittest.TestCase):
         assert parsed_obj.get("clazz") == "<class>"
 
         
+    def test_smallseg(self):
+        from xutils import smallseg
+        seg = smallseg.SEG()
+        seg.load_words([
+            "今天","天气","不错"
+        ])
+        result = seg.cut("今天天气不错哦")
+        print(result)
