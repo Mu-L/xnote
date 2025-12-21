@@ -14,6 +14,10 @@ label {
 td.title {
     min-width: 100px;
 }
+
+.form-row-value {
+    width: 180px;
+}
 </style>
 {% end %}
 
@@ -25,7 +29,8 @@ td.title {
 {% init create_btn_text = T("创建") %}
 
 <div class="card">
-    {% include note/component/create_note_header.html %}
+    {% set-global title = T("创建笔记") %}
+    {% include common/title/base_title.html %}
 </div>
 
 <div class="card">
@@ -38,16 +43,16 @@ td.title {
         <table class="no-border">
             <tr>
                 <td class="title">{{T("标题")}}</td>
-                <td><input type="text" class="mid-text" name="name" value="{{name}}"/></td>
+                <td><input type="text" class="mid-text form-row-value" name="name" value="{{name}}"/></td>
             </tr>
             <tr>
                 <td class="title">日期</td>
-                <td><input name="date" id="selectDate" autocomplete="off" class="create-input"/></td>
+                <td><input name="date" id="selectDate" autocomplete="off" class="create-input form-row-value"/></td>
             </tr>
             <tr>
                 <td>{{T("笔记本")}}</td>
                 <td>
-                    <select name="parent_id" value="{{parent_id}}">
+                    <select name="parent_id" value="{{parent_id}}" class="form-row-value">
                         {%for opt_group in opt_groups %}
                             <optgroup label="{{opt_group.label}}">
                                 {% for item in opt_group.children %}

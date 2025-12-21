@@ -5,6 +5,7 @@
 
 import typing
 import xutils
+import copy
 
 from xutils import Storage
 from xnote.core import xmanager
@@ -83,6 +84,11 @@ class NoteCalendarHandler:
         if tab == "note_update":
             kw.updated_notes = list_updated_notes(creator_id=user_id, year=date_obj.year, month=date_obj.month)
         
+
+        back_url = textutil.encode_base64("/note/calendar")
+        create_link = copy.copy(LinkConfig.create_note)
+        create_link.href += f"?back_url={back_url}"
+
         kw.year = date_obj.year
         kw.month = date_obj.month
         kw.date_str = date_str
@@ -90,7 +96,7 @@ class NoteCalendarHandler:
         kw.title = "日历"
         kw.parent_link = LinkConfig.app_index
         kw.right_link = LinkConfig.calendar
-        kw.right_link2 = LinkConfig.create_note
+        kw.right_link2 = create_link
 
         return xtemplate.render("note/page/note_calendar.html", **kw)
 

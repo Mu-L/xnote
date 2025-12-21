@@ -1,9 +1,8 @@
 {% init right_link = None %}
 {% init right_link2 = None %}
-{% init back_link = None %}
+{% init back_url = None %}
 {% init parent_link = None %}
 
-<!-- <a href="{{_server_home}}/system/index" class="link">系统</a> › -->
 <h3 class="card-title btn-line-height">
     {% if parent_link %}
         <a class="link2 path-link" href="{{parent_link.href}}">{{parent_link.text}}</a>
@@ -20,8 +19,8 @@
             <a class="btn btn-default" href="{{right_link2.href}}">{{right_link2.text}}</a>
         {% end %}
 
-        {% if back_link != None %}
-            <a class="btn btn-default" href="{{back_link}}">返回</a>
+        {% if back_url != None %}
+            <a class="btn btn-default" href="{{back_url}}">返回</a>
         {% else %}
             <button class="btn btn-default" onclick="javascript:history.back();">返回</button>
         {% end %}

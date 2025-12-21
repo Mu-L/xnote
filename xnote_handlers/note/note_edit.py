@@ -202,6 +202,7 @@ class CreateHandler:
         return xtemplate.render(
             "note/page/create.html", 
             create_type_tab = self.get_create_type_tab(),
+            back_url = xutils.get_argument_str("back_url", is_base64=True),
             show_search = False,
             heading  = heading,
             type     = type,
@@ -949,7 +950,7 @@ class CheckCreateHandler:
     def POST(self):
         name = xutils.get_argument_str("name")
         if name == "":
-            return ""
+            return "请输入标题"
         user_id = xauth.current_user_id()
         name_like = "%" + name + "%"
         notes = NoteIndexDao.list(creator_id=user_id, name_like=name_like, limit=5)

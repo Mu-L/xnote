@@ -14,6 +14,7 @@ from io import BytesIO
 from web import utils
 from xutils.config import UtilityConfig
 from .netutil import parse_url
+from . import textutil
 
 #################################################################
 ##   Web.py Utilities web.py工具类的封装
@@ -52,6 +53,14 @@ def _detect_type(default_value, type):
     
     return None
 
+def _get_xnote_input():
+    ctx_key = "_xnote_input"
+    _input = web.ctx.get(ctx_key)
+    if _input == None:
+        _input = web.input()
+        web.ctx[ctx_key] = _input
+    return _input
+
 def get_argument(key, default_value=None, type = None, strip=False):
     """获取请求参数
     @param {string} key 请求的参数名
@@ -63,13 +72,11 @@ def get_argument(key, default_value=None, type = None, strip=False):
         if default_value != None:
             return default_value
         return None
-    ctx_key = "_xnote_input"
+
     if isinstance(default_value, (dict, list)):
         return web.input(**{key: default_value}).get(key)
-    _input = web.ctx.get(ctx_key)
-    if _input == None:
-        _input = web.input()
-        web.ctx[ctx_key] = _input
+    
+    _input = _get_xnote_input()
     value = _input.get(key)
 
     if value is None or value == "":
@@ -99,10 +106,12 @@ def get_argument(key, default_value=None, type = None, strip=False):
     
     return value
 
-def get_argument_str(key: str, default_value = "") -> str:
+def get_argument_str(key: str, default_value = "", is_base64 = False) -> str:
     """获取字符串参数"""
     value = get_argument(key, default_value, type = str, strip = True)
     assert isinstance(value, str)
+    if is_base64 and len(value) > 0:
+        return textutil.decode_base64(value)
     return value
 
 def get_argument_int(key: str, default_value = 0) -> int:
