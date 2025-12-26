@@ -27,7 +27,7 @@ class SidebarHandler:
             filelist = []
         else:
             filelist = fsutil.list_files(path)
-        return xtemplate.render("fs/page/fs_sidebar.html", 
+        return xtemplate.render("fs/page/fs_sidebar_view.html", 
             error = error,
             path = path, 
             filelist = filelist)

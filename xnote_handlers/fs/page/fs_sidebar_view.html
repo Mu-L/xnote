@@ -3,8 +3,8 @@
 {% block head %}
 
 <link rel="stylesheet" type="text/css" href="{{_server_home}}/static/lib/webuploader/webuploader.css">
-<script type="text/javascript" src="/static/lib/webuploader/webuploader.nolog.min.js"></script>
-<script type="text/javascript" src="/static/lib/layer/layer.js"></script>
+<script type="text/javascript" src="/_static/lib/webuploader/webuploader.nolog.min.js"></script>
+<script type="text/javascript" src="/_static/lib/layer/layer.js"></script>
 
 <style type="text/css">
     .fs-image {
@@ -154,7 +154,7 @@
                 </td>
                 <td>
                     {% if item.type == "dir" %}
-                    <img src="{{_server_home}}/_static/image/folder.gif" />
+                    <i class="fa fa-folder black"></i>
                     <a href="{{item.url}}?mode=sidebar" class="fs-folder">{{item.name}}</a>
                     {% else %}
                     <a data-path="{{item.path_b64}}" class="fs-file">{{item.name}}</a>
@@ -169,8 +169,10 @@
     </div>
 </div>
 
+<input id="filepath" value="{{path}}" class="hide">
+
 <script type="text/javascript">
-    var globalPath = "{{path}}";
+    var globalPath = $("#filepath").val();
 
     function showErrorMessage(message) {
         $(".error").text(message).fadeIn(200).delay(3000).fadeOut(300);

@@ -197,8 +197,6 @@ class FileSystemHandler:
 
         mode = xutils.get_argument_str("mode", xconfig.FS_VIEW_MODE)
         kw["fs_mode"] = mode
-        if mode == "sidebar":
-            kw.show_search = False
         return get_fs_page_by_mode(mode, kw)
 
     def list_root(self):

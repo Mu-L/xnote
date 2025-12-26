@@ -18,8 +18,8 @@ def get_default_page(mode, kw):
     return xtemplate.render("fs/page/fs.html", **kw)
 
 def get_sidebar_page(mode, kw):
-    kw["show_aside"] = False
-    return xtemplate.render("fs/page/fs_sidebar.html", **kw)
+    kw.show_aside = False
+    return xtemplate.render("fs/page/fs_sidebar_view.html", **kw)
 
 def get_size_page(mode, kw):
     filelist = kw.filelist

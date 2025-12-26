@@ -7,29 +7,34 @@
 
 # 1. 变量命名
 
-全局变量全大写+下划线命名
-
-> 示例如下
+> Python变量
 
 ```py
-MY_GLOBAL_VAR = 1
+# 常量，大写+下划线
+MY_CONST = 1
+
+# 全局变量，小写+下划线，不推荐
+global_name = "test"
+
+# 私有全局变量
+_private_global_name = "internal-name"
+
+def my_func():
+    # 小写+下划线
+    my_local_var = 1
+    # 没有歧义的也可以不加下划线
+    filename = "myfile.txt" 
 ```
 
-局部变量全小写+下划线命名
+> 模板中的变量命名
 
-> 示例如下
-
-```py
-my_local_var = 1
-# 没有歧义的也可以不加下划线
-filename = "myfile.txt" 
-```
-
-模板中的变量命名
-
-```py
-{% set _tmp_var = 1 %}
+```html
+<!-- 初始化变量 -->
 {% init global_var = 2 %}
+<!-- 跟随变量的作用域 -->
+{% set _tmp_var = 1 %}
+<!-- 作为全局变量更新 -->
+{% set-global global_var = 20 %}
 ```
 
 # 2. 包命名
@@ -51,7 +56,7 @@ my_package # 带下划线的包名
 
 - 首字母大写驼峰命名，示例: `MyClass`
 - 领域+性质(类型)，示例:
-    - NoteHandlerBase 笔记处理器的基类
+    - BaseNoteHandler/NoteHandlerBase 笔记处理器的基类
     - NoteListHandler 笔记列表处理器
     - TaskManager 任务管理器
     - NoteTaskManager 笔记任务管理器

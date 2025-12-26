@@ -186,13 +186,12 @@ class SettingsHandler:
         d = self.add_user_select_config(result, xnote_user_config.UserConfig.HOME_PATH, user_id)
         d.add_option("笔记本列表", "/note/group")
         d.add_option("功能列表", "/system/index")
-        d.add_option("笔记本列表", "/message/log")
+        d.add_option("随手记", "/message/log")
 
         d = self.add_user_select_config(result, xnote_user_config.UserConfig.HOME_PATH_MOBILE, user_id)
         d.add_option("笔记本列表", "/note/group")
-        d.add_option("笔记列表", "/note/all")
         d.add_option("功能列表", "/system/index")
-        d.add_option("笔记本列表", "/message/log")
+        d.add_option("随手记", "/message/log")
 
         d = self.add_user_select_config(result, xnote_user_config.UserConfig.font_scale, user_id)
         d.add_option("缩小", "80")
