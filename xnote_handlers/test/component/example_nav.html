@@ -9,12 +9,9 @@
 --> #}
 
 {% include common/layout/wide_left.html %}
+
 <div class="card">
-	<div class="card-title">
-		<a class="link2 path-link" href="{{_server_home}}/plugin_list?category=develop">开发</a>
-		<span>/</span>
-		<span>组件示例</span>
-	</div>
+	{% include common/title/base_title.html %}
 </div>
 
 {% include test/component/example_nav_tab.html %}

@@ -7,6 +7,7 @@ from xnote.plugin.table_plugin import BaseTablePlugin, TableActionType, TableRow
 from xnote_handlers.config import LinkConfig
 from xutils.db.binlog import BinLogRecord, BinLog
 from .system_sync_controller import get_system_sync_tab
+from xnote_handlers.config import AsideConfig
 
 class BinlogHandler(BaseTablePlugin):
 
@@ -40,6 +41,8 @@ class BinlogHandler(BaseTablePlugin):
         for record in records:
             record["create_time_str"] = dateutil.format_datetime(record.create_time, is_ms=True)
             table.add_row(record)
+
+        self.write_aside(AsideConfig.get_admin_aside_html())
 
         kw = Storage()
         kw.system_sync_tab = get_system_sync_tab("binlog")

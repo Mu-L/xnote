@@ -7,6 +7,7 @@ from xnote.plugin.table_plugin import BaseTablePlugin, TableActionType
 from xnote_handlers.config import LinkConfig
 from xnote.open_api.dao import SystemSyncAppDao, SystemSyncAppRecord
 from .system_sync_controller import get_system_sync_tab
+from xnote_handlers.config import AsideConfig
 
 class AppHandler(BaseTablePlugin):
 
@@ -46,6 +47,8 @@ class AppHandler(BaseTablePlugin):
         kw.page_total = len(records)
         kw.page_url = "?page="
 
+        self.write_aside(AsideConfig.get_admin_aside_html())
+
         return self.response_page(**kw)
     
     def handle_edit(self):
@@ -60,8 +63,10 @@ class AppHandler(BaseTablePlugin):
         form.add_row("app_name", "app_name", value=record.app_name)
         form.add_row("app_key", "app_key", value=record.app_key)
         if record.app_id > 0:
-            form.add_row("app_secret", "app_secret", value=record.app_secret, readonly=True)
+            form.add_row("app_secret", "app_secret", value=record.app_secret, readonly=False)
+
         form.add_textarea("备注信息", "remark", value=record.remark)
+        form.add_row("version", "version", value=str(record.version), css_class="hide")
         
         kw = Storage()
         kw.form = form
@@ -72,7 +77,9 @@ class AppHandler(BaseTablePlugin):
         app_id = param.get_int("app_id")
         app_name = param.get_str("app_name")
         app_key = param.get_str("app_key")
+        app_secret = param.get_str("app_secret")
         remark = param.get_str("remark")
+        version = param.get_int("version")
 
         if app_name == "":
             return webutil.FailedResult(code="400", message="invalid app_name")
@@ -84,12 +91,16 @@ class AppHandler(BaseTablePlugin):
         if check_old != None and check_old.app_id != app_id:
             return webutil.FailedResult(code="400", message="app_key已经存在")
         
+        if app_secret == "":
+            app_secret = textutil.create_uuid()
+        
         record = SystemSyncAppRecord()
         record.app_id = app_id
         record.app_name = app_name
         record.app_key = app_key
         record.remark = remark
-        record.app_secret = textutil.create_uuid()
+        record.app_secret = app_secret
+        record.version = version
 
         SystemSyncAppDao.save(record)
         return webutil.SuccessResult()

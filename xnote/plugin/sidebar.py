@@ -1,5 +1,8 @@
 from xnote.core import xtemplate
 
+"""
+Deprecated, see xnote_handlers.config.aside_config
+"""
 
 def get_default_sidebar_html():
     return xtemplate.render("common/sidebar/default.html")

@@ -246,11 +246,15 @@ class ExampleHandler:
         
         name = xutils.get_argument_str("name", "")
         example_tab = get_example_tab()
+        kw = Storage()
+        kw.title = "组件示例"
+        kw.parent_link = LinkConfig.develop_index
+        kw.example_tab = example_tab
 
         if name == "":
-            return xtemplate.render("test/page/example_index.html", example_tab=example_tab)
+            return xtemplate.render("test/page/example_index.html", **kw)
         else:
-            return xtemplate.render(f"test/page/example_{name}.html", example_tab=example_tab)
+            return xtemplate.render(f"test/page/example_{name}.html", **kw)
 
     def POST(self):
         return self.GET()

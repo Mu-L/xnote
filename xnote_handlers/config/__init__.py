@@ -1,6 +1,7 @@
 # encoding=utf-8
 from xnote.plugin import TextLink
 from xnote.plugin import TabBox
+from .aside_config import AsideConfig
 
 class LinkConfig:
     app_index = TextLink(text="应用", href="/system/index")

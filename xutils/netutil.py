@@ -28,6 +28,7 @@ from urllib.parse import parse_qs
 from xutils.imports import try_decode
 from xutils.base import print_exc
 from urllib.parse import quote
+from xutils.fsutil import format_size
 
 # TODO fix SSLV3_ALERT_HANDSHAKE_FAILURE on MacOS
 from http.client import HTTPConnection
@@ -319,10 +320,11 @@ def http_download_by_requests(url, destpath):
         for chunk in resp.iter_content(chunk_size = BUFSIZE):
             fp.write(chunk)
             readsize += len(chunk)
+            readsize_str = format_size(readsize)
             if total_size > 0:
-                logging.info(f"download {readsize} bytes, progress={readsize/total_size*100:.2f}%")
+                logging.info(f"download {readsize_str}, progress={readsize/total_size*100:.2f}%")
             else:
-                logging.info(f"download {readsize} bytes")
+                logging.info(f"download {readsize_str}, progress=unknown")
     return resp.headers # headers是key大小写不敏感的dict
 
 def http_download(address: str, destpath: str, dirname = None):

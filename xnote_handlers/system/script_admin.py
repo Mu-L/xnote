@@ -8,8 +8,7 @@ import gc
 import web
 import xutils
 from xnote.core import xauth, xconfig, xtemplate
-from xutils import u
-from xutils import six
+from xutils import webutil
 
 SCRIPT_EXT_LIST = (
     ".bat", 
@@ -177,14 +176,14 @@ class RenameHandler:
         oldpath = get_script_path(oldname)
         newpath = get_script_path(newname)
         if not os.path.exists(oldpath):
-            return dict(code="fail", message="源文件不存在")
+            return webutil.FailedResult(code="fail", message="源文件不存在")
         if os.path.exists(newpath):
-            return dict(code="fail", message="目标文件已存在")
+            return webutil.FailedResult(code="fail", message="目标文件已存在")
         try:
             os.rename(oldpath, newpath)
-            return dict(code="success")
+            return webutil.SuccessResult()
         except Exception as e:
-            return dict(code="fail", message=str(e))
+            return webutil.FailedResult(code="fail", message=str(e))
 
 xurls = (
     r"/system/script", ListHandler,

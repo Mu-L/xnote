@@ -36,6 +36,7 @@ from .fs_helper import sort_files_by_size, is_hidden_file
 from . import fs_image
 from . import fs_helper
 from . import fs_checker
+from .fs_dao import FileInfoDao
 
 def is_stared(path):
     return xconfig.has_config("STARED_DIRS", path)
@@ -447,6 +448,7 @@ class RemoveAjaxHandler:
             return webutil.FailedResult(code="fail", message="unauthorized")
         try:
             if not os.path.exists(path):
+                FileInfoDao.delete_by_fpath(path)
                 basename = os.path.basename(path)
                 return webutil.FailedResult(code="fail", message="源文件`%s`不存在" % basename)
             xutils.remove(path)
