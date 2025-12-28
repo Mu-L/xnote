@@ -29,7 +29,7 @@ class RefreshHandler:
 
         # 清理失效的缓存
         cacheutil._global_cache.clear_expired()
-        BinLog.get_instance().delete_expired()
+        BinLog.delete_expired()
         
         # 清理sys_log
         self.delete_expired_sys_log()

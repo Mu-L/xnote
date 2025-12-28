@@ -16,6 +16,7 @@ from xnote.plugin import DataTable, TabBox
 from xnote.plugin import sidebar
 from xnote.plugin.table_plugin import BaseTablePlugin
 from xnote_handlers.config import LinkConfig
+from xutils.db.binlog import BinLog, BinLogOpType
 
 def get_display_value(value: str):
     return textutil.get_short_text(value, 100)
@@ -44,7 +45,8 @@ class DbScanHandler:
     @xauth.login_required("admin")
     def do_delete(self):
         key = xutils.get_argument_str("key", "")
-        dbutil.delete(key)
+        dbutil.db_delete(key)
+        BinLog.add_log(optype=BinLogOpType.delete, key=key)
         return webutil.SuccessResult()
 
     @xauth.login_required("admin")

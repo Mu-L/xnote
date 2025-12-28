@@ -11,6 +11,7 @@
 import threading
 import logging
 import typing
+import math
 
 from typing import Optional
 from web import Storage
@@ -125,31 +126,36 @@ class BinLog:
     def set_max_size(cls, max_size):
         cls._max_size = max_size
 
-    def count_size(self):
-        return self.db.count()
+    @classmethod
+    def count_size(cls):
+        return cls.db.count()
     
-    def get_last_log(self):
-        last_log = self.db.select_first(order="binlog_id desc")
+    @classmethod
+    def get_last_log(cls):
+        last_log = cls.db.select_first(order="binlog_id desc")
         return BinLogRecord.from_dict_or_None(last_log)
 
-    def find_last_seq(self):
-        last_log = self.get_last_log()
+    @classmethod
+    def find_last_seq(cls):
+        last_log = cls.get_last_log()
         if last_log:
             return last_log.binlog_id
         return 0
 
-    def find_start_seq(self):
-        record = self.db.select_first(order="binlog_id")
+    @classmethod
+    def find_start_seq(cls):
+        record = cls.db.select_first(order="binlog_id")
         if record is None:
             return 0
         return BinLogRecord.from_dict(record).binlog_id
     
-    def get_max_id(self):
-        return self.find_last_seq()
+    get_max_id = find_last_seq
+    get_min_id = find_start_seq
 
-    def add_log(self, optype: str, key: typing.Union[str, int], value=None, batch=None, old_value=None, *, 
+    @classmethod
+    def add_log(cls, optype: str, key: typing.Union[str, int], value=None, batch=None, old_value=None, *, 
                 record_value=False, table_name: Optional[str]=None):
-        if not self._is_enabled:
+        if not cls._is_enabled:
             return
 
         # 获取自增ID操作是并发安全的, 所以这里不需要加锁, 加锁过多不仅会导致性能下降, 还可能引发死锁问题
@@ -158,7 +164,7 @@ class BinLog:
         binlog_body.record_key = str(key)
         binlog_body.key_type = BinLogKeyType.get_type(key)
 
-        if self.record_old_value and old_value != None:
+        if cls.record_old_value and old_value != None:
             binlog_body.old_value = old_value
         
         if record_value and value != None:
@@ -167,37 +173,53 @@ class BinLog:
         if table_name != None:
             binlog_body.table_name = table_name
         
-        self.db.insert(**binlog_body.to_save_dict())
+        cls.db.insert(**binlog_body.to_save_dict())
 
-    def list(self, start_binlog_id=0, limit=10):
+    @classmethod
+    def list(cls, start_binlog_id=0, limit=10):
         """从start_binlog_id开始查询limit个binlog"""
-        results = self.db.select(where="binlog_id>=$start_binlog_id", 
+        results = cls.db.select(where="binlog_id>=$start_binlog_id", 
                                  order="binlog_id",limit=limit,
                                  vars=dict(start_binlog_id=start_binlog_id))
         return BinLogRecord.from_dict_list(results)
     
-    def raw_list(self, offset=0, limit=20, order="binlog_id"):
+    @classmethod
+    def raw_list(cls, offset=0, limit=20, order="binlog_id"):
         """原生的查询接口"""
-        results = self.db.select(order=order,limit=limit,offset=offset)
+        results = cls.db.select(order=order,limit=limit,offset=offset)
         return BinLogRecord.from_dict_list(results)
 
-    def delete_expired(self):
-        assert self._max_size != None, "binlog_max_size未设置"
-        assert self._max_size > 0, "binlog_max_size必须大于0"
-
-        size = self.count_size()
-        self.logger.info("count size:%s", size)
-        max_id = self.get_max_id()
-        min_keep_id = max_id - self._max_size + 1
+    @classmethod
+    def delete_expired(cls):
+        size = cls.count_size()
         batch_size = 100
+        max_steps = math.ceil(size/batch_size)
+        for step in range(max_steps):
+            delete_count = cls._do_delete_step()
+            if delete_count == 0:
+                break
+            
+
+    @classmethod
+    def _do_delete_step(cls, batch_size = 100):
+        assert cls._max_size != None, "binlog_max_size未设置"
+        assert cls._max_size > 0, "binlog_max_size必须大于0"
+
+        size = cls.count_size()
+        cls.logger.info("count size:%s", size)
+        max_id = cls.get_max_id()
+        min_keep_id = max_id - cls._max_size + 1
         
         logging.info("max_id:%s, min_keep_id:%s", max_id, min_keep_id)
 
         if min_keep_id > 0:
-            with self._delete_lock:
-                self.logger.info("limit size: %s", batch_size)
-                delete_rows = self.db.select(what="binlog_id", where="binlog_id<$min_keep_id", 
+            with cls._delete_lock:
+                cls.logger.info("limit size: %s", batch_size)
+                delete_rows = cls.db.select(what="binlog_id", where="binlog_id<$min_keep_id", 
                                              limit=batch_size, vars=dict(min_keep_id=min_keep_id))
                 delete_ids = [row.binlog_id for row in delete_rows]
-                self.db.delete(where="binlog_id IN $id_list", vars=dict(id_list=delete_ids))
+                cls.db.delete(where="binlog_id IN $id_list", vars=dict(id_list=delete_ids))
+                return len(delete_rows)
+        else:
+            return 0
 

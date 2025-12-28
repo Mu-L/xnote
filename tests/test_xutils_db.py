@@ -805,13 +805,13 @@ class TestMain(BaseTestCase):
         lock1.release()
         lock2.release()
 
-    def test_binlog_clear(self):
+    def test_binlog_clean(self):
         BinLog.set_max_size(10)
         binlog = BinLog.get_instance()
         binlog.db.delete("1=1") # delete all
 
         for i in range(20):
-            binlog.add_log("put", "test_binlog_clear", "test")
+            binlog.add_log("put", "test_binlog_clean", "test")
             start_seq = binlog.find_start_seq()
             assert isinstance(start_seq, int)
 

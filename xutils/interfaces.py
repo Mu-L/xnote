@@ -284,8 +284,8 @@ class SQLDBInterface:
     def get_column_names(self) -> typing.List[str]:
         return []
     
-    def count(self, where=None, sql=None, vars=None):
-        return 0
+    def count(self, where=None, sql=None, vars=None) -> int:
+        raise NotImplementedError("sqldb.count")
     
 class IdGeneratorInterface:
     def next_id(self) -> int:
