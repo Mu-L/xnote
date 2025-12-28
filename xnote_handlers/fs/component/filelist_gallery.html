@@ -6,18 +6,38 @@
 
 {% include common/script/load_select2.html %}
 
+<style>
+    .name-td {
+        min-width: 100px;
+    }
+    .size-td {
+        min-width: 100px;
+    }
+    .option-td {
+        min-width: 100px;
+    }
+</style>
+
 <table class="table row">
+    <tr>
+        <th>预览</th>
+        <th>文件名/备注</th>
+        <th>文件大小</th>
+        <th>操作</th>
+    </tr>
     {% for file_info in files %}
         {% set fpath = file_info.realpath %}
         {% set fname = os.path.basename(fpath) %}
         {% set display_name = fsutil.get_display_name(fpath, dirname) %}
         <tr>
             <td>
-                <!-- <a href="{{fsutil.get_webpath(fpath)}}">{{display_name}}</a> -->
                 <img class="fs-thumbnail x-photo" src="{{get_file_thumbnail(fpath)}}" 
                     data-src="{{get_file_download_link(fpath)}}" title="{{fname}}"/>
             </td>
-            <td class="option-td">
+            <td class="name-td">
+                {{file_info.display_name}}
+            </td>
+            <td class="size-td">
                 {{xutils.format_file_size(fpath)}}
             </td>
             <td class="option-td">

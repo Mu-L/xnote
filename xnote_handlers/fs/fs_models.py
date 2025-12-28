@@ -1,4 +1,6 @@
 import xutils
+import os
+
 from xnote.core import xconfig, xtables
 from xutils import BaseDataRecord
 from xutils import Storage
@@ -38,6 +40,13 @@ class FileInfoRecord(BaseDataRecord):
     @property
     def realpath(self):
         return self.fpath.replace(xconfig.FileReplacement.data_dir, xconfig.FileConfig.data_dir)
+    
+    @property
+    def display_name(self):
+        if self.remark != "":
+            return self.remark
+        fname = os.path.basename(self.fpath)
+        return fsutil.decode_name(fname)
     
     def to_file_index_info(self):
         result = FileIndexInfo()
