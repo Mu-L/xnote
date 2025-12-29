@@ -10,6 +10,7 @@ import typing
 import xnote_handlers.note.dao as note_dao
 import xnote_handlers.note.dao_share as dao_share
 
+from typing import List
 from xnote.core import xauth, xconfig, xtables, xtemplate, xmanager
 from web import HTTPError
 from xnote.core.xconfig import Storage
@@ -29,7 +30,7 @@ from xnote_handlers.note.models import NotePathInfo, NoteRelationGroup
 from xnote.plugin import TextLink
 from . import dao_draft
 from . import dao_log
-from .models import OrderTypeEnum, NoteIndexDO, NoteTypeEnum
+from .models import OrderTypeEnum, NoteIndexDO, NoteTypeEnum, NoteOptGroup
 from .dao_tag import NoteTagInfoDao
 from .dao import NoteIndexDao, NoteDO
 from xnote_handlers.note.note_service import NoteService, NoteRelationService
@@ -97,6 +98,7 @@ class NoteViewContext(Storage):
         self.related_notes = [] # type: list[TextLink]
         self.relation_table = None # type: DataTable|None
         self.rev_relation_table = None # type: DataTable|None
+        self.note_group_list = [] # type: list[NoteOptGroup]
     
         self.update(kw)
 
@@ -276,6 +278,29 @@ def view_group_detail_func(file: note_dao.NoteDO, kw: NoteViewContext):
     kw.tag_meta_tab = build_tag_meta_tab(user_id=user_id, file_id=file.id)
     kw.show_orderby = True
     kw.order_type = file.order_type
+
+    note_group_list: List[NoteOptGroup] = []
+    pinned_group = NoteOptGroup("置顶")
+    group_group = NoteOptGroup("笔记本")
+    other_group = NoteOptGroup("其他")
+
+    for note in files:
+        if note.is_pinned:
+            pinned_group.children.append(note)
+        elif note.is_group:
+            group_group.children.append(note)
+        else:
+            other_group.children.append(note)
+    
+    def _check_and_add_group(item: NoteOptGroup):
+        if len(item.children) > 0:
+            note_group_list.append(item)
+    
+    _check_and_add_group(pinned_group)
+    _check_and_add_group(group_group)
+    _check_and_add_group(other_group)
+
+    kw.note_group_list = note_group_list
 
     if dialog:
         # 对话框的样式

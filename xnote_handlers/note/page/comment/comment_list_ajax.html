@@ -49,3 +49,27 @@
 {% if page_max > 1 %}
     {% include common/pagination.html %}
 {% end %}
+
+<script>
+$(function() {
+    // adjust msg-img-box height
+    $(".msg-img-box").each(function(idx, ele) {
+        var maxHeight = 0;
+        var $ele = $(ele);
+        var children = $ele.children(".msg-img");
+        for (var i = 0; i < children.length; i++) {
+            var child = $(children[i]);
+            var height = child.height();
+            if (height > maxHeight) {
+                maxHeight = height;
+            }
+        }
+        if ($ele.hasClass("mutli")) {
+            maxHeight += 10;
+        }
+        if (maxHeight > 0) {
+            $ele.height(maxHeight);
+        }
+    })
+});
+</script>

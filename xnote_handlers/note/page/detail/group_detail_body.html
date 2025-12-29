@@ -4,6 +4,7 @@
 -->
 
 {% init files = [] %}
+{% init note_group_list = [] %}
 {% init show_opts = True %}
 {% init show_size = False %}
 {% init show_cdate = False %}
@@ -40,6 +41,18 @@
         </a>
     {% end %}
 
-    {% include note/component/note_list_component.html %}
+    {% if len(note_group_list) > 0 %}
+        <div class="card">
+            {% for group_info in note_group_list %}
+                <div class="split-title">
+                    {{group_info.label}}
+                </div>
+                {% set files = group_info.children %}
+                {% include note/component/note_list_no_card.html %}
+            {% end %}
+        </div>
+    {% else %}
+        {% include note/component/note_list_component.html %}
+    {% end %}
 </div>
 

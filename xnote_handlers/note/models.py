@@ -269,9 +269,8 @@ class NoteGroupDO(NoteIndexDO):
         self.children = []
 
 class NoteOptGroup(Storage):
-    def __init__(self):
-        super(NoteOptGroup, self).__init__()
-        self.label = ""
+    def __init__(self, label = ""):
+        self.label = label
         self.children = [] # type: list[NoteIndexDO]
 
 class NoteRelationGroup(BaseDataRecord):
