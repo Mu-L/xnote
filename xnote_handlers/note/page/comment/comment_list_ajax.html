@@ -51,11 +51,13 @@
 {% end %}
 
 <script>
-$(function() {
-    // adjust msg-img-box height
-    $(".msg-img-box").each(function(idx, ele) {
+    $(".msg-img").on("load", function() {
+        // console.log("update msg-img-box height", $(this));
+        // adjust msg-img-box height
+        var $ele = $(this).parent(".msg-img-box");
+        // console.log("parents", $ele);
+
         var maxHeight = 0;
-        var $ele = $(ele);
         var children = $ele.children(".msg-img");
         for (var i = 0; i < children.length; i++) {
             var child = $(children[i]);
@@ -70,6 +72,5 @@ $(function() {
         if (maxHeight > 0) {
             $ele.height(maxHeight);
         }
-    })
-});
+    });
 </script>
