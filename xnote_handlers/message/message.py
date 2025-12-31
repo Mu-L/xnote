@@ -248,9 +248,10 @@ class ListAjaxHandler:
                 search_tags = ["log"]
 
         searcher = message_search.SearchHandler()
-        return searcher.get_ajax_data(user_name=user_name, key=key, offset=offset,
-                                      limit=pagesize, search_tags=search_tags,
-                                      no_tag=no_tag, date=date)
+        return searcher.get_ajax_data(
+            user_name=user_name, key=key, offset=offset,
+            limit=pagesize, search_tags=search_tags,
+            no_tag=no_tag, date=date)
 
 
 def update_message_content(id: str, user_id: int, content):
@@ -273,7 +274,7 @@ def update_message_content(id: str, user_id: int, content):
     event.msg_key = id
     event.user_id = data.user_id
     event.content = content
-    xmanager.fire("message.update", event)
+    event.fire()
 
     after_message_create_or_update(data)
 

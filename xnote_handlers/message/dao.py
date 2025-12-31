@@ -154,6 +154,8 @@ def has_tag_fast(content: str):
     return content.find("#") >= 0 or content.find("@") >= 0
 
 def is_user_tag(key=""):
+    if key.startswith("_h:"):
+        return True
     return key.startswith("#") and key.endswith("#") and key.count("#") == 2
 
 def search_message(user_id: int, key: str, offset=0, limit=20, *, 

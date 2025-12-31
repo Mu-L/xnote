@@ -365,21 +365,21 @@ class MarkdownImageParser(TextParserBase):
         self.init(text)
 
         c = self.current()
-        while c != None:
+        while not self.is_eof():
             if self.startswith("!["):
-                name_part = self.read_till_target("]")
+                name_part = self.read_until_target("]")
                 self.append_token(name_part)
 
                 if self.current() != "(":
                     self.str_token_append(c)
                     continue
                 else:
-                    href_part = self.read_till_target(")")
+                    href_part = self.read_until_target(")")
                     url = href_part[1:-1]
                     new_href = self.handle_image(url, user_name)
                     self.append_token("(" + new_href + ")")
             if self.startswith("```"):
-                code_part = self.read_till_target("```")
+                code_part = self.read_until_target("```")
                 self.append_token(code_part)
             else:
                 self.str_token_append(c)

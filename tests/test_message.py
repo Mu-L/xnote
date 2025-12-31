@@ -377,11 +377,19 @@ class TestMain(BaseTestCase):
         assert result == "#tag1#\ntext"
 
     def test_parse_message(self):
-        content = "#tag# test"
+        content = """
+#tag# test
+# 标题1
+内容1
+
+# 标题2
+内容2
+        """
+
+        content = content.strip()
         data = dict(content=content)
         result = json_request_return_dict("/message/parse", method="POST", data=data)
         assert result.get("success")
-        tokens = result.get
 
     def test_message_template(self):
         self.check_OK("/message/template")

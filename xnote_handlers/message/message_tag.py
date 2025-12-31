@@ -93,7 +93,7 @@ def add_tag_to_content(content="", new_tag=""):
             rest_str_list.append(token.value)
         else:
             trim_value = token.value.strip()
-            if token.is_topic():
+            if token.is_topic:
                 tags.append(token.value)
                 continue
             

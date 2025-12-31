@@ -19,6 +19,7 @@ import web
 import typing
 import re
 
+from typing import List
 from xnote.core import xconfig
 from xnote.core.xtemplate import T
 from xutils import textutil
@@ -40,7 +41,7 @@ from xutils.text_parser import TextToken
 
 from . import dao as msg_dao
 from .message_model import MessageDO, MsgTagInfo
-from .message_model import MessageTagEnum
+from .message_model import MessageTagEnum, QuerySourceType
 
 MSG_DAO = xutils.DAO("message")
 TAG_TEXT_DICT = dict(
@@ -149,7 +150,10 @@ class TagHelper:
         return cls.create_tag_mapping.get(tag, tag)
 
 def mark_text(content, tag="log"):
-    result = mark_text_v2(content, tag)
+    msg = MessageDO()
+    msg.content = content
+    msg.tag = tag
+    result = mark_text_v2(msg)
     return result.result_text, result.keywords
 
 class MarkResult:
@@ -162,7 +166,29 @@ class MarkTokenResult:
     def __init__(self, tokens: typing.List[TextToken]):
         self.tokens = tokens
 
-def mark_text_v2(content="", tag="log"):
+def _filter_heading_tokens(tokens: List[TextToken], query_key: str):
+    result: List[TextToken] = []
+    match_token = False
+    query_key = query_key.lower()
+
+    for token in tokens:
+        if token.is_heading:
+            if ("_h:" + token.value).lower() == query_key:
+                match_token = True
+            else:
+                match_token = False
+
+        if match_token:
+            result.append(token)
+
+    print(f"filter_heading_tokens: {result}")
+    
+    return result
+
+def mark_text_v2(msg: MessageDO):
+    tag = msg.tag
+    content = msg.content
+
     # 设置图片文集后缀
     set_img_file_ext(xconfig.FS_IMG_EXT_LIST)
 
@@ -170,7 +196,10 @@ def mark_text_v2(content="", tag="log"):
     
     parser = TextParser()
     tokens = parser.parse_to_tokens(text=content)
-    
+
+    if msg.query_source == QuerySourceType.heading_tag:
+        tokens = _filter_heading_tokens(tokens, msg.query_key)
+
     for token in tokens:
         if token.type in (TokenType.topic, TokenType.search):
             token.html = get_search_html(value=token.value, tag=tag)
@@ -178,6 +207,9 @@ def mark_text_v2(content="", tag="log"):
     keywords = parser.keywords
     if keywords == None:
         keywords = set()
+    
+    for heading in parser.headings:
+        keywords.add("_h:" + heading)
 
     text_tokens = parser.get_text_tokens(tokens)
     return MarkResult("".join(text_tokens), keywords=get_standard_tag_set(keywords), full_keywords=keywords)
@@ -354,6 +386,8 @@ def is_system_tag(tag: str):
     return tag.startswith("$")
 
 def is_standard_tag(tag: str):
+    if tag.startswith("_h:"):
+        return True
     return tag.startswith("#") and tag.endswith("#")
 
 def get_standard_tag_set(tags):
@@ -520,7 +554,7 @@ class MessageListParser(object):
             message.html = build_search_html(message.content)
             return message
 
-        result = mark_text_v2(message.content, message.tag)
+        result = mark_text_v2(message)
         message.html = result.result_text
         message.keywords = result.keywords
         message.full_keywords = result.full_keywords

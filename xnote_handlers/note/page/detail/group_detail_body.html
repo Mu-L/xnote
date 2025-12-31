@@ -44,7 +44,7 @@
     {% if len(note_group_list) > 0 %}
         <div class="card">
             {% for group_info in note_group_list %}
-                <div class="split-title">
+                <div class="block-title">
                     {{group_info.label}}
                 </div>
                 {% set files = group_info.children %}

@@ -872,7 +872,7 @@ li.menu-item:hover {
     border-bottom: 1px solid #eee;
 }
 
-.split-title, .block-title {
+.block-title, .split-title {
     width: 100%;
     float: left;
     background-color: #eee;
@@ -881,6 +881,10 @@ li.menu-item:hover {
     margin-bottom: 5px;
     font-weight: bold;
     line-height: normal;
+}
+
+h3.block-title {
+    font-size: 14px;
 }
 
 .search-out-box {

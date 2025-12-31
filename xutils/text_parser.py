@@ -113,10 +113,10 @@ class TextParserBase(object):
         return escape_html(text)
 
     def current(self):
-        """当前的字符，如果越界了，返回None"""
+        """当前的字符，如果越界了，返回空字符串"""
         if self.i < self.length:
             return self.text[self.i]
-        return None
+        return ""
     
     def has_next(self):
         return self.i < self.length
@@ -133,19 +133,24 @@ class TextParserBase(object):
         """往后读取一个字符，返回读取的字符，如果已经读完了，返回空字符串，改变索引下标"""
         return self.read(1)
 
-    def predict_next(self):
-        """读取下一个字符，如果没有返回空字符串，不改变当前索引下标"""
-        if self.i < self.max_index:
-            return self.text[self.i+1]
+    def lookahead(self, pos=1):
+        """读取后面的字符，如果没有返回空字符串，不改变当前索引下标"""
+        newpos = self.i + pos
+        if 0 <= newpos <= self.max_index:
+            return self.text[newpos]
         return ""
 
     def get(self, index=0):
         if index < self.max_index:
             return self.text[index]
-        return None
-    
-    def set_index(self, index):
+        return ""
+
+    def seek(self, index: int):
+        if index < 0:
+            raise Exception(f"invalid index={index}")
         self.i = index
+
+    set_index = seek
 
     def startswith(self, target: str):
         """当前字符是否以{target}开头"""
@@ -187,7 +192,7 @@ class TextParserBase(object):
 
     def read_before_blank(self):
         """从当前字符开始，找到空白字符为止，返回内容不包含空白字符,读取后{i}位于第一个空白字符
-        读取完成后 current() 返回空白字符或者None
+        读取完成后 current() 返回空白字符或者空字符串
         """
         end = self.find_blank()
         if end < 0:
@@ -229,7 +234,7 @@ class TextParserBase(object):
     def read_rest(self):
         return self.read_till_index(self.max_index)
 
-    def read_till_target(self, target: str):
+    def read_until_target(self, target: str):
         """返回值包含target，索引{i}移动到target之后"""
         end = self.text.find(target, self.i+1)
         if end < 0:
@@ -240,7 +245,7 @@ class TextParserBase(object):
             self.i = end + len(target)
         return key
     
-    def read_till_any_target(self, target_list: typing.Sequence):
+    def read_until_any_target(self, target_list: typing.Sequence):
         """返回值包含target，索引{i}移动到target之后"""
         pos_list = []
         pos_target_map = {} # position -> target
@@ -273,7 +278,7 @@ class TextParserBase(object):
             print("there maybe dead loops in [%s]" % name)
         self.profile_dict[name] = visit_cnt
 
-    def parse(self, text):
+    def parse(self, text: str):
         raise Exception("parse() must be implemented by child class")
     
     def get_text_tokens(self, tokens: typing.List["TextToken"]):
@@ -282,14 +287,25 @@ class TextParserBase(object):
             result.append(token.get_html())
         return result
     
-    def is_blank(self, char: str):
-        return char in (" ", "\r", "\n", "\t")
+    def is_blank(self):
+        return self.current() in self.blank_chars
+    
+    def is_blank_char(self, char: str):
+        return char in self.blank_chars
+    
+    def is_eof(self):
+        return self.i > self.max_index
+    
+    def skip_blank(self):
+        while self.is_blank():
+            self.read(1)
 
 
 class TokenType:
     text = "text"
     link = "link"
     topic = "topic"
+    heading = "heading"
     strong = "strong"
     phone_number = "phone_number"
     search = "search"
@@ -311,8 +327,13 @@ class TextToken(Storage):
     def __eq__(self, value: "TextToken") -> bool:
         return self.type == value.type and self.value == value.value
     
+    @property
     def is_topic(self):
         return self.type == TokenType.topic
+    
+    @property
+    def is_heading(self):
+        return self.type == TokenType.heading
 
 class TopicToken(TextToken):
     def __init__(self, value=""):
@@ -326,6 +347,19 @@ class TopicToken(TextToken):
         quoted_key = quote(self.value)
         value = escape_html(self.value)
         return f"<a class=\"link\" href=\"/message?category=message&key={quoted_key}\">{value}</a>"
+
+class HeadingToken(TextToken):
+    def __init__(self, value=""):
+        super().__init__(value=value)
+        self.type = TokenType.heading
+        self.value = value
+
+    def get_html(self):
+        if self.html != "":
+            return self.html
+        value = escape_html(self.value)
+        return f"""<h3 class="block-title">{value}</h3>"""
+
 
 class SearchToken(TopicToken):
     def __init__(self, value=""):
@@ -416,11 +450,15 @@ class TextParser(TextParserBase):
 
     def init_ext(self, text):
         self.keywords = set()
+        self.headings = set()
 
     def record_keyword(self, keyword:str):
         if self.keyword_to_lower:
             keyword = keyword.lower()
         self.keywords.add(keyword)
+
+    def record_heading(self, heading:str):
+        self.headings.add(heading)
 
     def build_search_link(self, keyword):
         return SearchToken(keyword)
@@ -428,16 +466,21 @@ class TextParser(TextParserBase):
     def translate_topic(self, key):
         return TopicToken(value=key)
 
-    def mark_topic(self):
+    def mark_hash(self):
         """话题转为搜索关键字的时候去掉前后的#符号"""
         self.profile("mark_topic")
+
+        next_char = self.lookahead()
+        if next_char == " " or next_char == "#":
+            return self.mark_heading()
 
         start_index = self.i
         self.save_str_token()
         key0 = None
+
         for i in range(self.i+1, self.length):
             c = self.text[i]
-            if self.is_blank(c):
+            if self.is_blank_char(c):
                 # 话题终止
                 key0 = self.text[start_index:i]
                 self.i = i
@@ -448,7 +491,8 @@ class TextParser(TextParserBase):
                 key0 = self.text[start_index: i + 1]
                 self.i = i + 1
                 break
-            elif c == '\n':
+            
+            if c == '\n':
                 # 换行终止
                 key0 = self.text[start_index: i]
                 self.i = i
@@ -475,6 +519,19 @@ class TextParser(TextParserBase):
         token = self.translate_topic(key0)
         self.tokens.append(token)
 
+    def mark_heading(self):
+        # 当前处于#字符
+        while self.current() == "#":
+            self.read()
+        
+        self.skip_blank()
+        heading_text = self.read_until_target("\n")
+        if heading_text == "":
+            # 最后一行没有换行符
+            heading_text = self.read_rest()
+        heading_text = heading_text.strip()
+        self.record_heading(heading_text)
+        self.tokens.append(HeadingToken(heading_text))
 
     def mark_http(self):
         self.profile("mark_http")
@@ -506,7 +563,7 @@ class TextParser(TextParserBase):
         self.save_str_token()
         self.i += len(tag)
         
-        key = self.read_till_any_target((tag,"\n"))
+        key = self.read_until_any_target((tag,"\n"))
         if key == "":
             # 无匹配的
             self.tokens.append(TextToken(tag))
@@ -538,7 +595,7 @@ class TextParser(TextParserBase):
 
         self.save_str_token()
         
-        key = self.read_till_target(end_char)
+        key = self.read_until_target(end_char)
         if key == "":
             self.str_token_append(self.text[self.i])
             # self.tokens.append(self.text[self.i])
@@ -563,10 +620,7 @@ class TextParser(TextParserBase):
         while True:
             restore_index = self.i
 
-            while self.current() in self.blank_chars:
-                next = self.read_next()
-                if next == "":
-                    break
+            self.skip_blank()
 
             if self.startswith("file://"):
                 href = self.read_before_blank()
@@ -617,11 +671,11 @@ class TextParser(TextParserBase):
 
     def _next_token(self):
         c = self.current()
-        if c is None:
+        if c == "":
             return
         
         if c == '#':
-            self.mark_topic()
+            self.mark_hash()
             return
         
         if c == '《':

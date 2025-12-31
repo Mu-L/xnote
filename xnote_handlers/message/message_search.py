@@ -3,13 +3,14 @@
 import time
 import xutils
 
+from typing import List
 from xutils import SearchResult, u, Storage, functions
 from xnote.core import xmanager, xconfig, xauth, xtemplate
 from xnote.core.models import SearchContext
 from xnote_handlers.message import dao, message_utils
 from xnote.service import TagInfoService
 from xnote.core.xnote_user_config import UserConfig
-
+from .message_model import MessageDO, QuerySourceType
 
 @xmanager.searchable()
 def on_search_message(ctx: SearchContext):
@@ -121,7 +122,15 @@ class SearchHandler:
 
         dao.add_search_history(user_name, key, cost_time)
 
+        self.post_handle_msg_list(chatlist, key)
+
         return chatlist, amount
+    
+    def post_handle_msg_list(self, msg_list: List[MessageDO], search_key: str):
+        if search_key.startswith("_h:"):
+            for item in msg_list:
+                item.query_source = QuerySourceType.heading_tag
+                item.query_key = search_key
 
     def search_items(self, user_name, key):
         pass

@@ -231,8 +231,12 @@ class MsgIndex(Storage):
     def from_dict_list(cls, dict_list):
         return [cls.from_dict(item) for item in dict_list]
 
+class QuerySourceType:
+    heading_tag = "heading_tag"
 
 class MessageDO(BaseMsgDO):
+    tag_text: str
+    
     def __init__(self):
         self._key = "" # kv的主键
         self._id = "" # kv的ID
@@ -260,6 +264,8 @@ class MessageDO(BaseMsgDO):
         self.done_time = None # type: str|None
         self.change_time = xtables.DEFAULT_DATETIME
         self.html = ""
+        self.query_source = ""
+        self.query_key = ""
 
     @classmethod
     def from_dict(cls, dict_value: dict):
@@ -301,6 +307,8 @@ class MessageDO(BaseMsgDO):
         del_dict_key(self, "tag_text")
         del_dict_key(self, "full_keywords")
         del_dict_key(self, "system_tags")
+        del_dict_key(self, "query_source")
+        del_dict_key(self, "query_key")
 
         # remove None values
         delete_None_values(self)
