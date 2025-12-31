@@ -74,6 +74,7 @@ class NoteViewContext(Storage):
 
         self.page = 1
         self.pagesize = 20
+        self.page_max = 1
         self.page_url = ""
 
         self.groups = []
@@ -87,6 +88,7 @@ class NoteViewContext(Storage):
         self.is_public_page = False
         self.OrderTypeEnum = OrderTypeEnum
         self.file = None # type: NoteIndexDO|None
+        self.parent_id = 0
         self.content = ""
         self.note_alias_list = [] # type: list[NoteIndexDO]
         self.show_recommend = False
@@ -212,10 +214,6 @@ def view_or_edit_md_func(file: NoteDO, kw: NoteViewContext):
         kw.relation_table = NoteRelationService.get_table(note_id=file.note_id, user_id=kw.user_id)
         kw.rev_relation_table = NoteRelationService.get_rev_table(target_id=file.note_id, user_id=kw.user_id)
 
-
-def view_group_timeline_func(note, kw):
-    raise web.found("/note/timeline?type=default&parent_id=%s" % note.id)
-
 def build_tag_meta_tab(user_id=0, file_id=0):
     meta_list = NoteTagInfoDao.list(user_id=user_id, group_id=file_id)
     tab = TabBox(tab_key="tag", tab_default="", css_class="btn-style", title="标签")
@@ -247,15 +245,11 @@ def view_group_detail_func(file: note_dao.NoteDO, kw: NoteViewContext):
     if q_tag != "":
         q_tags = [q_tag]
 
-    if file.order_type == int(OrderTypeEnum.ctime_desc.value):
-        files = []
-        kw.show_timeline_body = True
-    else:
-        offset = max(page-1, 0) * pagesize
-        files = note_dao.list_by_parent(
-            file.creator, parent_id=file.id,
-            offset=offset, limit=pagesize,
-            order_type=file.order_type, tags=q_tags)
+    offset = max(page-1, 0) * pagesize
+    files = note_dao.list_by_parent(
+        file.creator, parent_id=file.id,
+        offset=offset, limit=pagesize,
+        order_type=file.order_type, tags=q_tags)
 
     if is_public_page:
         files = list(filter(lambda x: x.is_public, files))
@@ -280,25 +274,30 @@ def view_group_detail_func(file: note_dao.NoteDO, kw: NoteViewContext):
     kw.order_type = file.order_type
 
     note_group_list: List[NoteOptGroup] = []
-    pinned_group = NoteOptGroup("置顶")
+    pinned_group = NoteOptGroup("置顶笔记本")
+    pinned_note_group = NoteOptGroup("置顶笔记")
     group_group = NoteOptGroup("笔记本")
-    other_group = NoteOptGroup("其他")
+    note_group = NoteOptGroup("笔记")
 
     for note in files:
         if note.is_pinned:
-            pinned_group.children.append(note)
+            if note.is_group:
+                pinned_group.add_note(note)
+            else:
+                pinned_note_group.add_note(note)
         elif note.is_group:
-            group_group.children.append(note)
+            group_group.add_note(note)
         else:
-            other_group.children.append(note)
+            note_group.add_note(note)
     
     def _check_and_add_group(item: NoteOptGroup):
         if len(item.children) > 0:
             note_group_list.append(item)
     
     _check_and_add_group(pinned_group)
+    _check_and_add_group(pinned_note_group)
     _check_and_add_group(group_group)
-    _check_and_add_group(other_group)
+    _check_and_add_group(note_group)
 
     kw.note_group_list = note_group_list
 
@@ -309,7 +308,7 @@ def view_group_detail_func(file: note_dao.NoteDO, kw: NoteViewContext):
         kw.template_name = "note/page/detail/group_detail.html"
 
 
-def view_checklist_func(note, kw):
+def view_checklist_func(note, kw: NoteViewContext):
     kw.show_aside = False
     kw.show_pagination = False
     kw.show_comment_title = True
@@ -329,7 +328,7 @@ def view_table_func(note, kw: NoteViewContext):
     kw.template_name = "note/page/detail/table_detail.html"
 
 
-def view_form_func(note, kw):
+def view_form_func(note, kw: NoteViewContext):
     # 表单支持脚本处理，可以实现一些标准化的表单工具
     kw.template_name = "note/page/detail/form_detail.html"
     kw.file_id = note.id

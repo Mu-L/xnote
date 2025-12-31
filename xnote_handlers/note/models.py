@@ -273,6 +273,9 @@ class NoteOptGroup(Storage):
         self.label = label
         self.children = [] # type: list[NoteIndexDO]
 
+    def add_note(self, note: NoteIndexDO):
+        self.children.append(note)
+
 class NoteRelationGroup(BaseDataRecord):
 
     def __init__(self, **kw):
