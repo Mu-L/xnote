@@ -101,6 +101,7 @@ class NoteViewContext(Storage):
         self.relation_table = None # type: DataTable|None
         self.rev_relation_table = None # type: DataTable|None
         self.note_group_list = [] # type: list[NoteOptGroup]
+        self.q_tag = ""
     
         self.update(kw)
 

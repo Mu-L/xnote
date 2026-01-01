@@ -63,7 +63,7 @@ class UserStatusEnum(enum.Enum):
     normal = 0
     deleted = -1
 
-class UserDO(xutils.Storage):
+class UserDO(BaseDataRecord):
 
     def __init__(self, **kw):
         self.id = 0
@@ -79,26 +79,8 @@ class UserDO(xutils.Storage):
         self.status = 0
         self.update(kw)
 
-    @property
-    def user_id(self):
-        return self.id
-
-    @classmethod
-    def from_dict(cls, dict_value):
-        if dict_value == None:
-            return None
-        assert isinstance(dict_value, dict)
-        result = UserDO()
-        result.update(dict_value)
-        result.build()
-        return result
-    
-    @classmethod
-    def from_dict_list(cls, dict_list) -> typing.List["UserDO"]:
-        result = []
-        for item in dict_list:
-            result.append(cls.from_dict(item))
-        return result
+    def handle_from_dict(self):
+        self.build()
 
     def build(self):
         # Fix md5
@@ -111,6 +93,11 @@ class UserDO(xutils.Storage):
         if self.status == UserStatusEnum.deleted.value:
             return "删除"
         return f"未知({self.status})"
+    
+    
+    @property
+    def user_id(self):
+        return self.id
     
     @property
     def is_admin(self):
@@ -138,7 +125,7 @@ class UserDao:
             user = cls.get_user_from_db(name)
             user_cache.put(name, user, expire=DEFAULT_CACHE_EXPIRE)
 
-        return UserDO.from_dict(user)
+        return UserDO.from_dict_or_None(user)
 
     @classmethod
     def get_id_by_name(cls, name=""):
@@ -151,7 +138,7 @@ class UserDao:
     def get_user_from_db(cls, name=""):
         db = get_user_db()
         user_dict = db.select_first(where=dict(name=name))
-        return UserDO.from_dict(user_dict)
+        return UserDO.from_dict_or_None(user_dict)
 
     @classmethod
     def get_by_token(cls, token=""):
@@ -161,10 +148,10 @@ class UserDao:
             return None
         
         if isinstance(user_info, dict):
-            return UserDO.from_dict(user_info)
+            return UserDO.from_dict_or_None(user_info)
         
         user_dict = db.select_first(where=dict(token=token))
-        user_info = UserDO.from_dict(user_dict)
+        user_info = UserDO.from_dict_or_None(user_dict)
         if user_info != None and user_info.status == UserStatusEnum.deleted.value:
             cls._token_cache.put_empty(token)
             return None
@@ -180,25 +167,31 @@ class UserDao:
     def get_by_id(cls, user_id=0):
         db = get_user_db()
         user_dict = db.select_first(where=dict(id=user_id))
-        return UserDO.from_dict(user_dict)
+        return UserDO.from_dict_or_None(user_dict)
 
     @classmethod
     def get_by_mobile(cls, mobile=""):
         db = get_user_db()
         user_dict = db.select_first(where=dict(mobile=mobile))
-        return UserDO.from_dict(user_dict)
+        return UserDO.from_dict_or_None(user_dict)
 
     @classmethod
     def list(cls, offset=0, limit=20):
         db = get_user_db()
         return UserDO.from_dict_list(db.select(offset=offset, limit=limit))
+    
+    @classmethod
+    def iter(cls):
+        db = cls._db
+        for user_info in db.iter():
+            yield UserDO.from_dict(user_info)
 
     @classmethod
     def count(cls):
         return get_user_db().count()
 
     @classmethod
-    def create(cls, user, fire_event=True):
+    def create(cls, user: UserDO, fire_event=True):
         assert isinstance(user, UserDO)
         name = user.name
         assert isinstance(name, six.string_types)

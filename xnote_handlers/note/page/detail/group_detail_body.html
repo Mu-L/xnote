@@ -47,7 +47,7 @@
                 <div class="block-title">
                     {{group_info.label}}
                 </div>
-                {% set files = group_info.children %}
+                {% set-global files = group_info.children %}
                 {% include note/component/note_list_no_card.html %}
             {% end %}
         </div>

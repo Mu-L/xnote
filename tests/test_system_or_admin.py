@@ -17,6 +17,7 @@ from xnote.service import JobService
 from xnote.service.system_meta_service import SystemMetaEnum
 from .test_base import json_request_return_dict
 from xutils.sqldb.utils import get_sqlite_table_struct
+from xnote_handlers.admin.repair_admin import RepairHandler
 
 app = test_base.init()
 
@@ -138,4 +139,8 @@ class TestMain(test_base.BaseTestCase):
         assert pk != None
         assert pk.type == "varbinary(100)"
         assert pk.name == "key"
+
+    def test_repair_tools(self):
+        for tool in RepairHandler.repair_rows:
+            tool.do_repair()
 

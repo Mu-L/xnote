@@ -221,6 +221,14 @@ class TagBindServiceImpl:
         where_sql = "user_id=$user_id AND target_id=$target_id"
         vars = dict(user_id=user_id, target_id=target_id)
         return self.db.delete(where=where_sql, vars=vars)
+    
+    def iter(self, where="", vars=None, batch_size=100):
+        new_where = f"{where} AND tag_type = $tag_type"
+        if vars is None:
+            vars = dict()
+        vars["tag_type"] = self.get_tag_type()
+        for item in self.db.iter(where=new_where, vars=vars, batch_size=batch_size):
+            yield TagBind.from_dict(item)
 
 class TagInfoServiceImpl:
 

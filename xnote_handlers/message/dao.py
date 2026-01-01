@@ -762,8 +762,9 @@ class MsgTagInfoDao:
         return cls.db.count(where=dict(user_id=user_id))
     
     @classmethod
-    def iter_all(cls):
-        for item in cls.db.iter():
+    def iter(cls):
+        vars = dict(tag_type = cls.tag_type)
+        for item in cls.db.iter(where="AND tag_type = $tag_type", vars = vars):
             yield MsgTagInfo.from_dict(item)
 
 class MsgTagBindDao:

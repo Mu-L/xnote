@@ -125,6 +125,10 @@ class _TagBindDaoImpl:
     def delete_by_note_id(self, user_id=0, note_id=0):
         self.tag_bind_service.delete_tags(user_id=user_id, target_id=note_id)
 
+    def iter(self, user_id=0):
+        vars = dict(user_id=user_id)
+        for tag_bind in self.tag_bind_service.iter(where = "AND user_id=$user_id", vars=vars):
+            yield tag_bind
 
 class _NoteTagInfoDaoImpl:
     tag_info_service = NoteTagInfoService
