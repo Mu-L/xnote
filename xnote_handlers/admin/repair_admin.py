@@ -8,7 +8,7 @@ from xnote.core import xauth
 from xnote.service import DatabaseLockService, JobService, JobInfoDO, JobStatusEnum
 from xnote.plugin.table_plugin import BaseTablePlugin
 from xnote.plugin import DataTable, FormRowType, TableActionType
-from xnote_handlers.message.dao import MessageDao
+from xnote_handlers.message.dao import MessageDao, MsgTagInfoDao
 from xnote_handlers.message.message_utils import process_message
 from xnote_handlers.message import message_tag
 from xnote_handlers.config import LinkConfig
@@ -50,6 +50,9 @@ class RepairMsgTag(RepairInfo):
                     MessageDao.update_user_tags(msg)
                     message_tag.update_tag_amount_by_msg(msg)
                     count += 1
+                
+                for tag_info in MsgTagInfoDao.iter_all():
+                    message_tag.update_tag_amount(tag_info=tag_info, user_id=tag_info.user_id, key = tag_info.tag_code)
 
                 job_info.job_result = f"修复{count}条记录"
 

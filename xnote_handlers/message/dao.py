@@ -760,6 +760,11 @@ class MsgTagInfoDao:
     def count(cls, user=""):
         user_id = xauth.UserDao.get_id_by_name(user)
         return cls.db.count(where=dict(user_id=user_id))
+    
+    @classmethod
+    def iter_all(cls):
+        for item in cls.db.iter():
+            yield MsgTagInfo.from_dict(item)
 
 class MsgTagBindDao:
 

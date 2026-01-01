@@ -64,7 +64,7 @@ def escape_html(text: str):
     return text
 
 
-class TextParserBase(object):
+class BaseTextParser(object):
 
     """文本解析工具, 有这些规则
     - 下标默认从0开始(也就是默认读取第一个字符)
@@ -122,7 +122,7 @@ class TextParserBase(object):
         return self.i < self.length
     
     def read(self, count=1):
-        """往后读取 {count} 个字符"""
+        """往后读取 {count} 个字符, 如果读取不到字符, 返回空字符串, 始终会修改当前位置索引"""
         assert count > 0
         pos = self.i
         newpos = self.i + count
@@ -133,12 +133,14 @@ class TextParserBase(object):
         """往后读取一个字符，返回读取的字符，如果已经读完了，返回空字符串，改变索引下标"""
         return self.read(1)
 
-    def lookahead(self, pos=1):
+    def peek(self, pos=1):
         """读取后面的字符，如果没有返回空字符串，不改变当前索引下标"""
         newpos = self.i + pos
         if 0 <= newpos <= self.max_index:
             return self.text[newpos]
         return ""
+    
+    lookahead = peek
 
     def get(self, index=0):
         if index < self.max_index:
@@ -190,7 +192,7 @@ class TextParserBase(object):
             self.tokens.append(token)
         self.str_token = ""
 
-    def read_before_blank(self):
+    def read_until_blank(self):
         """从当前字符开始，找到空白字符为止，返回内容不包含空白字符,读取后{i}位于第一个空白字符
         读取完成后 current() 返回空白字符或者空字符串
         """
@@ -205,7 +207,7 @@ class TextParserBase(object):
             self.i = end
         return found
 
-    def read_till_index(self, index: int):
+    def read_until_index(self, index: int):
         """包含目标索引，读取后{i}=index+1"""
         start_index = self.i
         self.i = min(self.length, index+1)
@@ -232,7 +234,7 @@ class TextParserBase(object):
         return token
 
     def read_rest(self):
-        return self.read_till_index(self.max_index)
+        return self.read_until_index(self.max_index)
 
     def read_until_target(self, target: str):
         """返回值包含target，索引{i}移动到target之后"""
@@ -300,6 +302,7 @@ class TextParserBase(object):
         while self.is_blank():
             self.read(1)
 
+TextParserBase = BaseTextParser
 
 class TokenType:
     text = "text"
@@ -349,16 +352,18 @@ class TopicToken(TextToken):
         return f"<a class=\"link\" href=\"/message?category=message&key={quoted_key}\">{value}</a>"
 
 class HeadingToken(TextToken):
-    def __init__(self, value=""):
+    def __init__(self, value="", level=1):
         super().__init__(value=value)
         self.type = TokenType.heading
         self.value = value
+        self.level = level
 
     def get_html(self):
         if self.html != "":
             return self.html
         value = escape_html(self.value)
-        return f"""<h3 class="block-title">{value}</h3>"""
+        tag = f"h{self.level}"
+        return f"""<{tag} class="block-title">{value}</{tag}>"""
 
 
 class SearchToken(TopicToken):
@@ -432,7 +437,8 @@ class ImageListToken(TextToken):
         html += '</div>'
         return html
 
-class TextParser(TextParserBase):
+
+class TextParser(BaseTextParser):
 
     # 是否标记单书名号<书籍名>
     mark_book_single_flag = False
@@ -469,13 +475,7 @@ class TextParser(TextParserBase):
     def mark_hash(self):
         """话题转为搜索关键字的时候去掉前后的#符号"""
         self.profile("mark_topic")
-
-        next_char = self.lookahead()
-        if next_char == " " or next_char == "#":
-            return self.mark_heading()
-
         start_index = self.i
-        self.save_str_token()
         key0 = None
 
         for i in range(self.i+1, self.length):
@@ -521,7 +521,9 @@ class TextParser(TextParserBase):
 
     def mark_heading(self):
         # 当前处于#字符
+        level = 0
         while self.current() == "#":
+            level += 1
             self.read()
         
         self.skip_blank()
@@ -531,13 +533,11 @@ class TextParser(TextParserBase):
             heading_text = self.read_rest()
         heading_text = heading_text.strip()
         self.record_heading(heading_text)
-        self.tokens.append(HeadingToken(heading_text))
+        self.tokens.append(HeadingToken(heading_text, level=level))
 
     def mark_http(self):
         self.profile("mark_http")
-
-        self.save_str_token()
-        link  = self.read_before_blank()
+        link  = self.read_until_blank()
         token = LinkToken(value=link, href=link)
         self.tokens.append(token)
 
@@ -549,9 +549,8 @@ class TextParser(TextParserBase):
 
     def mark_at(self):
         self.profile("mark_at")
-        self.save_str_token()
         
-        word  = self.read_before_blank()
+        word  = self.read_until_blank()
         token = self.build_search_link(word)
         self.tokens.append(token)
 
@@ -560,7 +559,6 @@ class TextParser(TextParserBase):
     
     def mark_strong(self, tag="**"):
         # tag_len = len(tag)
-        self.save_str_token()
         self.i += len(tag)
         
         key = self.read_until_any_target((tag,"\n"))
@@ -583,8 +581,6 @@ class TextParser(TextParserBase):
 
     def mark_number(self):
         self.profile("mark_number")
-
-        self.save_str_token()
         number = self.read_number()
         token  = self.build_search_link(number)
         self.tokens.append(token)
@@ -592,9 +588,6 @@ class TextParser(TextParserBase):
 
     def mark_tag_single(self, end_char, record_keyword=True, build_html_tag_func=None, exclude_tag=False):
         self.profile("mark_tag_single")
-
-        self.save_str_token()
-        
         key = self.read_until_target(end_char)
         if key == "":
             self.str_token_append(self.text[self.i])
@@ -623,7 +616,7 @@ class TextParser(TextParserBase):
             self.skip_blank()
 
             if self.startswith("file://"):
-                href = self.read_before_blank()
+                href = self.read_until_blank()
                 href = href[7:]
                 if not is_img_file(href):
                     self.i = restore_index
@@ -644,9 +637,7 @@ class TextParser(TextParserBase):
     def mark_file(self):
         from xutils import fsutil
         self.profile("mark_file")
-
-        self.save_str_token()
-        value = self.read_before_blank()
+        value = self.read_until_blank()
         href = value[7:]
         if is_img_file(href):
             self.handle_img_list(value, href)
@@ -674,40 +665,57 @@ class TextParser(TextParserBase):
         if c == "":
             return
         
+        prev_char = self.peek(-1)
+        next_char = self.peek()
+
+        if prev_char in ("\n", "") and c == '#' and (next_char in (" ", "#")) :
+            self.save_str_token()
+            self.mark_heading()
+            return
+        
         if c == '#':
+            self.save_str_token()
             self.mark_hash()
             return
         
         if c == '《':
+            self.save_str_token()
             self.mark_book()
             return
         
         if c == '@':
+            self.save_str_token()
             self.mark_at()
             return
         
         tag = self._get_strong_start()
         if len(tag) >= 2:
+            self.save_str_token()
             self.mark_strong(tag)
             return
         
         if self.mark_book_single_flag and c == '<':
+            self.save_str_token()
             self.mark_book_single()
             return
         
         if self.mark_number_flag and c.isdigit():
+            self.save_str_token()
             self.mark_number()
             return
         
         if self.startswith("http://"):
+            self.save_str_token()
             self.mark_http()
             return
         
         if self.startswith("https://"):
+            self.save_str_token()
             self.mark_https()
             return
         
         if self.startswith("file://"):
+            self.save_str_token()
             self.mark_file()
             return
         
