@@ -617,8 +617,7 @@ class StatAjaxHandler:
     def GET(self):
         user = xauth.current_name_str()
         stat = msg_dao.get_message_stat(user)
-        format_message_stat(stat)
-        return stat
+        return format_message_stat(stat)
 
 
 class MessageHandler(MessagePageHandler):

@@ -148,6 +148,16 @@ class NoteIndexDO(BaseDataRecord):
         return f"{xconfig.WebConfig.server_home}/note/edit?id={self.id}"
     
 class NoteDO(NoteIndexDO):
+    _virtual_fields = [
+        "url", 
+        "icon",
+        "show_edit", 
+        "create_date",
+        "update_date",
+        "badge_info",
+        "tag_info_list",
+    ]
+
     def __init__(self, **kw):
         super(NoteDO, self).__init__()
         self.path = ""
@@ -181,18 +191,9 @@ class NoteDO(NoteIndexDO):
         return cls.from_dict(dict_value)
     
     def before_save(self):
-        remove_virtual_fields(self)
+        for key in self._virtual_fields:
+            self.pop(key, None)
         delete_None_values(self)
-
-def remove_virtual_fields(note):
-    del_dict_key(note, "url")
-    del_dict_key(note, "icon")
-    del_dict_key(note, "show_edit")
-    del_dict_key(note, "create_date")
-    del_dict_key(note, "badge_info")
-    del_dict_key(note, "create_date")
-    del_dict_key(note, "update_date")
-    del_dict_key(note, "tag_info_list")
 
 
 class NoteTokenType:

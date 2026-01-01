@@ -53,6 +53,10 @@ class TagTypeEnum(BaseEnum):
     msg_tag = EnumItem("随手记标签", "2")
 
 
+class TagPrefixEnum:
+    heading = EnumItem("标题标签", "_h:")
+
+
 class TagInfoDO(BaseDataRecord):
     def __init__(self, **kw):
         self.tag_id = 0
@@ -218,8 +222,8 @@ class TagBindServiceImpl:
                 self.db.insert(**new_bind)
     
     def delete_tags(self, user_id=0, target_id=0):
-        where_sql = "user_id=$user_id AND target_id=$target_id"
-        vars = dict(user_id=user_id, target_id=target_id)
+        where_sql = "user_id=$user_id AND target_id=$target_id AND tag_type=$tag_type"
+        vars = dict(user_id=user_id, target_id=target_id, tag_type=self.get_tag_type())
         return self.db.delete(where=where_sql, vars=vars)
     
     def iter(self, where="", vars=None, batch_size=100):

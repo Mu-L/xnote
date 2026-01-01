@@ -27,8 +27,8 @@ from .message_model import MessageHistory
 from .message_model import MessageStatItem
 from .message_model import MOBILE_LENGTH
 from .message_model import MsgTagInfo
-from .message_model import MessageTagEnum, MessageSecondTypeEnum
-from xnote.service import TagInfoDO
+from .message_model import MessageTagEnum, MessageSecondTypeEnum, MessageStatDO
+from xnote.service import TagInfoDO, TagPrefixEnum
 
 
 _msg_db = dbutil.get_table("msg_v3")
@@ -154,7 +154,7 @@ def has_tag_fast(content: str):
     return content.find("#") >= 0 or content.find("@") >= 0
 
 def is_user_tag(key=""):
-    if key.startswith("_h:"):
+    if key.startswith(TagPrefixEnum.heading.value):
         return True
     return key.startswith("#") and key.endswith("#") and key.count("#") == 2
 
@@ -448,16 +448,6 @@ def get_message_stat0(user=""):
     return result
 
 
-class MessageStatDO(xutils.Storage):
-    def __init__(self, **kw):
-        self.task_count = 0
-        self.log_count = 0
-        self.done_count = 0
-        self.cron_count = 0
-        self.key_count = 0
-        self.canceled_count = 0
-        self.update(kw)
-
 def get_empty_stat():
     return MessageStatDO()
 
@@ -729,11 +719,11 @@ class MsgTagInfoDao:
         tag_info.mtime = xutils.format_datetime()
         tag_id = tag_info.tag_id
         update_dict = tag_info.to_save_dict()
-        return cls.db.update(where=dict(tag_id=tag_id), **update_dict)
+        return cls.db.update(where=dict(tag_id=tag_id, tag_type=cls.tag_type), **update_dict)
 
     @classmethod
     def delete_by_id(cls, tag_id=0):
-        return cls.db.delete(where=dict(tag_id=tag_id))
+        return cls.db.delete(where=dict(tag_id=tag_id, tag_type=cls.tag_type))
     
     @classmethod
     def delete(cls, obj: TagInfoDO):

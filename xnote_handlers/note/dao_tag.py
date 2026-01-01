@@ -22,7 +22,7 @@ from xutils import dbutil
 from xutils import Storage
 from xutils.base import BaseDataRecord, BaseEnum, EnumItem
 from xnote_handlers.note.dao_api import NoteDao
-from xnote.service import NoteTagBindService, TagTypeEnum, TagBindDO
+from xnote.service import NoteTagBindService, TagTypeEnum, TagBindDO, TagPrefixEnum
 from xnote.service import NoteTagInfoService, TagInfoDO
 from xnote.service import TagCategoryService, TagCategoryDO
 from xnote.service import SystemTagEnum
@@ -264,7 +264,7 @@ def list_tag_category_detail(user_id=0, tag_type=0):
             cate_info = cate_dict.get(item.category_id)
             if cate_info != None:
                 cate_info.tag_list.append(item)
-            elif item.tag_name.startswith("_h:"):
+            elif item.tag_name.startswith(TagPrefixEnum.heading.value):
                 item.tag_name = item.tag_name.split(":", 1)[1]
                 heading_cate.tag_list.append(item)
             else:

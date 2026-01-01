@@ -19,7 +19,7 @@ import web
 import typing
 import re
 
-from typing import List
+from typing import List, Optional
 from xnote.core import xconfig
 from xnote.core.xtemplate import T
 from xutils import textutil
@@ -34,13 +34,14 @@ from xutils.text_parser import TokenType
 from xutils.text_parser import TextParser
 from xnote_handlers.message.message_model import MessageFolder, MessageTag, is_task_tag
 from xnote.core import xconfig
+from xnote.service.tag_service import TagPrefixEnum
 from xnote.plugin import TextLink
 from xutils.text_parser import TextParser
 from xutils.text_parser import set_img_file_ext
 from xutils.text_parser import TextToken
 
 from . import dao as msg_dao
-from .message_model import MessageDO, MsgTagInfo
+from .message_model import MessageDO, MsgTagInfo, MessageStatDO, MessageStatVO
 from .message_model import MessageTagEnum, QuerySourceType
 
 MSG_DAO = xutils.DAO("message")
@@ -173,7 +174,7 @@ def _filter_heading_tokens(tokens: List[TextToken], query_key: str):
 
     for token in tokens:
         if token.is_heading:
-            if ("_h:" + token.value).lower() == query_key:
+            if (TagPrefixEnum.heading.value + token.value).lower() == query_key:
                 match_token = True
             else:
                 match_token = False
@@ -181,8 +182,6 @@ def _filter_heading_tokens(tokens: List[TextToken], query_key: str):
         if match_token:
             result.append(token)
 
-    print(f"filter_heading_tokens: {result}")
-    
     return result
 
 def mark_text_v2(msg: MessageDO):
@@ -209,7 +208,7 @@ def mark_text_v2(msg: MessageDO):
         keywords = set()
     
     for heading in parser.headings:
-        keywords.add("_h:" + heading)
+        keywords.add(TagPrefixEnum.heading.value + heading)
 
     text_tokens = parser.get_text_tokens(tokens)
     return MarkResult("".join(text_tokens), keywords=get_standard_tag_set(keywords), full_keywords=keywords)
@@ -237,7 +236,7 @@ def process_message(message: MessageDO, search_tag="log"):
     return parser.process_message(message)
 
 
-def format_count(count):
+def format_count(count: Optional[int]):
     if count is None:
         return "0"
     if count >= 1000 and count < 10000:
@@ -250,13 +249,14 @@ def format_count(count):
     return str(count)
 
 
-def format_message_stat(stat):
-    stat.task_count = format_count(stat.task_count)
-    stat.done_count = format_count(stat.done_count)
-    stat.cron_count = format_count(stat.cron_count)
-    stat.log_count = format_count(stat.log_count)
-    stat.search_count = format_count(stat.search_count)
-    stat.key_count = format_count(stat.key_count)
+def format_message_stat(stat: MessageStatDO):
+    result = MessageStatVO()
+    result.task_count = format_count(stat.task_count)
+    result.done_count = format_count(stat.done_count)
+    result.cron_count = format_count(stat.cron_count)
+    result.log_count = format_count(stat.log_count)
+    result.search_count = format_count(stat.search_count)
+    result.key_count = format_count(stat.key_count)
     return stat
 
 
@@ -386,7 +386,7 @@ def is_system_tag(tag: str):
     return tag.startswith("$")
 
 def is_standard_tag(tag: str):
-    if tag.startswith("_h:"):
+    if tag.startswith(TagPrefixEnum.heading.value):
         return True
     return tag.startswith("#") and tag.endswith("#")
 
@@ -506,6 +506,8 @@ def get_remote_ip():
 
 def get_similar_key(key: str):
     assert key != None
+    if key.startswith(TagPrefixEnum.heading.value):
+        return key
     if key.startswith("#"):
         key = key.lstrip("#")
         key = key.rstrip("#")
@@ -707,13 +709,15 @@ def check_content_for_update(user_name, tag, content):
     return None
 
 
-def touch_key_by_content(user_name, tag, content):
+def touch_key_by_content(user_name, tag, content, amount: Optional[int] = None):
     item = msg_dao.MsgTagInfoDao.get_first(user_name=user_name, content=content)
     if item != None:
         item.mtime = xutils.format_datetime()
         if item.visit_cnt is None:
             item.visit_cnt = 0
         item.visit_cnt += 1
+        if amount is not None:
+            item.amount = amount
         msg_dao.MsgTagInfoDao.update(item)
     return item
 

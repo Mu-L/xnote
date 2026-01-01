@@ -42,7 +42,7 @@ from xutils import lists
 from web.db import SQLLiteral
 from xnote_handlers.note.dao_api import NoteDao
 from xnote_handlers.note import dao_log
-from xnote_handlers.note.models import NoteIndexDO, NoteDO, del_dict_key, remove_virtual_fields
+from xnote_handlers.note.models import NoteIndexDO, NoteDO, del_dict_key
 from xnote_handlers.note.models import NotePathInfo
 from xnote_handlers.note.models import NOTE_ICON_DICT
 from xnote_handlers.note.models import OrderTypeEnum
@@ -959,7 +959,7 @@ def add_visit_log(user_name, note, user_id=0):
     dao_log.add_visit_log(user_name, note, user_id=user_id)
 
 
-def put_note_to_db(note_id, note):
+def put_note_to_db(note_id, note: NoteDO):
     assert isinstance(note, NoteDO)
     assert note.creator_id != 0
     
@@ -968,7 +968,7 @@ def put_note_to_db(note_id, note):
     dao_log.add_edit_log(creator, note)
 
     # 删除不需要持久化的数据
-    remove_virtual_fields(note)
+    note.before_save()
 
     # 保存到DB
     _full_db.put_by_id(note_id, note)
@@ -978,22 +978,6 @@ def put_note_to_db(note_id, note):
 
 def touch_note(note_id: int):
     NoteIndexDao.touch(note_id)
-
-
-
-def convert_to_index(note):
-    note_index = Storage(**note)
-
-    # 删除虚拟字段
-    remove_virtual_fields(note_index)
-
-    # 删除内容字段
-    del_dict_key(note_index, 'data')
-    del_dict_key(note_index, 'content')
-
-    note_index.parent_id = str(note_index.parent_id)
-
-    return note_index
 
 
 def update_index(note: NoteIndexDO):

@@ -391,3 +391,25 @@ class MessageTemplateRecord(BaseDataRecord):
         self.content = ""
         self.sort_num = 0
         self.version = 0
+
+class MessageStatDO(xutils.Storage):
+    def __init__(self, **kw):
+        self.task_count = 0
+        self.log_count = 0
+        self.done_count = 0
+        self.cron_count = 0
+        self.key_count = 0
+        self.canceled_count = 0
+        self.search_count = 0
+        self.update(kw)
+
+class MessageStatVO(xutils.Storage):
+    def __init__(self, **kw):
+        self.task_count = ""
+        self.log_count = ""
+        self.done_count = ""
+        self.cron_count = ""
+        self.key_count = ""
+        self.canceled_count = ""
+        self.search_count = ""
+        self.update(kw)
