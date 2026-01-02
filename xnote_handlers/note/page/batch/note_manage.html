@@ -8,6 +8,7 @@
 {% block body_left %}
 
 {% init show_note_path = True %}
+{% init note_group_list = [] %}
 
 {% include common/script/load_vue.html %}
 {% include note/component/script/group_select_script.html %}
@@ -41,14 +42,18 @@
     {% include note/component/script/tag_manage_script.html %}
 
     <div class="card">
-        {% if len(files) == 0 %}
+        {% if len(note_group_list) == 0 %}
             {% include common/text/empty_text.html %}
         {% end %}
 
-        {% for item in files %}
+        {% for group_info in note_group_list %}
+            <div class="block-title">
+                {{group_info.label}}
+            </div>
+            {% for item in group_info.children %}
             <div class="book-item">
                 <div class="row">
-                    {% if item.priority>0 %}
+                    {% if item.is_pinned %}
                         <span class="tag orange">置顶</span>
                     {% end %}
     
@@ -73,6 +78,7 @@
                         onclick="xnote.action.note.editNoteTag(this);">+标签</button>
                 </div>
             </div>
+            {% end %}
         {% end %}
     </div>
 </div>

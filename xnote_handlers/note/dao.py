@@ -27,7 +27,7 @@ import xutils
 import logging
 import datetime
 
-from typing import Union
+from typing import Union, List, Optional
 from xnote.core import xconfig
 from xnote.core import xmanager
 from xnote.core import xtables
@@ -481,41 +481,41 @@ batch_query = batch_query_dict
 def batch_query_list(id_list, creator_id=0):
     return NoteIndexDao.get_by_id_list(id_list, creator_id=creator_id)
 
-def sort_by_name(notes):
+def sort_by_name(notes: List[NoteIndexDO]):
     notes.sort(key=lambda x: x.name)
     sort_by_priority(notes)
 
 
-def sort_by_name_desc(notes):
+def sort_by_name_desc(notes: List[NoteIndexDO]):
     notes.sort(key=lambda x: x.name, reverse=True)
     sort_by_priority(notes)
 
 
-def sort_by_name_priority(notes):
+def sort_by_name_priority(notes: List[NoteIndexDO]):
     sort_by_name(notes)
     sort_by_priority(notes)
 
 
-def sort_by_mtime_desc(notes):
+def sort_by_mtime_desc(notes: List[NoteIndexDO]):
     notes.sort(key=lambda x: x.mtime, reverse=True)
     sort_by_type(notes)
 
 
-def sort_by_ctime_desc(notes):
+def sort_by_ctime_desc(notes: List[NoteIndexDO]):
     notes.sort(key=lambda x: x.ctime, reverse=True)
     sort_by_priority(notes)
 
 
-def sort_by_atime_desc(notes):
+def sort_by_atime_desc(notes: List[NoteIndexDO]):
     notes.sort(key=lambda x: x.atime, reverse=True)
 
 
-def sort_by_priority(notes: typing.List[NoteIndexDO]):
+def sort_by_priority(notes: List[NoteIndexDO]):
     # 置顶笔记
     notes.sort(key=lambda x: x.priority, reverse=True)
 
 
-def sort_by_default(notes):
+def sort_by_default(notes: List[NoteIndexDO]):
     # 先按照名称排序
     sort_by_name(notes)
 
@@ -537,38 +537,43 @@ def sort_by_ctime_priority(notes):
     sort_by_type(notes)
 
 
-def sort_by_type(notes):
+def sort_by_type(notes: List[NoteIndexDO]):
     # 文件夹放在前面
     notes.sort(key=lambda x: 0 if x.type == "group" else 1)
 
 
-def sort_by_type_mtime_desc(notes):
+def sort_by_type_mtime_desc(notes: List[NoteIndexDO]):
     sort_by_mtime_desc(notes)
     sort_by_type(notes)
 
 
-def sort_by_type_ctime_desc(notes):
+def sort_by_type_ctime_desc(notes: List[NoteIndexDO]):
     sort_by_ctime_desc(notes)
     sort_by_type(notes)
 
 
-def sort_by_dtime_desc(notes):
+def sort_by_dtime_desc(notes: List[NoteIndexDO]):
     notes.sort(key=lambda x: x.dtime, reverse=True)
 
 
-def sort_by_dtime_asc(notes):
+def sort_by_dtime_asc(notes: List[NoteIndexDO]):
     notes.sort(key=lambda x: x.dtime)
 
 
-def sort_by_hot_index(notes: typing.List[NoteIndexDO]):
+def sort_by_hot_index(notes: List[NoteIndexDO]):
     notes.sort(key=lambda x: x.hot_index or 0, reverse=True)
     sort_by_priority(notes)
 
     for note in notes:
         note.badge_info = "热度(%d)" % note.hot_index
 
-def sort_by_size_desc(notes: typing.List[NoteIndexDO]):
-    notes.sort(key=lambda x:x.size or 0, reverse=True)
+def sort_by_size_desc(notes: List[NoteIndexDO]):
+    def _key_func(item: NoteIndexDO):
+        if item.is_group:
+            return item.children_count
+        return item.size or 0
+    
+    notes.sort(key=_key_func, reverse=True)
     sort_by_priority(notes)
     
     for note in notes:
@@ -1211,23 +1216,23 @@ def check_group_status(status):
 
 
 @xutils.timeit(name="NoteDao.ListGroup:leveldb", logfile=True)
-def list_group_with_count(creator=None,
-               orderby="mtime_desc",
-               skip_archived=False,
-               status="all", **kw) -> typing.Tuple[typing.List[NoteIndexDO], int]:
+def list_group_with_count(
+    creator:Optional[str]=None,
+    orderby="mtime_desc",
+    skip_archived=False,
+    status="all",
+    offset=0,
+    limit=1000, 
+    parent_id=0,
+    category:Optional[str]=None,
+    tags: Optional[list]=None,
+    search_name="",
+    count_total=False,
+    count_only=False,
+    creator_id=0,
+    query_root=False
+    ) -> typing.Tuple[typing.List[NoteIndexDO], int]:
     """查询笔记本列表"""
-
-    offset = kw.get("offset", 0)
-    limit = kw.get("limit", 1000)
-    parent_id = kw.get("parent_id")
-    category = kw.get("category")
-    tags = kw.get("tags")
-    search_name = kw.get("search_name")
-    count_total = kw.get("count_total", False)
-    count_only = kw.get("count_only", False)
-    creator_id = kw.get("creator_id", 0)
-    query_root = kw.get("query_root", False)
-
     if creator == None and creator_id == 0:
         raise Exception("creator和creator_id不能同时为空")
     
@@ -1250,7 +1255,7 @@ def list_group_with_count(creator=None,
     if category == "all":
         category = None
 
-    def filter_group_func(value: NoteDO):
+    def filter_group_func(value: NoteIndexDO):
         # print(f"note_id={value.id}, archived={value.archived}")
 
         if skip_archived and value.archived:
@@ -1277,15 +1282,13 @@ def list_group_with_count(creator=None,
 
         return True
     
-    where_dict = dict(
+    notes = NoteIndexDao.list(
         creator_id=creator_id,
         type="group",
         parent_id=parent_id,
         query_root=query_root,
-        limit = limit,
+        limit = limit
     )
-
-    notes = NoteIndexDao.list(**where_dict)
 
     notes = list(filter(filter_group_func, notes))
     

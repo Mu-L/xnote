@@ -9,6 +9,8 @@
 @Description  : 笔记的辅助函数
 """
 import typing
+
+from typing import List
 from xutils import dateutil
 from collections import defaultdict
 from .models import NoteIndexDO, NoteOptGroup
@@ -120,4 +122,32 @@ class NoteGroupConverter:
         return result
         
 
+def group_notes(notes: List[NoteIndexDO]):
+    note_group_list: List[NoteOptGroup] = []
+    pinned_group = NoteOptGroup("置顶笔记本")
+    pinned_note_group = NoteOptGroup("置顶笔记")
+    group_group = NoteOptGroup("笔记本")
+    note_group = NoteOptGroup("笔记")
+
+    for note in notes:
+        if note.is_pinned:
+            if note.is_group:
+                pinned_group.add_note(note)
+            else:
+                pinned_note_group.add_note(note)
+        elif note.is_group:
+            group_group.add_note(note)
+        else:
+            note_group.add_note(note)
+    
+    def _check_and_add_group(item: NoteOptGroup):
+        if len(item.children) > 0:
+            note_group_list.append(item)
+    
+    _check_and_add_group(pinned_group)
+    _check_and_add_group(pinned_note_group)
+    _check_and_add_group(group_group)
+    _check_and_add_group(note_group)
+
+    return note_group_list
 

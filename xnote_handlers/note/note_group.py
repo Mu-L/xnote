@@ -31,6 +31,7 @@ from . import dao
 from . import dao_book
 from . import dao_share
 from . import dao_log
+from .note_helper import group_notes
 from xnote_handlers.note.models import NoteTypeInfo
 from .dao_api import NoteDao
 from xnote_handlers.note.note_service import NoteService
@@ -839,6 +840,7 @@ class ManagementHandler:
         kw.parent_note = parent_note
         kw.parent = parent
         kw.notes = notes
+        kw.note_group_list = group_notes(notes)
 
     def handle_default(self, kw):
         user_name = kw.user_name
@@ -847,10 +849,11 @@ class ManagementHandler:
 
         kw.parent_note = parent_note
         kw.notes = notes
+        kw.note_group_list = group_notes(notes)
 
     @xauth.login_required()
     def GET(self):
-        parent_id = xutils.get_argument("parent_id", "0")
+        parent_id = xutils.get_argument_str("parent_id", "0")
         user_name = xauth.current_name_str()
 
         xmanager.add_visit_log(user_name, "/note/manage")

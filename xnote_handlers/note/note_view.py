@@ -21,6 +21,7 @@ from xutils import webutil
 from xutils import dbutil, dateutil
 from xutils import encode_uri_component
 from xutils import quote
+from xutils import markdown_util
 from xnote.core.xtemplate import T
 from xnote.core.xnote_user_config import UserConfig
 from .constant import CREATE_BTN_TEXT_DICT
@@ -33,6 +34,7 @@ from . import dao_log
 from .models import OrderTypeEnum, NoteIndexDO, NoteTypeEnum, NoteOptGroup
 from .dao_tag import NoteTagInfoDao
 from .dao import NoteIndexDao, NoteDO
+from .note_helper import group_notes
 from xnote_handlers.note.note_service import NoteService, NoteRelationService
 from xnote.plugin.table import DataTable
 from xnote.plugin import TabBox
@@ -273,34 +275,7 @@ def view_group_detail_func(file: note_dao.NoteDO, kw: NoteViewContext):
     kw.tag_meta_tab = build_tag_meta_tab(user_id=user_id, file_id=file.id)
     kw.show_orderby = True
     kw.order_type = file.order_type
-
-    note_group_list: List[NoteOptGroup] = []
-    pinned_group = NoteOptGroup("置顶笔记本")
-    pinned_note_group = NoteOptGroup("置顶笔记")
-    group_group = NoteOptGroup("笔记本")
-    note_group = NoteOptGroup("笔记")
-
-    for note in files:
-        if note.is_pinned:
-            if note.is_group:
-                pinned_group.add_note(note)
-            else:
-                pinned_note_group.add_note(note)
-        elif note.is_group:
-            group_group.add_note(note)
-        else:
-            note_group.add_note(note)
-    
-    def _check_and_add_group(item: NoteOptGroup):
-        if len(item.children) > 0:
-            note_group_list.append(item)
-    
-    _check_and_add_group(pinned_group)
-    _check_and_add_group(pinned_note_group)
-    _check_and_add_group(group_group)
-    _check_and_add_group(note_group)
-
-    kw.note_group_list = note_group_list
+    kw.note_group_list = group_notes(files)
 
     if dialog:
         # 对话框的样式
@@ -667,19 +642,15 @@ class PreviewPopupHandler:
         if not note_info.is_markdown:
             return self.render_search(name)
         content = note_info.content
-        try:
-            import markdown
-            content = textutil.get_short_text(content, 200)
-            search_url = self.get_search_url(name)
-            footer = f"""<div class="row">
-                <a href="{note_info.url}">查看全文</a>
-                <span>|</span>
-                <a href="{search_url}">搜索【{name}】</a>
-            </div>"""
-            return markdown.markdown(content) + footer
-        except:
-            return self.render_search(name)
-        
+        content = textutil.get_short_text(content, 200)
+        search_url = self.get_search_url(name)
+        footer = f"""<div class="row">
+            <a href="{note_info.url}">查看全文</a>
+            <span>|</span>
+            <a href="{search_url}">搜索【{name}】</a>
+        </div>"""
+        return markdown_util.render_html(content) + footer
+    
     def get_search_url(self,name=""):
         return f"/s/{encode_uri_component(name)}"
         

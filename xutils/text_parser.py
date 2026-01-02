@@ -729,7 +729,7 @@ class TextParser(BaseTextParser):
         self.str_token_append(c)
         self.read_next()
 
-    def parse_to_tokens(self, text):
+    def parse_to_tokens(self, text: str):
         self.init(text)
         self.init_ext(text)
 
@@ -744,3 +744,8 @@ class TextParser(BaseTextParser):
         # 兼容原来的 parse 方法
         tokens = self.parse_to_tokens(text=text)
         return self.get_text_tokens(tokens)
+    
+    def render_html(self, text: str):
+        tokens = self.parse_to_tokens(text)
+        html_list = self.get_text_tokens(tokens)
+        return "".join(html_list)

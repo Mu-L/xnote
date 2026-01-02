@@ -9,6 +9,7 @@
 @Description  : DAO接口定义
 """
 
+from typing import Union
 from xnote.core import xauth
 from .models import NoteDO
 
@@ -23,7 +24,7 @@ class NoteDao:
         return dao.create_note(note_dict)
 
     @staticmethod
-    def get_by_id(id, include_full=True, creator=None):
+    def get_by_id(id: Union[str, int], include_full=True, creator=None):
         """通过ID查询笔记信息"""
         from . import dao
         return dao.get_by_id(id, include_full, creator)

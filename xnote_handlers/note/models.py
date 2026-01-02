@@ -77,8 +77,7 @@ class NoteIndexDO(BaseDataRecord):
     def handle_from_dict(self):
         self.compat_old()
 
-    def before_save(self, index_do):
-        # type: (NoteDO) -> None
+    def before_save(self, index_do: "NoteDO"):
         tags = index_do.tags
         if tags == None:
             tags = []
