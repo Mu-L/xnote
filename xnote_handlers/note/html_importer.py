@@ -35,6 +35,9 @@ from xnote_handlers.config import LinkConfig
 from xnote.plugin.table_plugin import BaseTablePlugin
 from . import note_helper
 
+class ImportConfig:
+    max_title_length = 250
+
 class FsMapRecord(BaseDataRecord):
     url = ""
     webpath = ""
@@ -149,7 +152,7 @@ def clean_whitespace(text:str):
 def get_html_title(soup):
     title = soup.title
     if title != None:
-        return textutil.get_short_text(title.get_text(), 100)
+        return textutil.get_short_text(title.get_text(), ImportConfig.max_title_length)
     return "-"
 
 

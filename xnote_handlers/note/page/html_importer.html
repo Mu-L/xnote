@@ -130,7 +130,7 @@ xnote.handleSaveNote = function () {
     params.action = "edit";
     params.title = articleTitle;
     params.content = $("#content").val();
-    xnote.http.get("/note/html_importer/form", params, function (respHtml) {
+    xnote.http.post("/note/html_importer/form", params, function (respHtml) {
         var options = {};
         options.title = "保存文档";
         options.html = respHtml;
