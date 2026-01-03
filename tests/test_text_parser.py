@@ -1,10 +1,11 @@
 # encoding=utf-8
 
 import unittest
+from typing import List
 from xutils.text_parser import TextParser, TextToken, TopicToken, ImageListToken
 from xutils.text_parser import TokenType
 from xutils.text_parser import StrongToken
-from xutils.text_parser import ImageToken
+from xutils.text_parser import ImageToken, HeadingToken
 
 class TestTextParser(unittest.TestCase):
 
@@ -148,3 +149,27 @@ link2:https://abc.com/test?name=1&age=2 text after link
         img_tokens = tokens[0].tokens
         assert img_tokens[0] == ImageToken("file:///data/temp/1.png", "/data/temp/1.png")
         assert img_tokens[1] == ImageToken("\nfile:///data/temp/2.png", "/data/temp/2.png")
+        
+    def test_heading(self):
+        text = """# h1
+first heading
+
+## h2
+second heading
+
+### h3"""
+
+        parser = TextParser()
+        tokens = parser.parse_to_tokens(text=text)
+        
+        heading_tokens: List[HeadingToken] = [tk for tk in tokens if isinstance(tk, HeadingToken)]
+        assert len(heading_tokens) == 3
+        assert heading_tokens[0].value == "# h1\n"
+        assert heading_tokens[0].title == "h1"
+        
+        assert heading_tokens[1].value == "## h2\n"
+        assert heading_tokens[1].title == "h2"
+        
+        assert heading_tokens[2].value == "### h3"
+        assert heading_tokens[2].title == "h3"
+        

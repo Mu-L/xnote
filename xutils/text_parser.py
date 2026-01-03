@@ -352,18 +352,19 @@ class TopicToken(TextToken):
         return f"<a class=\"link\" href=\"/message?category=message&key={quoted_key}\">{value}</a>"
 
 class HeadingToken(TextToken):
-    def __init__(self, value="", level=1):
+    def __init__(self, value="", level=1, title=""):
         super().__init__(value=value)
         self.type = TokenType.heading
         self.value = value
         self.level = level
+        self.title = title
 
     def get_html(self):
         if self.html != "":
             return self.html
-        value = escape_html(self.value)
+        title = escape_html(self.title)
         tag = f"h{self.level}"
-        return f"""<{tag} class="block-title">{value}</{tag}>"""
+        return f"""<{tag} class="block-title">{title}</{tag}>"""
 
 
 class SearchToken(TopicToken):
@@ -522,6 +523,7 @@ class TextParser(BaseTextParser):
     def mark_heading(self):
         # 当前处于#字符
         level = 0
+        start = self.pos
         while self.current() == "#":
             level += 1
             self.read()
@@ -532,8 +534,9 @@ class TextParser(BaseTextParser):
             # 最后一行没有换行符
             heading_text = self.read_rest()
         heading_text = heading_text.strip()
+        raw_value = self.text[start:self.pos]
         self.record_heading(heading_text)
-        self.tokens.append(HeadingToken(heading_text, level=level))
+        self.tokens.append(HeadingToken(value=raw_value, level=level, title=heading_text))
 
     def mark_http(self):
         self.profile("mark_http")
