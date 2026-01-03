@@ -189,9 +189,9 @@ class ImportNoteHandler:
     template_path = "note/page/html_importer.html"
 
     def get_kw(self):
-        user_name = xauth.current_name()
+        user_id = xauth.current_user_id()
         kw = Storage()
-        kw.groups = dao.list_group_v2(user_name, orderby="name")
+        kw.groups = dao.list_group_v2(creator_id=user_id, orderby="name")
         return kw
 
     def GET(self):
@@ -254,7 +254,7 @@ class ImportNoteHandler:
 
             return xtemplate.render(self.template_path, **kw)
         except Exception as e:
-            xutils.print_stacktrace()
+            xutils.print_exc()
 
             kw = self.get_kw()
             kw.error = str(e)
@@ -398,7 +398,7 @@ class CacheExternalHandler:
 
     @xauth.login_required("admin")
     def POST(self):
-        user_name = xauth.current_name()
+        user_name = xauth.current_name_str()
         note_id = xutils.get_argument_int("note_id")
         note = dao.get_by_id_creator(note_id, user_name)
         if note == None:
@@ -472,6 +472,7 @@ class ImportNoteFormHandler(BaseTablePlugin):
             url = xconfig.WebConfig.resolve_path(f"/note/view?id={note_id}")
             return webutil.SuccessResult(redirect_url = url)
         except Exception as e:
+            xutils.print_exc()
             return webutil.FailedResult(code="500", message=str(e))
         
 
