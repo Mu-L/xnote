@@ -149,7 +149,8 @@ def clean_whitespace(text:str):
 def get_html_title(soup):
     title = soup.title
     if title != None:
-        return title.get_text()
+        return textutil.get_short_text(title.get_text(), 100)
+    return "-"
 
 
 def import_from_html(html, baseurl=""):
