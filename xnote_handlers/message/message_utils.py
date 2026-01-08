@@ -38,7 +38,7 @@ from xnote.service.tag_service import TagPrefixEnum
 from xnote.plugin import TextLink
 from xutils.text_parser import TextParser
 from xutils.text_parser import set_img_file_ext
-from xutils.text_parser import TextToken
+from xutils.text_parser import TextToken, HeadingToken
 
 from . import dao as msg_dao
 from .message_model import MessageDO, MsgTagInfo, MessageStatDO, MessageStatVO
@@ -173,8 +173,8 @@ def _filter_heading_tokens(tokens: List[TextToken], query_key: str):
     query_key = query_key.lower()
 
     for token in tokens:
-        if token.is_heading:
-            if (TagPrefixEnum.heading.value + token.value).lower() == query_key:
+        if isinstance(token, HeadingToken):
+            if (TagPrefixEnum.heading.value + token.title).lower() == query_key:
                 match_token = True
             else:
                 match_token = False

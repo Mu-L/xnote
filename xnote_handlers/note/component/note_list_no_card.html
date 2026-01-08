@@ -41,17 +41,17 @@
             {% if item.is_sticky %}
                 <span class="tag orange-tag">置顶</span>
             {% end %}
-            {% if item.archived %}
-                <span class="tag system">归档</span>
-            {% end %}
-            {% if item.type == "alias" %}
-                <span class="tag system">别名</span>
-            {% end %}
         {% end %}
 
         <!-- 图标和标题 -->
         <i class="fa {{item.icon}} fa-{{item.icon}} black"></i>
         <span>{{item.name}}</span>
+        {% if item.archived %}
+            <span class="tag system">归档</span>
+        {% end %}
+        {% if item.type == "alias" %}
+            <span class="tag system">别名</span>
+        {% end %}
         {% include note/component/note_list_item_tags.html %}
 
         <div class="float-right">
