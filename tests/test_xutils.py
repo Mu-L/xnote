@@ -15,6 +15,7 @@ from xutils import cacheutil
 from xutils import fsutil
 from xutils import dbutil
 from xutils import Storage, dateutil
+from .test_base import json_request_return_dict
 
 def get_tmp_fpath():
     count = 0
@@ -498,3 +499,10 @@ class TestMain(unittest.TestCase):
         ])
         result = seg.cut("今天天气不错哦")
         print(result)
+
+    def test_get_list_argument(self):
+        # 使用/test/get_list_argument进行集成测试
+        url = "/test/get_list_argument?list_arg=1&list_arg=2&list_arg=3"
+        response = json_request_return_dict(url)
+        self.assertTrue(response["success"])
+        self.assertEqual(["1","2","3"], response["data"]["list_arg"])

@@ -4,6 +4,8 @@ import xutils
 import web
 import time
 
+from xutils import webutil
+
 
 class handler:    
     def GET(self):
@@ -41,8 +43,15 @@ class TestCacheHandler:
         web.header("Vary", "User-Agent")
         return "test cache"
 
+class TestGetListArgumentHandler:
+    def GET(self):
+        list_arg = xutils.get_list_argument("list_arg")
+        return webutil.SuccessResult(data={
+            "list_arg": list_arg,
+        })
 
 xurls = (
     r"/test", handler,
     r"/test/cache", TestCacheHandler,
+    r"/test/get_list_argument", TestGetListArgumentHandler,
 )

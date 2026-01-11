@@ -146,6 +146,12 @@ def get_argument_field_storage(key=""):
     assert isinstance(value, cgi.FieldStorage)
     return value
 
+def get_list_argument(key: str, default_value=[]) -> list:
+    """获取list类型的参数"""
+    value = get_argument(key=key, default_value=default_value)
+    if not isinstance(value, list):
+        raise Exception("expect list but see %s" % type(value))
+    return value
 
 def get_client_user_agent():
     if UtilityConfig.is_test:
