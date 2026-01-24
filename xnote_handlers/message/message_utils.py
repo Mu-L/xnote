@@ -211,7 +211,7 @@ def mark_text_v2(msg: MessageDO):
         keywords.add(TagPrefixEnum.heading.value + heading)
 
     text_tokens = parser.get_text_tokens(tokens)
-    return MarkResult("".join(text_tokens), keywords=get_standard_tag_set(keywords), full_keywords=keywords)
+    return MarkResult("".join(text_tokens), keywords=get_user_tag_or_heading_set(keywords), full_keywords=keywords)
 
 def mark_filter_text(content="", link_type="log", selected_key=""):
     # 设置图片文集后缀
@@ -386,9 +386,15 @@ def is_system_tag(tag: str):
     return tag.startswith("$")
 
 def is_standard_tag(tag: str):
+    return tag.startswith("#") and tag.endswith("#")
+
+def is_user_tag_or_heading(tag: str):
     if tag.startswith(TagPrefixEnum.heading.value):
         return True
     return tag.startswith("#") and tag.endswith("#")
+
+def get_user_tag_or_heading_set(tags):
+    return set(filter(is_user_tag_or_heading, tags))
 
 def get_standard_tag_set(tags):
     # type: (set)->set

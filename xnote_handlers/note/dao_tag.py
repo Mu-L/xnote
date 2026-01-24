@@ -255,6 +255,7 @@ def list_tag_category_detail(user_id=0, tag_type=0):
     sys_cate = TagCategoryDetail(name="系统标签", is_system = True)
     heading_cate = TagCategoryDetail(name="子标题")
     other_cate = TagCategoryDetail(name="其他标签")
+    empty_tag_cate = TagCategoryDetail(name="空标签")
 
     for item in all_tags:
         item.tag_name = get_name_by_code(item.tag_code)
@@ -264,6 +265,8 @@ def list_tag_category_detail(user_id=0, tag_type=0):
             cate_info = cate_dict.get(item.category_id)
             if cate_info != None:
                 cate_info.tag_list.append(item)
+            elif item.amount == 0:
+                empty_tag_cate.tag_list.append(item)
             elif item.tag_name.startswith(TagPrefixEnum.heading.value):
                 item.tag_name = item.tag_name.split(":", 1)[1]
                 heading_cate.tag_list.append(item)
@@ -281,6 +284,9 @@ def list_tag_category_detail(user_id=0, tag_type=0):
     
     if len(other_cate.tag_list) > 0:
         result.append(other_cate)
+        
+    if len(empty_tag_cate.tag_list) > 0:
+        result.append(empty_tag_cate)
 
     return result
 

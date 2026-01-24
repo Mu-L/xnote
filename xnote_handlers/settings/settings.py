@@ -137,6 +137,10 @@ class SettingsHandler:
         d.add_option(name="90天", value=str(3600*24*90))
         d.add_option(name="180天", value=str(3600*24*180))
         d.add_option(name="360天", value=str(3600*24*360))
+        
+        d = self.add_dropdown_config(result, SystemMetaEnum.fs_max_upload_size)
+        d.add_option(name="20MB", value=str(20*1024**2))
+        d.add_option(name="100MB", value=str(100*1024**2))
 
         self.add_system_bool_config(result, SystemMetaEnum.fs_hide_files)
         self.add_system_bool_config(result, SystemMetaEnum.debug_html_box)

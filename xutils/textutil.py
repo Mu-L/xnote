@@ -192,18 +192,18 @@ def is_json(value):
 """
 
 
-def remove(self, target):
+def remove(text: str, target: str):
     """
         >>> remove("this is a bat", "bat")
         'this is a '
     """
-    return self.replace(target, "")
+    return text.replace(target, "")
 
-def remove_head(text, head):
+def remove_prefix(text: str, head: str):
     """移除头部的字符
-        >>> remove_head("person.age", "person.")
+        >>> remove_prefix("person.age", "person.")
         "age"
-        >>> remove_head("person.age", "test")
+        >>> remove_prefix("person.age", "test")
         "person.age"
     """
     if text is None or head is None:
@@ -214,17 +214,21 @@ def remove_head(text, head):
 
     return text[len(head):]
 
-def remove_tail(text: str, tail: str):
+remove_head = remove_prefix
+
+def remove_suffix(text: str, tail: str):
     """移除尾部的字符
-        >>> remove_tail("person.age", ".age")
+        >>> remove_suffix("person.age", ".age")
         "person"
-        >>> remove_tail("person.age", "name")
+        >>> remove_suffix("person.age", "name")
         "person.age"
     """
     assert isinstance(text, str)
     if not text.endswith(tail):
         return text
     return text[:-len(tail)]
+
+remove_tail = remove_suffix
 
 def add_prefix(text: str, prefix: str):
     """Add prefix to text
@@ -250,36 +254,27 @@ def add_suffix(text: str, suffix: str):
         return text
     return text + suffix
 
-def between(self, start, end):
+def between(text:str, start:str, end:str):
     """Get the text between start end end
         >>> between("start words end", "start", "end")
         ' words '
     """
-    p1 = self.find(start)
+    p1 = text.find(start)
     if p1 < 0:
         return ""
-    p2 = self.find(end, p1)
+    p2 = text.find(end, p1)
     if p2 < 0:
         return ""
-    return self[p1+len(start):p2]
+    return text[p1+len(start):p2]
 
-def replace_between(self, start, end, target):
-    p1 = self.find(start)
+def replace_between(text:str, start:str, end:str, target:str):
+    p1 = text.find(start)
     if p1 < 0:
         return None
-    p2 = self.find(end, p1)
+    p2 = text.find(end, p1)
     if p2 < 0:
         return None
-    return self[:p1 + len(start)] + target + self[p2:]
-
-def after(self, start):
-    """
-        >>> after("this is good", "this")
-        ' is good'
-    """
-    p1 = self.find(start)
-    if p1 >= 0:
-        return self[p1+len(start):]
+    return text[:p1 + len(start)] + target + text[p2:]
 
 def split_chars(text: str):
     chars = []

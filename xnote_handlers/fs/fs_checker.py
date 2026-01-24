@@ -12,6 +12,7 @@
 from xnote.core import xconfig
 from xutils.base import XnoteException
 from xutils import fsutil
+from xnote.service.system_meta_service import SystemMetaEnum
 
 def check_file_name(filename=""):
     if filename == "":
@@ -26,6 +27,6 @@ def check_file_name(filename=""):
 
 def check_upload_size(file_size: int):
     # 检查文件大小
-    fs_max_upload_size = xconfig.FileConfig.fs_max_upload_size
+    fs_max_upload_size = SystemMetaEnum.fs_max_upload_size.meta_value_int
     if file_size > fs_max_upload_size:
         raise XnoteException(message=f"文件大小不能超过 {fsutil.format_size(fs_max_upload_size)}")

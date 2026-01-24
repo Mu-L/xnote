@@ -126,7 +126,7 @@ def update_tag_amount_by_msg(msg_item: msg_dao.MessageDO):
 
     for keyword in safe_list(msg_item.keywords):
         # 只自动创建标准的tag
-        if not message_utils.is_standard_tag(keyword):
+        if not message_utils.is_user_tag_or_heading(keyword):
             continue
         message = msg_dao.MsgTagInfoDao.get_or_create(msg_item.user_id, keyword)
         update_tag_amount(message, user_id, keyword)

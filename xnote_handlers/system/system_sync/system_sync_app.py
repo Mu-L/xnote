@@ -3,6 +3,7 @@ import xutils
 from xutils.base import Storage
 from xutils import webutil
 from xutils import textutil
+from xnote.core import xconfig
 from xnote.plugin.table_plugin import BaseTablePlugin, TableActionType
 from xnote_handlers.config import LinkConfig
 from xnote.open_api.dao import SystemSyncAppDao, SystemSyncAppRecord
@@ -24,6 +25,7 @@ class AppHandler(BaseTablePlugin):
     def handle_page(self):
         table = self.create_table()
         table.add_head("app_id", field="app_id")
+        table.add_head("当前主机", field="is_current", css_class_field="is_current_css_class")
         table.add_head("app_name", field="app_name")
         table.add_head("app_key", field="app_key")
         table.add_head("remark", field="remark")
@@ -36,6 +38,11 @@ class AppHandler(BaseTablePlugin):
             record["edit_url"] = f"?action=edit&app_id={record.app_id}"
             record["delete_url"] = f"?action=delete&app_id={record.app_id}"
             record["delete_msg"] = f"确认删除[{record.app_name}]吗?"
+            if record.app_name == xconfig.WebConfig.cluster_node_id:
+                record["is_current"] = "Yes"
+                record["is_current_css_class"] = "green"
+            else:
+                record["is_current"] = "No"
             table.add_row(record)
 
         table.action_bar.add_edit_button("新增应用", url="?action=edit")
