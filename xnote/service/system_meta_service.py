@@ -118,7 +118,7 @@ class SystemMetaEnum:
     trash_expire_seconds = SystemMetaEnumItem("回收站清理周期", "config.trash_expire.seconds", default_value=str(3600*24*30))
     fs_hide_files = SystemMetaEnumItem("隐藏系统文件", "config.fs.hide_files.bool")
     fs_max_upload_size = SystemMetaEnumItem(
-        "上传文件大小", "config.fs.max_upload_size", 
+        "上传文件最大限制", "config.fs.max_upload_size", 
         # 默认20MB
         default_value=str(20*1024**2))
     debug_html_box = SystemMetaEnumItem("调试HTML盒模型", "config.debug_html_box.bool")

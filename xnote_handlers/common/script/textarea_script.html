@@ -3,6 +3,80 @@
 // selectionStart: 开始光标右侧的第一个字符
 // selectionEnd:   结束光标右侧的第一个字符
 
+/**
+ * 移动光标
+ * @param {HTMLTextAreaElement} textarea - 目标元素
+ * @param {string} direction - 方向：left/right/up/down
+ */
+function textarea_moveCursor(textarea, direction) {
+  const cursorPos = textarea.selectionStart;
+  const value = textarea.value;
+  
+  switch(direction) {
+    case 'left':
+      // 左移：位置-1，最小为0
+      textarea_setCursorPosition(textarea, Math.max(0, cursorPos - 1));
+      break;
+    case 'right':
+      // 右移：位置+1，最大为文本长度
+      textarea_setCursorPosition(textarea, Math.min(cursorPos + 1, value.length));
+      break;
+    case 'up':
+      // 上移：找到上一行的对应位置（需解析换行符）
+      const beforeCursor = value.substring(0, cursorPos);
+      const lastNewlineIndex = beforeCursor.lastIndexOf('\n');
+      if (lastNewlineIndex !== -1) {
+        // 上一行的列数 = 当前光标到换行符的距离
+        const col = beforeCursor.length - lastNewlineIndex - 1;
+        // 上一行的起始位置 = 上上行的换行符位置（无则为0）
+        const prevNewlineIndex = value.substring(0, lastNewlineIndex).lastIndexOf('\n');
+        const targetPos = prevNewlineIndex + 1 + col;
+        textarea_setCursorPosition(textarea, Math.max(0, targetPos));
+      } else {
+        // 第一行，上移到开头
+        textarea_setCursorPosition(textarea, 0);
+      }
+      break;
+    case 'down':
+      // 下移：找到下一行的对应位置
+      const afterCursor = value.substring(cursorPos);
+      const nextNewlineIndex = afterCursor.indexOf('\n');
+      if (nextNewlineIndex !== -1) {
+        const col = cursorPos - value.substring(0, cursorPos).lastIndexOf('\n') - 1;
+        const nextLineStart = cursorPos + nextNewlineIndex + 1;
+        // 下一行的目标位置 = 下一行起始 + 列数（不超过下一行长度）
+        const nextLineEnd = value.indexOf('\n', nextLineStart) || value.length;
+        const targetPos = Math.min(nextLineStart + col, nextLineEnd);
+        textarea_setCursorPosition(textarea, targetPos);
+      } else {
+        // 最后一行，下移到末尾
+        textarea_setCursorPosition(textarea, value.length);
+      }
+      break;
+  }
+}
+
+/**
+ * 定位光标到指定位置
+ * @param {HTMLTextAreaElement} textarea - 目标textarea元素
+ * @param {number} position - 光标位置（0开始，比如3表示第4个字符后）
+ */
+function textarea_setCursorPosition(textarea, position) {
+  // 边界处理：避免位置超出文本长度
+  position = Math.max(0, Math.min(position, textarea.value.length));
+  
+  // 核心：设置selectionStart和selectionEnd为同一位置（纯光标）
+  textarea.selectionStart = position;
+  textarea.selectionEnd = position;
+  
+  // 移动端关键：确保textarea获得焦点（否则光标不显示）
+  textarea.focus();
+  
+  // iOS 兜底：部分浏览器需要强制刷新焦点
+  setTimeout(() => textarea.focus(), 0);
+}
+
+
 function textarea_focus_with_select(textarea, startPos, endPos) {
     // 重新设置位置会导致偏移，要记录偏移位置用于恢复
     // 记录位置
