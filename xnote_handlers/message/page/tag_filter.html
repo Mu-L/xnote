@@ -4,10 +4,27 @@
     <div class="split-title">
         <span class="bold">过滤器</span>
         <div class="float-right">
-            <a href="/code/edit/user_config?config_key={{filter_config_key}}">[编辑]</a>
+            <a data-key="{{filter_config_key}}" onclick="xnoteEditFilter(this);">[编辑]</a>
         </div>
     </div>
     <div class="padding-sm">
         {% raw filter_html %}
     </div>
 </div>
+
+<script>
+xnote.state.codeEditDialogId = 0;
+function xnoteEditFilter(target) {
+    console.log(target);
+    var key = $(target).attr("data-key");
+    var url = "/code/edit/user_config?iframe=true&config_key=" + encodeURIComponent(key);
+    xnote.state.codeEditDialogId = xnote.showIframeDialog("编辑", url);
+}
+
+// 处理编辑后的回调事件
+xnote.on("code_edit", function (event) {
+    console.log("event=", event);
+    xnote.closeDialog(xnote.state.codeEditDialogId);
+    window.location.reload();
+})
+</script>

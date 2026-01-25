@@ -24,6 +24,9 @@
  *    xnote.showTextDialog(title, text, buttons, functions)
  *    xnote.openTextDialog(title, text, buttons, functions)
  * 
+ * 5. 关闭弹窗
+ *    xnote.closeDialog(dialogId | "last");
+ * 
  */
 
 

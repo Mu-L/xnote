@@ -209,6 +209,12 @@
             xnote.http.post("{{post_action}}", params, function (resp) {
                 if (resp.success) {
                     xnote.toast("保存成功");
+                    if (window.parent) {
+                        var target = {
+                            config_key: params.config_key
+                        }
+                        window.parent.xnote.fire("code_edit", target);
+                    }
                 } else {
                     xnote.toast("保存失败: " + resp.message);
                 }

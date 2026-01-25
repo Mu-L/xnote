@@ -233,6 +233,7 @@ class EditUserConfigHandler:
     @xauth.login_required()
     def GET(self):
         config_key = xutils.get_argument_str("config_key")
+        iframe = xutils.get_argument_bool("iframe")
         user_config = UserConfig.get_by_config_key(config_key=config_key)
         kw = Storage()
         kw.path = "config.md"
@@ -242,6 +243,10 @@ class EditUserConfigHandler:
         kw.show_rename = False
         kw.code_type = "md"
         user_id = xauth.current_user_id()
+        
+        if iframe:
+            kw.show_nav = False
+            kw.show_search = False
 
         if user_config is None:
             error = f"config not exists, config_key={config_key}"
