@@ -766,7 +766,9 @@ class MsgTagBindDao:
         if user_id == 0:
             logging.error("user_id=0")
             return
-        cls.tag_bind_service.bind_tags(user_id=user_id, target_id=msg_id, tags=tags, update_only_changed=True, second_type=second_type, sort_value=sort_value)
+        cls.tag_bind_service.bind_tags(
+            user_id=user_id, target_id=msg_id, tags=tags, 
+            update_only_changed=True, second_type=second_type, sort_value=sort_value)
 
     @classmethod
     def update_second_type(cls, user_id=0, msg_id=0, second_type=0, sort_value=""):
@@ -839,7 +841,11 @@ class MessageDao:
     def update_user_tags(message:MessageDO):
         msg_id = message.get_int_id()
         sort_value = str(message.change_time)
-        tags = set(message.full_keywords).union(set(message.system_tags))
+        tags = set()
+        if message.full_keywords:
+            tags.update(message.full_keywords)
+        if message.system_tags:
+            tags.update(message.system_tags)
         MsgTagBindDao.bind_tags(message.user_id, msg_id=msg_id, tags=tags, 
                                 second_type=message.get_second_type(), sort_value=sort_value)
     

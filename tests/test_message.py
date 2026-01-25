@@ -295,6 +295,30 @@ class TestMain(BaseTestCase):
 
         user_id = xauth.current_user_id()
         msg_dao.search_message(user_id=user_id, key="test", search_tags=set(["task"]))
+        
+    def test_message_tag_link(self):
+        content = "https://example.com/link\nThis is a link"
+        response = json_request_return_dict(
+            "/message/save", method="POST",
+            data=dict(content=content, tag="log"))
+        self.assertEqual("success", response.get("code"))
+        data = response.get("data")
+        assert isinstance(data, dict)
+        
+        link_msg_resp = json_request_return_dict(
+            "/message/list?tag_code=%24link%24&tag=%24link%24&page=1&key=&format=json&displayTag=", method="GET"
+        )
+        
+        assert link_msg_resp["success"]
+        data = link_msg_resp["data"]
+        assert isinstance(data, list)
+        
+        found = False
+        for item in data:
+            if item["content"] == content:
+                found = True
+                break
+        assert found
 
     def test_message_keyword_mark(self):
         user_name = xauth.current_name_str()

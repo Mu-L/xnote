@@ -21,8 +21,9 @@ from xnote.plugin import TextLink
 from xnote.service.system_meta_service import SystemMetaEnum
 from xnote_handlers.config import LinkConfig
 from xnote.core.xnote_user_config import UserConfig, UserConfigItem
+from xnote_handlers.config import LinkConfig
 
-def can_preview(path):
+def can_preview(path: str):
     name, ext = os.path.splitext(path)
     return ext.lower() in (".md", ".csv")
 
@@ -73,6 +74,7 @@ class ViewSourceHandler:
         path = xutils.get_argument_str("path", "")
         type = xutils.get_argument_str("type", "")
         offset = xutils.get_argument_int("offset")
+        embed = xutils.get_argument_bool("embed")
         readonly = False
 
         kw = self.get_default_kw()
@@ -118,8 +120,13 @@ class ViewSourceHandler:
             #     content = xutils.html_escape(content)
             #     key     = xhtml_escape(key)
             #     content = textutil.replace(content, key, htmlutil.span("?", "search-key"), ignore_case=True, use_template=True)
+            show_preview = can_preview(path)
             
-            kw.show_preview = can_preview(path)
+            if show_preview:
+                quoted_path = xutils.quote(path)
+                kw.right_link = TextLink(text="预览", href=f"/code/wiki/{quoted_path}?embed={embed}")
+            
+            kw.show_preview = show_preview
             kw.readonly = readonly
             kw.error = error
             kw.warn = warn
@@ -233,7 +240,7 @@ class EditUserConfigHandler:
     @xauth.login_required()
     def GET(self):
         config_key = xutils.get_argument_str("config_key")
-        iframe = xutils.get_argument_bool("iframe")
+        is_iframe = xutils.get_argument_bool("is_iframe")
         user_config = UserConfig.get_by_config_key(config_key=config_key)
         kw = Storage()
         kw.path = "config.md"
@@ -242,11 +249,13 @@ class EditUserConfigHandler:
         kw.show_fs_path = False
         kw.show_rename = False
         kw.code_type = "md"
+        kw.is_iframe = is_iframe
         user_id = xauth.current_user_id()
         
-        if iframe:
+        if is_iframe:
             kw.show_nav = False
             kw.show_search = False
+            kw.show_title = False
 
         if user_config is None:
             error = f"config not exists, config_key={config_key}"

@@ -96,13 +96,13 @@ def after_message_create_or_update(msg_item):
     assert isinstance(msg_item, dao.MessageDO)
     process_message(msg_item)
 
+    MessageDao.update_user_tags(msg_item)
+    
     if get_length(msg_item.full_keywords) == 0:
         msg_item.no_tag = True
         msg_item.keywords = None
         MessageDao.update(msg_item)
-    else:
-        MessageDao.update_user_tags(msg_item)
-
+    
     after_upsert(msg_item)
 
 def after_message_delete(msg_item):
@@ -263,7 +263,7 @@ def update_message_content(id: str, user_id: int, content):
 
     # 先保存历史
     MessageDao.add_history(data)
-    
+        
     data.content = content
     data.mtime = xutils.format_datetime()
     data.version = data.get('version', 0) + 1

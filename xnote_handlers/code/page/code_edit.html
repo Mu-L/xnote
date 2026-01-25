@@ -64,6 +64,7 @@
 {% init error = "" %}
 {% init pathlist = [] %}
 {% init show_preview = False %}
+{% init show_title = True %}
 {% init embed = False %}
 {% init file_too_large = False %}
 {% init post_action = "/code/update" %}
@@ -72,24 +73,13 @@
 {% init parent_link = None %}
 {% init show_rename = True %}
 {% init help_text = "" %}
+{% init is_iframe = False %}
 
-<div class="card editor-title">
-    <h3 class="card-title btn-line-height">
-        {% if parent_link %}
-            <a class="link2 path-link" href="{{parent_link.href}}">{{parent_link.text}}</a>
-            <span>/</span>
-        {% end %}
-
-        <span>{{title}}</span>
-
-        <div class="float-right">
-            {% if show_preview %}
-                <a class="btn" href="{{_server_home}}/code/wiki/{{path}}?embed={{embed}}">{{T("Preview")}}</a>
-            {% end %}
-            <a class="btn btn-default" href="javascript:history.back();">返回</a>
-        </div>
-    </h3>
+{% if show_title %}
+<div class="card">
+    {% include common/title/base_title.html %}
 </div>
+{% end %}
 
 <div class="card">
 
@@ -147,6 +137,12 @@
                 <input type="button" class="btn link-btn" href="{{_server_home}}/plugin/{{plugin_name}}?embed={{embed}}&_reload=true" value="预览"/>
             {% end %}
             <span>注意不会自动保存</span>
+
+            {% if is_iframe %}
+                <div class="float-right">
+                    <input type="button" class="btn btn-default" value="关闭" onclick="xnote.tmp.closeIframe()">
+                </div>
+            {% end %}
         </div>
 
         <div id="resultDiv" class="col-md-12 hide">
@@ -225,6 +221,13 @@
 xnote.tmp.showHelp = function(target) {
     var text = $(target).attr("data-text");
     xnote.showTextDialog("帮助", text);
+};
+
+xnote.tmp.closeIframe = function() {
+    if (window.parent) {
+        var target = {};
+        window.parent.xnote.fire("code_edit.close", target);
+    }
 }
 </script>
 {% end %}
