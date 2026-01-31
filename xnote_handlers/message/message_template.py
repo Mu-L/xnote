@@ -55,6 +55,7 @@ class TemplateHandler(BaseTablePlugin):
     
     def get_tab_html(self, template_type=""):
         tab = TabBox(tab_key="template_type", tab_default=template_type)
+        tab.add_item(title="全部", value="all")
         tab.add_item(title="随手记", value="log")
         tab.add_item(title="待办", value="task")
         

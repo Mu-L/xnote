@@ -1,9 +1,5 @@
 {% extends base %}
 
-{% block init_vars_block %}
-    {% init show_right = False %}
-{% end %}
-
 {% block body %}
 
 <style type="text/css">
@@ -22,7 +18,7 @@
 
 {% set title = "浏览器信息" %}
 
-{% set parent_link = TextLink(text="开发", href=f"{_server_home}/plugin_list?category=develop") %}
+{% set parent_link = TextLink(text="系统信息", href=f"{_server_home}/system/info") %}
 {% include "common/title/base_title.html" %}
 
 </div>
@@ -144,4 +140,8 @@ $(function () {
     });
 });
 </script>
+{% end %}
+
+{% block body_right %}
+    {% include system/component/admin_nav.html %}
 {% end %}

@@ -25,15 +25,18 @@ class ListPluginHandler(BaseListPlugin):
 """
 
     def handle_page(self):
-        tab1 = TabBox(tab_key="list_key", css_class="btn-style")
-        tab1.add_item(title="Option1", value="option1")
-        tab1.add_item(title="Option2", value="option2")
-        tab1.block_title.text = "Tab1"
+        title_width = "60px"
+        tab1 = TabBox(tab_key="list_key", css_class="btn-style", title="筛选1", tab_default="all")
+        tab1.add_item(title="全部", value="all")
+        tab1.add_item(title="选项1", value="option1")
+        tab1.add_item(title="选项2", value="option2")
+        tab1.title_width = title_width
 
-        tab2 = TabBox(tab_key="tab2", css_class="btn-style")
-        tab2.add_item(title="Tab2Op1", value="op1")
-        tab2.add_item(title="Tab2Op2", value="op2")
-        tab2.block_title.text = "Tab2"
+        tab2 = TabBox(tab_key="tab2", css_class="btn-style", title="筛选2", tab_default="all")
+        tab2.add_item(title="全部", value="all")
+        tab2.add_item(title="选项A", value="op1")
+        tab2.add_item(title="选项B", value="op2")
+        tab2.title_width = title_width
     
         list_view = self.create_list_view()
 

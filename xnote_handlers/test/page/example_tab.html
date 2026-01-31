@@ -2,7 +2,7 @@
 
 {% block body %}
 
-	{% include test/component/example_nav.html %}
+{% include test/component/example_nav.html %}
 
 
 {% init tab_html1 = """
@@ -88,6 +88,13 @@
 	{% raw tab_html1 %}
 </div>
 
+<h3 class="card-title">
+	<span>按钮tab组</span>
+</h3>
+<div class="card">	
+	{% render tab_group_1 %}
+	{% render tab_group_2 %}
+</div>
 
 <h3 class="card-title">
 	<span>按钮tab（深色模式）</span>

@@ -165,7 +165,7 @@ class XnoteLoader(Loader):
 def get_user_agent():
     return xutils.get_client_user_agent()
 
-def render_before_kw(kw: dict):
+def _before_handle_kw(kw: dict):
     """模板引擎预处理过程"""
     user_info = xauth.current_user()
     user_name = ""
@@ -214,9 +214,9 @@ def render_before_kw(kw: dict):
         kw.update(_input)
 
 
-def render_after_kw(kw):
+def _after_handle_kw(kw):
     """后置渲染，可以覆盖前面的数据"""
-    render_search(kw)
+    _handle_search_kw(kw)
 
     kw["_cost_time"] = xnote_trace.get_cost_time()
 
@@ -265,7 +265,7 @@ def render_by_ua(name, **kw):
     return render(name, **kw)
 
 
-def render_search(kw):
+def _handle_search_kw(kw):
     # 已经定义了搜索行为
     if "search_action" in kw:
         return
@@ -278,16 +278,16 @@ def render_search(kw):
         kw["search_tag"] = handler.tag
 
 
-def do_render_kw(kw):
+def _handle_kw(kw):
     nkw = dict()
     # 预处理
-    render_before_kw(nkw)
+    _before_handle_kw(nkw)
 
     # 传入的kw生效
     nkw.update(kw)
 
     # 后置处理
-    render_after_kw(nkw)
+    _after_handle_kw(nkw)
 
     return nkw
 
@@ -296,7 +296,7 @@ def do_render_kw(kw):
 def render(template_name, **kw):
     _loader = XnoteLoader.get_instance()
     # 处理上下文渲染
-    nkw = do_render_kw(kw)
+    nkw = _handle_kw(kw)
 
     if hasattr(web.ctx, "env"):
         # 非web请求（比如单元测试等）
@@ -327,7 +327,7 @@ def render_text(text: Union[str, bytes], template_name="<string>", **kw):
     """
     _loader = XnoteLoader.get_instance()
 
-    nkw = do_render_kw(kw)
+    nkw = _handle_kw(kw)
 
     # 通过缓存加快md5的计算
     # 使用hash不能保证唯一性
@@ -454,14 +454,14 @@ class BasePlugin:
     def add_option_link(self, text="", href=""):
         self.option_links.append(PluginOptionLink(text, href))
 
-    def write(self, text):
-        self.output += u(text)
+    def write(self, text: str):
+        self.output += text
 
-    def writeline(self, line):
-        self.output += u(line + "\n")
+    def writeline(self, line:str):
+        self.output += line + "\n"
 
-    def writetext(self, text):
-        self.output += u(text)
+    def writetext(self, text:str):
+        self.output += text
 
     def writeheader(self, html, **kw):
         self.header_html = render_text(html, **kw)
@@ -484,9 +484,11 @@ class BasePlugin:
         self.html += html.decode("utf-8")
         return self.html
 
-    def write_aside(self, template_text: Union[str, bytes], **kw):
+    def update_aside(self, template_text: Union[str, bytes], **kw):
         self.show_aside = True
         self.aside_html = render_text(template_text, **kw)
+        
+    write_aside = update_aside
 
     def ajax_response(self, template_text, **kw):
         warnings.warn("use response_ajax instead", DeprecationWarning)

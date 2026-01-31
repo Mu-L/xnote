@@ -253,11 +253,28 @@ class ExampleHandler:
 
         if name == "":
             return xtemplate.render("test/page/example_index.html", **kw)
-        else:
-            return xtemplate.render(f"test/page/example_{name}.html", **kw)
+
+        if name == "tab":
+            return self.render_tab(kw)
+
+        return xtemplate.render(f"test/page/example_{name}.html", **kw)
 
     def POST(self):
         return self.GET()
+    
+    def render_tab(self, kw: Storage):
+        title_width = "120px"
+        tab_group_1 = TabBox(tab_key="tab_group_1", css_class="btn-style", title="Tab Group 1", title_width=title_width)
+        tab_group_2 = TabBox(tab_key="tab_group_2", css_class="btn-style", title="Tab Group 2", title_width=title_width)
+        
+        for index in range(3):
+            tab_group_1.add_item(title=f"Tab-{index}", value=f"tab-{index}")
+            tab_group_2.add_item(title=f"Tab-{index}", value=f"tab-{index}")
+            
+        kw.tab_group_1 = tab_group_1
+        kw.tab_group_2 = tab_group_2
+        
+        return xtemplate.render("test/page/example_tab.html", **kw)
 
 
 class CalendarExampleHandler(BasePlugin):
