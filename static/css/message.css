@@ -305,6 +305,19 @@
     min-height: 500px;
 }
 
+.hashtag-filter {
+    padding: 2px 5px;
+    background-color: #eee;
+    display: inline-block;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+.hashtag-filter.active {
+    color: white;
+    background-color: #08c;
+}
+
 /** 移动端样式放在最后 **/
 @media screen and (max-width: 500px) {
     /** mobile **/

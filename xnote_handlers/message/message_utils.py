@@ -110,9 +110,9 @@ def build_filter_html(link_type="task", key="", selected_key=""):
         quoted_key = ""
 
     if link_type == "task":
-        return f"<a class=\"link {css_class}\" href=\"{server_home}/message/task?filterKey={quoted_key}\">{key}</a>"
+        return f"<a class=\"hashtag-filter {css_class}\" href=\"{server_home}/message/task?filterKey={quoted_key}\">{key}</a>"
     else:
-        return f"<a class=\"link {css_class}\" href=\"{server_home}/message?key={quoted_key}\">{key}</a>"
+        return f"<a class=\"hashtag-filter {css_class}\" href=\"{server_home}/message?key={quoted_key}\">{key}</a>"
 
 class TagHelper:
 

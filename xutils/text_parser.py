@@ -349,7 +349,7 @@ class TopicToken(TextToken):
             return self.html
         quoted_key = quote(self.value)
         value = escape_html(self.value)
-        return f"<a class=\"link\" href=\"/message?category=message&key={quoted_key}\">{value}</a>"
+        return f"<a class=\"link hashtag\" href=\"/message?category=message&key={quoted_key}\">{value}</a>"
 
 class HeadingToken(TextToken):
     def __init__(self, value="", level=1, title=""):
@@ -473,7 +473,7 @@ class TextParser(BaseTextParser):
     def translate_topic(self, key):
         return TopicToken(value=key)
 
-    def mark_hash(self):
+    def mark_hashtag(self):
         """话题转为搜索关键字的时候去掉前后的#符号"""
         self.profile("mark_topic")
         start_index = self.i
@@ -678,7 +678,7 @@ class TextParser(BaseTextParser):
         
         if c == '#':
             self.save_str_token()
-            self.mark_hash()
+            self.mark_hashtag()
             return
         
         if c == '《':

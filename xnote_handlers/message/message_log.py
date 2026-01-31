@@ -14,6 +14,7 @@ from xnote_handlers.message import message_utils
 from xnote_handlers.message import message_tag
 from xnote_handlers.message.message_utils import filter_key
 from .dao_template import MessageTemplateDao
+from .message_template_service import handle_template_tab
 from .message_utils import mark_filter_text
 from xnote.core.xnote_user_config import UserConfig
 
@@ -48,28 +49,7 @@ class LogPageHandler:
         kw.show_tag_filter = True
         kw.filter_config_key = UserConfig.msg_filter.key
         kw.filter_html = mark_filter_text(filter_content, link_type="log", selected_key=key).result_text
-        self.handle_template_tab(kw, default_content)
+        handle_template_tab(kw, default_content)
         
         return xtemplate.render("message/page/message_list_view.html", **kw)
     
-    def handle_template_tab(self, kw: Storage, default_content: str):
-        template_content = ""
-        user_id = xauth.current_user_id()
-        template_id = xutils.get_argument_int("template_id")
-        template_list = MessageTemplateDao.list_by_user(user_id=user_id)
-        template_tab = TabBox(tab_key = "template_id", tab_default="0", css_class="btn-style")
-        if len(template_list) == 0:
-            template_tab.add_item(title="默认", value="0")
-        else:
-            template_content = template_list[0].content
-            template_tab.tab_default = str(template_list[0].template_id)
-
-            for template in template_list:
-                template_tab.add_item(title=template.name, value=str(template.template_id))
-                if template.template_id == template_id:
-                    template_content = template.content
-                    template_tab.tab_default = str(template_list[0].template_id)
-        
-        kw.message_template_tab = template_tab
-        if default_content == "":
-            kw.default_content = template_content

@@ -664,6 +664,7 @@ def init_msg_template_table():
     pk_name = "template_id"
     with create_default_table_manager(table_name, comment=comment, pk_name=pk_name) as manager:
         # 展示创建时间
+        manager.add_column("type", "varchar(20)", default_value="log")
         manager.add_column("ctime", "datetime", DEFAULT_DATETIME)
         manager.add_column("mtime", "datetime", DEFAULT_DATETIME)
         manager.add_column("user_id", "bigint", 0)

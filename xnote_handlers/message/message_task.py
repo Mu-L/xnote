@@ -15,6 +15,7 @@ from xnote_handlers.message.message_utils import sort_keywords_by_marked, Messag
 from xnote_handlers.message.message_model import MessageTag, MessageTagEnum
 from xnote_handlers.message.message_utils import MAX_LIST_LIMIT
 from xnote_handlers.message.message_utils import filter_msg_list_by_key, mark_filter_text
+from xnote_handlers.message.message_template_service import handle_template_tab
 
 class TaskListHandler:
 
@@ -69,6 +70,8 @@ class TaskListHandler:
 
         if not show_side_tags:
             cls.hide_side_tags(kw)
+            
+        handle_template_tab(kw, "", template_type="task")
         
         return xtemplate.render("message/page/task_index.html", **kw)
 

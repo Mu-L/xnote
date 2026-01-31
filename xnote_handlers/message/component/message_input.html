@@ -6,13 +6,14 @@
 {% init create_tag = tag %}
 {% init message_template_tab = None %}
 {% init create_date = "" %}
+{% init template_type = "log" %}
 
 <div class="message-input-box card">
     {% if message_template_tab %}
         <div class="row btn-line-height">
             {% render message_template_tab %}
             <div class="float-right">
-                <a href="/message/template">编辑模板</a>
+                <a href="/message/template?template_type={{template_type}}" class="bold">[编辑模板]</a>
             </div>
         </div>
     {% end %}

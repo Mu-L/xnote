@@ -378,12 +378,12 @@ class MessageHistory:
 
 
 class MessageTemplateRecord(BaseDataRecord):
-
-    _pk_name = "template_id"
+    _ignore_save_fields = ["template_id"]
 
     def __init__(self):
         now = dateutil.format_datetime()
         self.template_id = 0
+        self.type = "log"
         self.ctime = now
         self.mtime = now
         self.user_id = 0

@@ -16,3 +16,7 @@ class AsideConfig:
     @classmethod
     def get_settings_aside_html(cls):
         return xtemplate.render("settings/page/settings_sidebar.html")
+    
+    @classmethod
+    def get_note_aside_html(cls):
+        return xtemplate.render("note/component/sidebar/group_list_sidebar.html")

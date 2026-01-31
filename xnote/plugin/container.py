@@ -38,4 +38,7 @@ class ActionBar(BaseContainer):
         self._add(link, float_right)
     
 
+class Card(BaseContainer):
+    def __init__(self, css_class="") -> None:
+        super().__init__(css_class="card " + css_class)
 

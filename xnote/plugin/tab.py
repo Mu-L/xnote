@@ -11,10 +11,11 @@
 from xnote.core import xtemplate
 from xnote.core import xconfig
 from xnote.plugin.component import BlockTitle
+from xnote.plugin.base import BaseComponent
 
 # TODO: 支持多级tab, 例如 tab=dev.text
 
-class TabBox:
+class TabBox(BaseComponent):
     
     _tab_html_v1 = """
 <div class="x-tab-box {{css_class}}" data-tab-key="{{tab_key}}" data-tab-default="{{tab_default}}">

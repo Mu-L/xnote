@@ -27,8 +27,13 @@ class MessageTemplateDao:
         return cls.db.delete(where = dict(template_id = template_id, user_id = user_id))
 
     @classmethod
-    def list_by_user(cls, user_id = 0):
-        result = cls.db.select(where = dict(user_id = user_id), order = "sort_num")
+    def list_by_user(cls, user_id = 0, template_type=""):
+        where_dict = dict(user_id=user_id)
+        if template_type == "" or template_type == "all":
+            pass
+        else:
+            where_dict["type"] = template_type # type: ignore
+        result = cls.db.select(where = where_dict, order = "sort_num")
         return MessageTemplateRecord.from_dict_list(result)
     
     @classmethod
