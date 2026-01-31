@@ -131,6 +131,13 @@ class NoteIndexDO(BaseDataRecord):
         return self.type == NoteTypeEnum.alias.value
     
     @property
+    def original_note_id(self):
+        """实际的note_id，如果是别名类型，返回真实的笔记ID，否则返回自身的note_id"""
+        if self.is_alias:
+            return self.parent_id
+        return self.note_id
+    
+    @property
     def is_sticky(self):
         """是否是置顶"""
         return self.level > 0

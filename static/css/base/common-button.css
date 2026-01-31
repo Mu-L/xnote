@@ -70,7 +70,7 @@
     border: 1px solid transparent;
     color: #fff;
     text-decoration: none;
-    padding: 3px 7px 3px;
+    padding: 3px 7px;
     font-size: 12px;
     font-weight: bold;
     line-height: 18px;
@@ -101,7 +101,7 @@ button:hover, .btn:hover, .inline-btn:hover, .btn-default:hover {
     color: black;
     background-color: #eee;
     border: 1px solid #ccc;
-    border-radius: 3px;
+    border-radius: 5px;
 }
 
 .btn-default:hover, .btn-cancel:hover {
@@ -111,7 +111,7 @@ button:hover, .btn:hover, .inline-btn:hover, .btn-default:hover {
 
 .btn-danger {
     background-color: #f00;
-    border-radius: 3px;
+    border-radius: 5px;
 }
 
 .btn-danger:hover {
@@ -124,7 +124,7 @@ button:hover, .btn:hover, .inline-btn:hover, .btn-default:hover {
 
 .inline-btn {
     margin-top: 0px;
-    border-radius: 3px;
+    border-radius: 5px;
 }
 
 .prompt-btn:hover {
@@ -135,7 +135,7 @@ button:hover, .btn:hover, .inline-btn:hover, .btn-default:hover {
     color: red;
     background-color: #eee;
     border: 1px solid #ccc;
-    border-radius: 3px;
+    border-radius: 5px;
 }
 
 .btn.danger:hover {

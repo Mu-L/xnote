@@ -173,7 +173,7 @@ def view_or_edit_md_func(file: NoteDO, kw: NoteViewContext):
     note_tab = TabBox(tab_key="tab", tab_default="all", css_class="btn-style")
     note_tab.add_item(title="全部", value="all")
     if not kw.is_public_page:
-        note_tab.add_item(title="关系", value="relation")
+        note_tab.add_item(title="关联笔记", value="relation")
     note_tab.add_item(title="评论", value="comment")
 
     kw.note_detail_tab = note_tab

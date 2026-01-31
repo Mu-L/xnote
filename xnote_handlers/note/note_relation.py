@@ -110,10 +110,15 @@ xnote.execute(function() {
         else:
             relation = NoteRelationDO()
             relation.user_id = user_id
+            
+        target_note_id = param.get_int("target_id")
+        note_info = NoteIndexDao.get_by_id(note_id=target_note_id)
+        if note_info is None:
+            return webutil.FailedResult(code="404", message="笔记不存在")
         
         relation.note_id = param.get_int("note_id")
         relation.relation_name = param.get_str("relation_name")
-        relation.target_id = param.get_int("target_id")
+        relation.target_id =note_info.original_note_id
 
         NoteRelationDao.save(relation)
  
