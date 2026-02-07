@@ -52,6 +52,11 @@ def handle_file_item(item: fsutil.FileItem):
     return item
 
 def handle_file_url(item: fsutil.FileItem):
+    if item.customized_url:
+        item.url = item.customized_url
+        item.data_url = item.customized_url
+        return
+    
     item.css_class = ""
     server_home = xconfig.WebConfig.server_home
     if item.type == "dir":
@@ -134,6 +139,12 @@ def is_hidden_file(item: FileItem):
         return True
     
     return item.name.endswith((".class", ".pyc"))
+
+def get_fs_url(fpath: str):
+    fpath = fpath.replace("\\","/")
+    encoded_path = textutil.encode_uri_component(fpath)
+    return f"{xconfig.WebConfig.server_home}/fs/~{encoded_path}"
+
 
 xutils.register_func("fs.get_file_thumbnail", get_file_thumbnail)
 xutils.register_func("fs.get_file_download_link", get_file_download_link)

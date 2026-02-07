@@ -633,10 +633,9 @@ class Bookmark:
 
 
 class BookmarkHandler:
-    @xauth.login_required("admin")
+    @xauth.admin_required()
     def GET(self):
-        user_name = xauth.current_name()
-        assert isinstance(user_name, str)
+        user_name = xauth.current_name_str()
 
         xmanager.add_visit_log(user_name, "/fs_bookmark")
 
@@ -646,6 +645,10 @@ class BookmarkHandler:
         filelist = []
         filelist.append(FileItem("/", name = "操作系统根目录"))
         filelist.append(FileItem(xconfig.DATA_DIR, name = "Xnote数据目录"))
+        
+        sidebar_link = FileItem(xconfig.DATA_DIR, name="侧边栏视图")
+        sidebar_link.customized_url = fs_helper.get_fs_url(xconfig.DATA_DIR) + "?mode=sidebar"
+        filelist.append(sidebar_link)
 
         for fpath in bookmark.get():
             item = FileItem(fpath)

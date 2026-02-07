@@ -6,6 +6,7 @@
 
     var LATEX_INLINE_START = '.LATEX.INLINE.START.';
     var LATEX_INLINE_END = '.LATEX.INLINE.END.';
+    var gHeadingToLinkMap = {};
 
 
     // 目录生成
@@ -369,7 +370,7 @@
     myRenderer.heading = function (text, level, raw) {
         var id = globals.contents.createNewId();
 
-        this.headings.push({ text: raw, link: id, level: level });
+        this.headings.push({ text: raw, link: "#" + id, level: level });
         var checkboxResult = processCheckbox(text);
 
         return '<h'
@@ -489,8 +490,15 @@
                 return '';
             }
         }
-        var out = '<a target="_blank" href="' + href + '"';
-        // var out = '<a href="' + href + '" target="_blank" ';
+        var out = '<a href="' + href + '"';
+        if (href.startsWith("/") || href.startsWith("./")) {
+            // internal link
+        } else if (href.startsWith("#")) {
+            // hash link
+            out += ' data-link-type="hash"';
+        } else {
+            out += ' target="_blank"';
+        }
         if (title) {
             out += ' title="' + title + '"';
         }
@@ -507,8 +515,9 @@
     }
 
     function buildMenuLink(text, link) {
+        gHeadingToLinkMap[text.toLowerCase()] = link;
         text = formatMenuText(text);
-        return '<li><a href="#link">text</a></li>'.replace(/mleft|link|text/g, function (match, index) {
+        return '<li><a href="link">text</a></li>'.replace(/mleft|link|text/g, function (match, index) {
             // console.log(match, index);
             if (match == "link") {
                 // 目录的链接
@@ -553,6 +562,9 @@
 
     // 重写parse方法
     marked.parse = function (text) {
+        // reset vars
+        gHeadingToLinkMap = {};
+
         if (!marked.showMenu) {
             return originalParse(text);
         }
@@ -602,6 +614,27 @@
 
         var html = marked.parse(text);
         $(target).html(html);
+        this.afterRender();
+    };
+
+    // 更新内链
+    marked._updateHashLinks = function () {
+        $("[data-link-type=hash]").each(function (index, ele) {
+            var href = $(ele).attr("href");
+            if (href.startsWith("#")) {
+                var hrefHash = href.substring(1).toLowerCase();
+                var linkId = gHeadingToLinkMap[hrefHash];
+                if (linkId) {
+                    $(ele).attr("href", linkId);
+                }
+            }
+        })
+    }
+
+    // 渲染后更新操作
+    marked.afterRender = function () {
+        this._updateHashLinks();
+        
         adjustTableWidth();
 
         // 注册点击事件

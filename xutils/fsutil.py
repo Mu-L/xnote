@@ -588,6 +588,17 @@ class FileStatInfo(Storage):
 
 class FileItem(Storage):
     """文件对象"""
+    # 由于继承Storage属性，不能对class属性进行赋值，否则实例无法更新该值
+    # 对应 href 属性
+    url: str
+    # 对应 data-url 属性, JavaScript 会进行二次处理
+    data_url: str
+    # 是否展示选项按钮
+    show_opt_btn: bool
+    css_class: str
+    is_user_defined: bool
+    # 自定义URL
+    customized_url: str
 
     def __init__(
             self,
@@ -618,7 +629,8 @@ class FileItem(Storage):
             self.path = path + "/"
 
         if encode_path:
-            self.encoded_path = xutils.encode_uri_component(self.path)
+            normalized_path = self.path.replace("\\", "/")
+            self.encoded_path = xutils.encode_uri_component(normalized_path)
 
         # 处理文件属性
         self.handle_file_stat(merge, parent)

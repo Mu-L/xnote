@@ -37,8 +37,8 @@ class MyStorage(dict):
     # 普通Python访问属性的顺序是 (不包含数据描述符的情况)
     # 1. obj.__dict__ 
     # 2. type(obj).__dict__
-    # 3. __getattr__
-    # 如果新增一个default_value属性会导致items等函数出问题
+    # 3. __getattr__  # MyStorage覆盖的是这个方法
+    # 如果新增 class 级别的属性会导致无法被 类属性覆盖
 
     def __getattr__(self, key):
         try:

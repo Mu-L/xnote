@@ -15,14 +15,6 @@
     <span>{{fs_title}}</span>
     
     <div class="float-right">
-        {% if fs_mode == "sidebar" %}
-            <a class="btn btn-default" href="?mode=list">列表视图</a>
-        {% end %}
-
-        {% if fs_mode == "list" %}
-            <a class="btn btn-default" href="?mode=sidebar">侧边栏视图</a>
-        {% end %}
-
         <a class="btn btn-default" href="{{_server_home}}/fs_bookmark">收藏夹</a>
         <a class="btn btn-default" href="{{_server_home}}/plugin_list?category=dir&show_back=true">工具</a>
         {% include common/button/back_button.html %}

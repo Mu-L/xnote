@@ -84,6 +84,7 @@
             
             marked.showMenu = true;
             $("#markdown-output-div").html(marked.parse(input));
+            marked.afterRender();
         }, 200);
         preview();
     })
