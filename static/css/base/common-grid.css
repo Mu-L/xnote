@@ -1,0 +1,37 @@
+
+.grid-item {
+    float: left;
+    display: block;
+    text-align: center;
+    padding: 10px;
+    color: black;
+    width: 100px;
+    height: 100px;
+}
+
+.grid-item:hover {
+    background-color: #ccc;
+}
+
+.app-icon {
+    line-height: 30px;
+    font-size: 30px;
+    text-align: center;
+    padding: 10px;
+}
+
+.app-icon.img-box {
+    height: 50px;
+}
+
+.app-icon img {
+    height: 30px;
+    width: 30px;
+}
+
+@media screen and (max-width: 1000px) {
+    /** mobile **/
+    .grid-item {
+        width: 25%;
+    }
+}

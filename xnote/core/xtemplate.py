@@ -31,7 +31,7 @@ from xutils import Storage
 from xutils import textutil
 from xutils.textutil import safe_str
 from urllib.parse import quote
-from typing import Union
+from typing import Union, List
 
 TEMPLATE_DIR = xconfig.HANDLERS_DIR
 NAMESPACE = dict(
@@ -446,10 +446,10 @@ class BasePlugin:
     def __init__(self):
         # 提交请求的方法
         self.method = "POST"
-        self.output = u("")
-        self.html = u("")
-        self.css_style = u("")
-        self.option_links = [] # type: list[PluginOptionLink]
+        self.output = ""
+        self.html = ""
+        self.css_style = ""
+        self.option_links: List[PluginOptionLink] = []
 
     def add_option_link(self, text="", href=""):
         self.option_links.append(PluginOptionLink(text, href))
@@ -470,10 +470,10 @@ class BasePlugin:
         """写内容区"""
         self.writetemplate(html, **kw)
 
-    def writehtml(self, html: Union[str, bytes], render_template = True, **kw):
+    def writehtml(self, html: Union[str, bytes], _do_render = True, **kw):
         """@deprecated 请使用 #writebody
         这个方法现在和 `writetemplate` 等价"""
-        if not render_template:
+        if not _do_render:
             self.html += safe_str(html)
             return self.html
         
@@ -481,7 +481,7 @@ class BasePlugin:
 
     def writetemplate(self, template_text, **kw):
         html = render_text(template_text, template_name=self.title, **kw)
-        self.html += html.decode("utf-8")
+        self.html += safe_str(html)
         return self.html
 
     def update_aside(self, template_text: Union[str, bytes], **kw):

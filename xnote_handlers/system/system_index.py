@@ -8,6 +8,7 @@ import xutils
 import subprocess
 import logging
 
+from typing import List
 from . import system_config
 from xnote.core import xconfig
 from xnote.core import xtemplate
@@ -16,16 +17,29 @@ from xnote.core import xmanager
 from xutils import Storage
 from xutils import webutil
 from .system_config import AppLink
+from xnote.plugin.grid import AppGrid, AppInfo
+from xnote.plugin import BasePlugin
+from xnote_handlers.config import LinkConfig, AsideConfig
 
 system_config.init()
 
-class IndexHandler:
+class IndexHandler(BasePlugin):
+    
+    title = "应用中心"
+    require_login = True
+    require_admin = False
+    rows = 0
 
-    def GET(self):
+    def handle(self, input=""):
         arg_show_back = xutils.get_argument_bool("show_back")
         arg_show_menu = xutils.get_argument_bool("show_menu", default_value=True)
         user_name = xauth.current_name()
-        menu_list = []
+        html_chunks: List[str] = []
+        
+        self.show_back = arg_show_back
+        self.show_nav = arg_show_menu
+        
+        self.option_html = LinkConfig.plugin_index_btn.render()
 
         def filter_link_func(link: AppLink):
             if link.is_guest:
@@ -41,17 +55,13 @@ class IndexHandler:
             if len(children) == 0:
                 continue
             children = list(filter(filter_link_func, children))
-            menu_list.append(Storage(name=category.name, children=children))
+            app_grid = AppGrid(css_class="card")
+            for child in children:
+                app_grid.add_app(AppInfo(name=child.name, url = child.url, icon = child.icon, img_src=child.img_src))
+            html_chunks.append(app_grid.render())
 
-        kw = Storage()
-        kw.Storage = Storage
-        kw.user = xauth.get_current_user()
-        kw.menu_list = menu_list
-        kw.html_title = "系统"
-        kw.show_back = arg_show_back
-        kw.show_menu = arg_show_menu
-
-        return xtemplate.render("system/page/system_index.html", **kw)
+        self.writehtml("".join(html_chunks), _do_render=False)
+        self.write_aside(AsideConfig.get_note_aside_html())
 
 
 class AdminHandler:

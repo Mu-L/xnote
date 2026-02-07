@@ -7,6 +7,7 @@ class LinkConfig:
     app_index = TextLink(text="应用", href="/system/index")
     develop_index = TextLink(text="开发", href="/plugin_list?category=develop")
     plugin_index = TextLink(text="插件中心", href="/plugin_list")
+    plugin_index_btn = TextLink(text="插件", href="/plugin_list", css_class="btn-default")
     system_plugin_index = TextLink(text="系统", href="/plugin_list?category=system")
     note_plugin_index = TextLink(text="笔记", href="/plugin_list?category=note")
     admin_plugin_index = TextLink(text="管理员", href="/plugin_list?category=admin")

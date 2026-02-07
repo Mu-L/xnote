@@ -1,5 +1,5 @@
 {% init category_url = xutils.call("plugin.get_category_url_by_code", model.category) %}
-
+{% init show_back = True %}
 
 {% if model.header_html != "" %}
     <!-- 自定义Header -->
@@ -18,7 +18,9 @@
             <span>{{title}}</span>
             <span class="float-right">
                 {% raw model.get_option_html() %}
-                <a class="btn btn-default" href="javascript:history.back();">返回</a>
+                {% if show_back %}
+                    <a class="btn btn-default" href="javascript:history.back();">返回</a>
+                {% end %}
             </span>
         </div>
     </div>
