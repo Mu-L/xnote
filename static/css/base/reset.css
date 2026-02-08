@@ -8,6 +8,7 @@
 
 * {
     box-sizing: border-box;
+    font-family: "Open Sans",Arial,Helvetica,sans-senif,"Microsoft Yahei",SimSun,"宋体";
 }
 
 body {
@@ -31,7 +32,6 @@ pre {
 }
 
 p,li,a {
-    font-family: "Open Sans",Arial,Helvetica,sans-senif,"Microsoft Yahei",SimSun,"宋体";
 }
 
 

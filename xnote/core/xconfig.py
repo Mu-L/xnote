@@ -44,6 +44,7 @@ import time
 import json
 import xutils
 import logging
+from typing import Dict
 from xutils import textutil
 from xutils import fsutil
 from xutils.base import Storage
@@ -804,8 +805,7 @@ def load_file_type_config0(fpath):
     return ext_set
 
 
-def load_config_as_dict(fpath):
-    # type: (str) -> dict
+def load_config_as_dict(fpath: str) -> Dict[str, str]:
     from xutils import fsutil, textutil
     fpath = resolve_config_path(fpath)
     text = fsutil.readfile(fpath)

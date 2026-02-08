@@ -51,6 +51,7 @@ class FileUtilConfig:
     tmp_dir = "/tmp"
     trash_dir = ""
     encode_name_ext = (".x0", ".xenc")
+    zip_ext_list = (".zip", )
 
     @classmethod
     def get_trash_dir(cls):
@@ -191,11 +192,6 @@ def format_size(size: typing.Union[int, float]):
     else:
         return "%.2fP" % (float(size) / 1024**5)
 
-def format_file_size(fpath):
-    """获取文件大小,返回文本格式"""
-    return get_file_size(fpath, format=True)
-
-
 def get_file_size_int(fpath: str, raise_exception=False):
     """读取文件大小,返回数字"""
     try:
@@ -208,7 +204,8 @@ def get_file_size_int(fpath: str, raise_exception=False):
         return -1
     return 0
 
-def get_file_size(fpath, format=False):
+def get_file_size(fpath: str, format=False):
+    """获取文件大小,返回文本格式"""
     size = get_file_size_int(fpath)
     if size < 0 and format:
         return "-"
@@ -232,7 +229,7 @@ def list_files(dirname, webpath=False):
     return list_file_objects(dirname, webpath)
 
 
-def split_path_to_objects(path):
+def split_path_to_objects(path: str):
     """拆分文件路径
     @param {string} path 文件路径
     """
@@ -256,7 +253,7 @@ def split_path_to_objects(path):
     return file_objects
 
 
-def splitpath(path):
+def splitpath(path: str):
     return split_path_to_objects(path)
 
 
@@ -599,6 +596,7 @@ class FileItem(Storage):
     is_user_defined: bool
     # 自定义URL
     customized_url: str
+    size: str
 
     def __init__(
             self,
@@ -658,7 +656,7 @@ class FileItem(Storage):
             self.path = fixed_dir_path(self.path)
 
             if children != None:
-                self.size = len(children)
+                self.size = str(len(children))
             else:
                 self.size = "ERR"
 
@@ -921,6 +919,8 @@ def get_text_ext():
 def is_editable(fpath):
     return is_text_file(fpath) or is_code_file(fpath)
 
+def is_zip_file(fpath: str):
+    return do_check_file_type(fpath, FileUtilConfig.zip_ext_list)
 
 class FileHasher:
 

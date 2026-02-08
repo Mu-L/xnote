@@ -140,10 +140,13 @@ def is_hidden_file(item: FileItem):
     
     return item.name.endswith((".class", ".pyc"))
 
-def get_fs_url(fpath: str):
+def get_fs_url(fpath: str, include_server_home=True):
     fpath = fpath.replace("\\","/")
     encoded_path = textutil.encode_uri_component(fpath)
-    return f"{xconfig.WebConfig.server_home}/fs/~{encoded_path}"
+    if include_server_home:
+        return f"{xconfig.WebConfig.server_home}/fs/~{encoded_path}"
+    else:
+        return f"/fs/~{encoded_path}"
 
 
 xutils.register_func("fs.get_file_thumbnail", get_file_thumbnail)

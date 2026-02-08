@@ -5,6 +5,7 @@
 # @filename text_parser_properties.py
 
 import typing
+from typing import Dict
 
 """properties文件解析
 
@@ -112,7 +113,7 @@ def parse_prop_text(text, ret_type = "dict"):
         return parse_prop_text_to_dict(text)
     return pairs
 
-def parse_prop_text_to_dict(text):
+def parse_prop_text_to_dict(text) -> Dict[str, str]:
     pairs = parse_prop_text_to_pairs(text)
     result = dict()
     for item in pairs:

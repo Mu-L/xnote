@@ -19,7 +19,9 @@ import mimetypes
 import web
 import xutils
 import logging
+import zipfile
 
+from typing import List, Optional
 from xnote.core import xauth
 from xnote.core import xconfig
 from xnote.core import xtemplate
@@ -30,6 +32,8 @@ from xutils import FileItem, u, Storage, fsutil
 from xutils import dbutil
 from xutils import webutil
 from xutils import XnoteException
+from xutils import ziputil
+from xutils import textutil
 
 from .fs_mode import get_fs_page_by_mode
 from .fs_helper import sort_files_by_size, is_hidden_file
@@ -104,7 +108,7 @@ def check_file_auth(path, user_name):
     path = os.path.abspath(path)
     return path.startswith(user_dir)
 
-def process_file_list(pathlist, parent = None):
+def process_file_list(pathlist: List[str], parent = None):
     filelist = [FileItem(fpath, parent, merge = False) for fpath in pathlist]
     filelist.sort()
 
@@ -130,8 +134,12 @@ class FileSystemHandler:
         # 二进制传输的编码格式
     }
 
-    def handle_content_type(self, path):
+    def handle_content_type(self, path: str, content_type = None):
         """Content-Type设置, 优先级从高到低依次是：参数配置、系统配置、默认配置"""
+        if content_type != None:
+            web.header("Content-Type", content_type)
+            return
+            
         type = xutils.get_argument_str("type")
         path = xutils.decode_name(path)
 
@@ -160,7 +168,7 @@ class FileSystemHandler:
         if ext in self.encodings:
             web.header("Content-Encoding", self.encodings[ext])
 
-    def list_directory(self, path):
+    def list_directory(self, path: str):
         try:
             filelist = list_file_objects(path)
             parent_file = fs_helper.get_parent_file_object(path, "[上级目录]")
@@ -172,7 +180,10 @@ class FileSystemHandler:
                 path = path,
                 filelist = [],
                 error = "No permission to list directory")
+            
+        return self.render_file_list(path, filelist)
 
+    def render_file_list(self, path: str, filelist: List[FileItem], fs_path_list = []):
         # filelist中路径均不带/
         # 排序：文件夹优先，按字母顺序排列
         # filelist.sort(key=lambda a: a.lower())
@@ -187,6 +198,7 @@ class FileSystemHandler:
         kw.filelist    = filelist
         kw.path        = path
         kw.quoted_path = xutils.quote(path)
+        kw.fs_path_list = fs_path_list
         user_info = xauth.current_user()
         assert isinstance(user_info, Storage)
 
@@ -250,7 +262,7 @@ class FileSystemHandler:
             # 处理不了，返回所有的数据
             yield self.read_all(path, blocksize)
 
-    def read_all(self, path, blocksize: int):
+    def read_all(self, path: str, blocksize: int):
         total_size = os.stat(path).st_size
         web.header("Content-Length", total_size)
         with open(path, "rb") as fp:
@@ -304,14 +316,10 @@ class FileSystemHandler:
             return b'' # 其实webpy已经通过yield空bytes来避免None
 
         self.set_cache_control(mtime, etag)
-
-        if content_type != None:
-            web.header("Content-Type", content_type)
-        else:
-            self.handle_content_type(path)
+        self.handle_content_type(path, content_type)
 
         http_range = environ.get("HTTP_RANGE")
-        blocksize = 64 * 1024;
+        blocksize = 64 * 1024
 
         if http_range is not None:
             return self.read_range(path, http_range, blocksize)
@@ -324,7 +332,7 @@ class FileSystemHandler:
                 return self.read_thumbnail(path, blocksize, version="v2")
             return self.read_all(path, blocksize)            
 
-    def handle_get(self, path, content_type=None):
+    def handle_get(self, path: str, content_type=None):
         if path == "":
             return self.list_root()
         if os.path.isdir(path):
@@ -333,13 +341,14 @@ class FileSystemHandler:
             return self.read_file(path, content_type=content_type)
         else:
             # return "Not Readable %s" % path
-            return self.not_readable(path)
+            extra = "class = FileSystemHandler"
+            return self.not_readable(path, extra=extra)
 
-    def not_readable(self, path):
+    def not_readable(self, path: str, extra = ""):
         web.ctx.status = "404 Not Found"
-        return xtemplate.render("fs/page/fs_not_readable.html", path = path)
+        return xtemplate.render("fs/page/fs_not_readable.html", path = path, extra = extra)
 
-    def resolve_fpath(self, path):
+    def resolve_fpath(self, path: str):
         # fpath参数使用b64编码
         fpath = xutils.get_argument_str("fpath")
         if fpath != "":
@@ -360,6 +369,7 @@ class FileSystemHandler:
         # 如果存储结构不采用urlencode，那么这里也必须unquote回去
         path = self.resolve_fpath(path)
         return self.handle_get(path)
+            
 
 class DocFileHandler:
 
@@ -692,6 +702,8 @@ class ToolListHandler:
     def GET(self):
         raise web.found("/plugin_list?category=dir&show_back=true")
 
+
+    
 dbutil.register_table("fs_bookmark", "文件收藏夹")
 xutils.register_func("fs.process_file_list", process_file_list)
 

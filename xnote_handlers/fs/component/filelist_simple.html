@@ -14,7 +14,7 @@
         <tr class="hover-tr">
             <td class="option-name"><a href="{{fsutil.get_webpath(fpath)}}">{{display_name}}</a></td>
             <td class="option-td">
-                {{xutils.format_file_size(fpath)}}
+                {{xutils.get_file_size(fpath, format=True)}}
             </td>
             <td class="option-td">
                 <div class="float-right">

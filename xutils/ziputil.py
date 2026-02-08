@@ -8,6 +8,7 @@
 import zipfile
 import os
 import sys
+from typing import List, Union
 
 def quote_unicode(url: str):
     from xnote.core import xconfig
@@ -75,6 +76,56 @@ def zip_dir(input_dir: str, outpath: str, skip_hidden=True, filter=None, exclude
             arcname = path[len(input_dir):]
             zf.write(path, quote_unicode(arcname))
     zf.close()
+
+def is_in_root_dir(zip_info: zipfile.ZipInfo):
+    filename = zip_info.filename
+    count = filename.count("/")
+    if count == 0:
+        return True
+    
+    if count == 1 and filename.endswith("/"):
+        # dir in root
+        return True
+    return False
+
+def _is_child_of(filename: bytes, parent: bytes):
+    if filename == parent:
+        return False
+    
+    pos = filename.find(parent)
+    if pos < 0:
+        return False
+    count = filename.count(b"/", pos+len(parent))
+    if count == 0:
+        return True
+    if count == 1 and filename.endswith(b"/"):
+        return True
+    return False
+
+def _get_filename_bytes(zip_info: zipfile.ZipInfo):
+    if zip_info.flag_bits & 0x800:
+        # utf-8
+        return zip_info.filename.encode("utf-8")
+    else:
+        # cp437 by zip default
+        return zip_info.filename.encode("cp437")
+    
+    
+def is_child_of(zip_info: zipfile.ZipInfo, inner_path: str):
+    filename_bytes = _get_filename_bytes(zip_info)
+    inner_path_bytes = inner_path.encode("utf-8")
+    return _is_child_of(filename_bytes, inner_path_bytes)
+        
+def find_file_in_zip(zf: zipfile.ZipFile, targetfile: str):
+    """注意: 如果targetfile是目录, 需要以/字符结束"""
+    targetfile_bytes = targetfile.encode("utf-8")
+        
+    for zip_info in zf.filelist:
+        file_name_bytes = _get_filename_bytes(zip_info)
+        if file_name_bytes == targetfile_bytes:
+            return zip_info
+    return None
+
 
 if __name__ == '__main__':
     zip_dir(sys.argv[1], sys.argv[2])

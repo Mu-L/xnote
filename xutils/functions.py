@@ -4,6 +4,7 @@
 # @modified 2022/04/11 23:05:34
 import time
 import typing
+from typing import Union
 from collections import deque
 from xutils.dateutil import format_time
 
@@ -238,9 +239,9 @@ def listmerge(list1, list2):
     @return {list}
 
         >>> listmerge([1], [2])
-        [1,2]
+        [1, 2]
         >>> listmerge([1,2,3], [2,3,4])
-        [1,2,3,4]
+        [1, 2, 3, 4]
     """
     target = []
     for c in list1:
@@ -262,7 +263,6 @@ def first_or_none(list):
     """返回集合的第一个元素
 
         >>> first_or_none([])
-        None
         >>> first_or_none([1,2,3])
         1
     """
@@ -271,10 +271,10 @@ def first_or_none(list):
     else:
         return None
 
-def second_to_ms(seconds):
+def second_to_ms(seconds: Union[int, float]):
     return int(seconds * 1000)
 
-def dictsort(dictionary, key='value'):
+def dictsort(dictionary: dict, key='value'):
     """返回排序之后的字典key列表/value列表
     @param {dict} dictionary
     @param {str} key 默认返回value，如果传值返回key
@@ -396,6 +396,20 @@ class Timer:
 
     def cost_millis(self):
         return int((self.stop_time - self.start_time) * 1000)
+
+
+def pipe(ctx, *functions):
+    """管道方法
+    
+    >>> def gt5(ctx): return [x for x in ctx if x > 5]
+    >>> def lt10(ctx): return [x for x in ctx if x < 10]
+    >>> pipe([1,6,7,10,12], gt5, lt10)
+    [6, 7]
+    """
+    for func in functions:
+        ctx = func(ctx)
+    return ctx
+
 
 if __name__ == '__main__':
     import doctest

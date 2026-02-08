@@ -1,6 +1,7 @@
 {% extends base %}
 
 {% block body %}
+{% init extra = "" %}
 
 <div class="card">
     <div class="card-title btn-line-height">
@@ -12,7 +13,13 @@
 </div>
 
 <div class="card">
-    无效路径：{{path}}
+    <p>无效路径：<code>{{path}}</code></p>
+    <p>扩展信息：{{extra}}</p>
 </div>
 
+{% end %}
+
+
+{% block body_right %}
+    {% include fs/component/fs_sidebar.html %}
 {% end %}

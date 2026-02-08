@@ -10,6 +10,7 @@ from xnote.core import xauth
 from xnote.core import xconfig
 from xutils import fsutil
 from xutils import textutil
+from . import fs_helper
 
 preview_dict = xconfig.load_config_as_dict("./config/file/preview.properties")
 
@@ -54,8 +55,8 @@ class PreviewHandler:
         _, ext = os.path.splitext(realname)
         ext = ext.lower()
         
-        open_url = preview_dict.get(ext)
-        if open_url != None and open_url != "":
+        open_url = preview_dict.get(ext, "")
+        if open_url != "":
             quoted_path = xutils.quote(path)
             return web.seeother(open_url.format(path=encoded_path, quoted_path=quoted_path, embed = embed))
 
@@ -64,6 +65,10 @@ class PreviewHandler:
         
         if xutils.is_text_file(path):
             raise web.seeother("/code/edit?path={path}&embed={embed}".format(path=encoded_path, embed=embed))
+        
+        if xutils.is_zip_file(path):
+            zip_path = textutil.encode_base64(path)
+            raise web.seeother(f"/fs/zip/~{zip_path}")
 
         raise web.seeother("/fs_hex?path={path}&embed={embed}&b64=1".format(path=textutil.encode_base64(path), embed=embed))
 
