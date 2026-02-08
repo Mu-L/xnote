@@ -199,6 +199,7 @@ class FileSystemHandler:
         kw.path        = path
         kw.quoted_path = xutils.quote(path)
         kw.fs_path_list = fs_path_list
+        kw.fs_upload_action = "fs_upload_to_dir"
         user_info = xauth.current_user()
         assert isinstance(user_info, Storage)
 

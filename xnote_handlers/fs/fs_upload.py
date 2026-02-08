@@ -230,6 +230,7 @@ class UploadHandler:
         filename = get_auto_filename(ext)
 
         if upload_type == "recovery":
+            # 从本地恢复服务器数据
             if not xauth.is_admin():
                 return webutil.FailedResult(code="403", message="recovery mode is only allowed by admin")
             filepath, webpath = self.get_recovery_path(filename)
@@ -273,7 +274,7 @@ class UploadHandler:
         event.user_name = user_info.name
         event.user_id = user_info.id
         event.remark = file.filename
-        xmanager.fire("fs.upload", event)
+        event.fire()
 
         result = webutil.SuccessResult()
         result.webpath = webpath
@@ -548,6 +549,92 @@ class FileInfoHandler(BaseTablePlugin):
         return webutil.SuccessResult()
     
 
+class UploadToDirHandler:
+
+    @xauth.admin_required()
+    def POST(self):
+        ctx = UploadContext()
+        try:
+            return self.do_post(ctx)
+        except XnoteException as e:
+            ctx.remove_tmp_file()
+            return webutil.FailedResult(code=e.code, message=e.message)
+        except Exception as e:
+            err_stack = xutils.print_exc()
+            err_msg = err_stack
+            
+            ctx.remove_tmp_file()
+            return webutil.FailedResult(code="500", message=err_msg)
+        
+    def do_post(self, ctx: UploadContext):
+        file = xutils.get_argument_field_storage("file")
+        note_id = xutils.get_argument_str("note_id")
+        dirname = xutils.get_argument_str("dirname")
+
+        user_info = xauth.current_user()
+        assert user_info != None
+        user_id = user_info.user_id
+        webpath = ""
+        filename = ""
+
+        if file.file is None:
+            return webutil.FailedResult(code="400", message="file.file is None")
+        
+        if file.filename is None:
+            return webutil.FailedResult(code="400", message="file.filename is None")
+        
+        if not fsutil.is_parent_dir(xconfig.FileConfig.data_dir, dirname):
+            return webutil.FailedResult(code="400", message="not allowed to upload outside data dir")
+        
+        logging.info("upload filename=%s, length=%s", file.filename, file.length)
+        
+        # 扩展名要从原始的文件名获取
+        _, ext = os.path.splitext(file.filename)
+        filepath = os.path.join(dirname, file.filename)
+        
+        if os.path.exists(filepath):
+            return webutil.FailedResult(code="400", message="file exists")
+        
+        tmp_file = os.path.join(xconfig.FileConfig.tmp_dir, "upload." + filename)
+        ctx.tmp_file = tmp_file
+
+        upload_size = 0
+        with open(tmp_file, "wb") as fout:
+            for chunk in file.file:
+                upload_size += len(chunk)
+                fs_checker.check_upload_size(upload_size)
+                fout.write(chunk)
+
+        # 需要先处理旋转,不然触发upload事件可能导致文件操作冲突
+        try_fix_orientation(tmp_file)
+
+        sha256 = fsutil.get_sha256_sum(tmp_file)
+        file_info = FileInfoDao.get_by_sha256(user_id=user_id, sha256=sha256)
+        if file_info != None:
+            fsutil.remove_file(tmp_file, hard=True)
+            # 已经上传过,直接复用
+            result = webutil.SuccessResult()
+            webpath = fsutil.get_webpath(file_info.realpath)
+            result.webpath = webpath
+            result.link = get_link(file.filename, webpath)
+            return result
+        
+        # 上传成功后重命名
+        os.rename(tmp_file, filepath)
+
+        try_touch_note(note_id)
+
+        event = FileUploadEvent()
+        event.fpath = filepath
+        event.user_name = user_info.name
+        event.user_id = user_info.id
+        event.remark = file.filename
+        event.fire()
+
+        result = webutil.SuccessResult()
+        result.webpath = webpath
+        result.link = get_link(file.filename, webpath)
+        return result
 
 
 xutils.register_func("fs.get_upload_file_path", get_upload_file_path)
@@ -555,6 +642,7 @@ xutils.register_func("fs.get_upload_file_path", get_upload_file_path)
 xurls = (
     # 和文件系统的/fs/冲突了
     r"/fs_upload", UploadHandler,
+    r"/fs_upload_to_dir", UploadToDirHandler,
     r"/fs_upload/check", CheckHandler,
     r"/fs_upload/search", UploadSearchHandler,
     r"/fs_upload/range", RangeUploadHandler,

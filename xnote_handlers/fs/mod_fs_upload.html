@@ -11,6 +11,8 @@
     <div id="dropArea">点击或拖拽上传文件</div>
 </div>
 
+{% init fs_upload_action = "fs_upload" %}
+
 <script type="text/javascript">
 
 $(function () {
@@ -29,7 +31,7 @@ $(function () {
         swf: BASE_URL + '/Uploader.swf',
 
         // 文件接收服务端。
-        server: '{{_server_home}}/fs_upload',
+        server: '{{_server_home}}/{{fs_upload_action}}',
 
         // 选择文件的按钮。可选。
         // 内部根据当前运行是创建，可能是input元素，也可能是flash.
