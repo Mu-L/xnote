@@ -12,6 +12,7 @@ import os
 import xutils
 import typing
 
+from typing import List
 from xnote.core import xconfig
 from xnote.core import xauth
 from xnote.core import xconfig
@@ -129,6 +130,14 @@ def sort_files_by_size(filelist: typing.List[FileItem]):
         return file.fsize
 
     filelist.sort(key = key_func, reverse = True)
+
+def sort_files(filelist: List[FileItem]):
+    def file_item_key_func(item: FileItem):
+        if item.type == "dir":
+            return f"0-{item.name}"
+        return f"1-{item.name}"
+    
+    filelist.sort(key=file_item_key_func)
 
 
 def is_hidden_file(item: FileItem):

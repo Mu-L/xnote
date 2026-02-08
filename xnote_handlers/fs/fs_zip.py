@@ -1,6 +1,7 @@
 import zipfile
 import web
 import os
+import logging
 
 from typing import Optional, List
 from xnote.core import xauth
@@ -10,48 +11,33 @@ from .fs_helper import FileItem
 from .fs import FileSystemHandler
 
 class ZipFileHandler(FileSystemHandler):
-    
-    def fix_zip_filename(self, filename: str):
-        """
-        修复 ZIP 文件中乱码的文件名
-        :param filename: zipfile 读取的原始乱码文件名
-        :return: 解码后的正确文件名
-        """
-        # 步骤1：先尝试 UTF-8 解码（新版 ZIP 优先）
-        try:
-            return filename.encode('cp437').decode('utf-8')
-        except UnicodeDecodeError:
-            pass
-        
-        # 步骤2：尝试 GBK/GB2312 解码（Windows 老版 ZIP）
-        try:
-            return filename.encode('cp437').decode('gbk')
-        except UnicodeDecodeError:
-            pass
-        
-        # 步骤3：兜底（替换无法解码的字符）
-        return filename.encode('cp437').decode('utf-8', errors='replace')
 
     def read_zip_file(self, zip_path: str, inner_path: str):
+        inner_path = inner_path.rstrip("/")
         with zipfile.ZipFile(zip_path, "r") as zf:
             is_dir = False
-            found: Optional[zipfile.ZipInfo] = None
+            found: Optional[ziputil.ZipFileTreeNode] = None
+            file_tree = ziputil.get_zip_file_tree(zf)
+
+            file_tree.print_tree()
             
-            if inner_path == "":
+            if inner_path == "" or inner_path == "/":
                 is_dir = True
+                found = file_tree
             else:
-                found = ziputil.find_file_in_zip(zf, inner_path)
+                found = file_tree.file_dict.get(inner_path)
                 if found is None:
                     extra = f"class = ZipFileHandler, zip_path = {zip_path}, inner_path = {inner_path}"
                     yield self.not_readable(zip_path, extra=extra)
                     return
-                is_dir = found.is_dir()
-            
+                is_dir = found.is_dir
             if is_dir:
-                yield self.read_zip_inner_dir(zf, inner_path, zip_path)
+                yield self.read_zip_inner_dir(found, zip_path)
             else:
                 assert found != None
-                total_size = found.file_size
+                zip_info = found.zip_info
+                assert zip_info != None
+                total_size = zip_info.file_size
                 web.header("Content-Length", total_size)
                 self.handle_content_type(inner_path)
                 expire_seconds = 3600 # 缓存1小时
@@ -60,43 +46,44 @@ class ZipFileHandler(FileSystemHandler):
                     
                 chunk_size = 1024**2
                 total_read = 0
-                with zf.open(found.filename) as f:
+                with zf.open(zip_info.filename) as f:
                     while True:
                         chunk = f.read(chunk_size)
                         total_read += len(chunk)
-                        # logging.debug("filename=%s, total_read=%s, total_size=%s", found.filename, total_read, total_size)
+                        # logging.debug("filename=%s, total_read=%s, total_size=%s", zip_info.filename, total_read, total_size)
                         if not chunk:
                             break
                         yield chunk
                         
-    def zip_info_to_file_item(self, zip_info: zipfile.ZipInfo, zip_path: str):
-        fixed_name = self.fix_zip_filename(zip_info.filename)
-        file_item = FileItem(fixed_name)
-        file_item.size = fsutil.format_size(zip_info.file_size)
-        if zip_info.is_dir():
+    def tree_node_to_file_item(self, tree_node: ziputil.ZipFileTreeNode, zip_path: str):
+        file_item = FileItem(tree_node.name)
+        if tree_node.is_dir:
             file_item.type = "dir"
+            file_item.size = "-"
         else:
+            assert tree_node.zip_info != None
             file_item.type = "file"
-        encoded_path = textutil.encode_uri_component(fixed_name)
+            file_item.size = fsutil.format_size(tree_node.zip_info.file_size)
+        encoded_path = textutil.encode_uri_component(tree_node.path)
         zip_path_b64 = textutil.encode_base64(zip_path)
         file_item.customized_url = f"/fs/zip/{zip_path_b64}/{encoded_path}"
         fs_helper.handle_file_item(file_item)
         return file_item
     
-    def read_zip_inner_dir(self, zf: zipfile.ZipFile, inner_path: str, zip_path: str):
+    def read_zip_inner_dir(self, found: ziputil.ZipFileTreeNode, zip_path: str):
+        inner_path = found.path
         filelist: List[FileItem] = []
-        if inner_path == "":
-            # root
-            for zip_info in zf.filelist:
-                if ziputil.is_in_root_dir(zip_info):
-                    file_item = self.zip_info_to_file_item(zip_info, zip_path)
-                    filelist.append(file_item)
-        else:
-            for zip_info in zf.filelist:
-                if ziputil.is_child_of(zip_info, inner_path):
-                    file_item = self.zip_info_to_file_item(zip_info, zip_path)
-                    filelist.append(file_item)
+        for tree_node in found.children:
+            file_item = self.tree_node_to_file_item(tree_node, zip_path)
+            filelist.append(file_item)
         
+        def sort_key(node: ziputil.ZipFileTreeNode):
+            if node.is_dir:
+                return 0
+            return 1
+        
+        fs_helper.sort_files(filelist)
+    
         web.header("Content-Type", "text/html")
         path = os.path.join(zip_path, inner_path)
         fs_path_list = self.build_fs_path_list(zip_path, inner_path)
@@ -121,7 +108,7 @@ class ZipFileHandler(FileSystemHandler):
                 continue
             abspath = dirname + "/" + path
             item = FileItem(path = abspath)
-            item.customized_url = f"/fs/zip/{zip_path_b64}{abspath}/"
+            item.customized_url = f"/fs/zip/{zip_path_b64}{abspath}"
             fs_helper.handle_file_item(item)
             result.append(item)
             dirname = abspath
