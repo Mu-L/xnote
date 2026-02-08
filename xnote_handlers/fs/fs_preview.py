@@ -68,7 +68,7 @@ class PreviewHandler:
         
         if xutils.is_zip_file(path):
             zip_path = textutil.encode_base64(path)
-            raise web.seeother(f"/fs/zip/~{zip_path}")
+            raise web.seeother(f"/fs/zip/{zip_path}")
 
         raise web.seeother("/fs_hex?path={path}&embed={embed}&b64=1".format(path=textutil.encode_base64(path), embed=embed))
 
