@@ -201,13 +201,11 @@ class UploadHandler:
         
     def do_post(self, ctx: UploadContext):
         file = xutils.get_argument_field_storage("file")
-        name = xutils.get_argument_str("name")
         note_id = xutils.get_argument_str("note_id")
         upload_type = xutils.get_argument_str("upload_type")
 
         user_info = xauth.current_user()
         assert user_info != None
-        user_name = user_info.name
         user_id = user_info.user_id
         webpath = ""
         filename = ""

@@ -165,10 +165,6 @@ noteAPI.bindTag = function (cmd) {
     });
 };
 
-NoteView.onTagClick = function (target) {
-    $(target).toggleClass("active");
-}
-
 // 编辑笔记的标签
 NoteView.editNoteTag = function (target) {
     var parentId = $(target).attr("data-parent-id");
@@ -469,7 +465,8 @@ NoteView.openDialogToMoveByElement = function (target) {
 
 // 点击标签操作
 NoteView.onTagClick = function (target) {
-    $(target).toggleClass("active");
+    var tagId = $(target).attr("data-id");
+    $(".tag.bind[data-id=" + tagId + "]").toggleClass("active");
 }
 
 // 打开对话框进行分享

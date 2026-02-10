@@ -419,7 +419,7 @@ class ShareInfoDao:
         return cls.db.count(where=where)
 
 
-def get_root(creator=None):
+def get_root(creator:Optional[str]=None):
     if creator == None:
         creator = xauth.current_name_str()
 
@@ -763,6 +763,12 @@ def get_by_id(id: typing.Union[str, int], include_full=True, creator=None) -> ty
 def get_by_id_creator(id: Union[str, int], creator: str, db=None):
     note = get_by_id(id, creator=creator)
     if note and note.creator == creator:
+        return note
+    return None
+
+def get_by_id_and_creator_id(note_id: int, creator_id: int):
+    note = get_by_id(id=note_id)
+    if note and note.creator_id == creator_id:
         return note
     return None
 

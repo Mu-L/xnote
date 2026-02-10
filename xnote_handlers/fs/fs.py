@@ -216,7 +216,7 @@ class FileSystemHandler:
     def list_root(self):
         raise web.seeother("/fs/~/")
 
-    def read_range(self, path, http_range, blocksize):
+    def read_range(self, path:str, http_range:str, blocksize:int):
         xutils.trace("Download", "==> HTTP_RANGE %s" % http_range)
         range_list = http_range.split("bytes=")
         if len(range_list) == 2:

@@ -6,7 +6,7 @@ import xutils
 import json
 import web
 
-from .dao import get_by_id_creator
+from .dao import get_by_id_creator, get_by_id_and_creator_id
 from xnote.core import xtemplate
 from xnote.core import xauth
 from xnote.core import xconfig
@@ -192,8 +192,8 @@ class BindTagAjaxHandler:
         assert isinstance(tag_names_str, str)
         assert group_id != 0
         
-        user_name = xauth.current_name()
-        book_info = get_by_id_creator(group_id, user_name)
+        user_id = xauth.current_user_id()
+        book_info = get_by_id_and_creator_id(group_id, user_id)
         if book_info == None:
             return webutil.FailedResult(code="500", message="笔记不存在或者无权限")
 
