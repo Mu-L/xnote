@@ -2,6 +2,7 @@ import zipfile
 import web
 import os
 import logging
+import xutils
 
 from typing import Optional, List
 from xnote.core import xauth
@@ -18,8 +19,6 @@ class ZipFileHandler(FileSystemHandler):
             is_dir = False
             found: Optional[ziputil.ZipFileTreeNode] = None
             file_tree = ziputil.get_zip_file_tree(zf)
-
-            file_tree.print_tree()
             
             if inner_path == "" or inner_path == "/":
                 is_dir = True
@@ -28,7 +27,7 @@ class ZipFileHandler(FileSystemHandler):
                 found = file_tree.file_dict.get(inner_path)
                 if found is None:
                     extra = f"class = ZipFileHandler, zip_path = {zip_path}, inner_path = {inner_path}"
-                    yield self.not_readable(zip_path, extra=extra)
+                    yield self.render_not_readable(zip_path, extra=extra)
                     return
                 is_dir = found.is_dir
             if is_dir:
@@ -127,7 +126,12 @@ class ZipFileHandler(FileSystemHandler):
         else:
             zip_path, inner_path = parts
         zip_path = textutil.decode_base64(zip_path)
-        return self.read_zip_file(zip_path, inner_path)
+        try:
+            yield from self.read_zip_file(zip_path, inner_path)
+        except:
+            err_msg = xutils.print_exc()
+            yield self.render_not_readable(zip_path, extra=err_msg)
+            return 
     
 xurls = (
     r"/fs/zip/(.*)", ZipFileHandler,

@@ -343,9 +343,9 @@ class FileSystemHandler:
         else:
             # return "Not Readable %s" % path
             extra = "class = FileSystemHandler"
-            return self.not_readable(path, extra=extra)
+            return self.render_not_readable(path, extra=extra)
 
-    def not_readable(self, path: str, extra = ""):
+    def render_not_readable(self, path: str, extra = ""):
         web.ctx.status = "404 Not Found"
         return xtemplate.render("fs/page/fs_not_readable.html", path = path, extra = extra)
 
@@ -655,6 +655,8 @@ class BookmarkHandler:
 
         filelist = []
         filelist.append(FileItem("/", name = "操作系统根目录"))
+        os_user_home_path = os.path.expanduser("~")
+        filelist.append(FileItem(os_user_home_path, name = "操作系统用户目录"))
         filelist.append(FileItem(xconfig.DATA_DIR, name = "Xnote数据目录"))
         
         sidebar_link = FileItem(xconfig.DATA_DIR, name="侧边栏视图")
