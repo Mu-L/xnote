@@ -293,7 +293,9 @@ class TableProxy(SQLDBInterface):
             "REPLACE INTO %s " % tablename + q(_keys) + " VALUES " + q(_values)
         )
         
-        if not _skip_binlog:
+        pk_value = values.get(self.pk_name)
+        if not _skip_binlog and pk_value is not None:
+            # FIXME can not add binlog for empty pk_value
             self._add_row_binlog(values)
 
         try:

@@ -304,7 +304,7 @@ def init_db_instance():
             from xutils.db.driver_leveldb import LevelDBImpl
             db_instance = LevelDBImpl(xconfig.DB_DIR, **leveldb_kw)
             db_instance.log_debug = xconfig.DatabaseConfig.db_log_debug
-            return db_driver
+            return db_instance
         except ImportError:
             if xutils.is_windows():
                 logging.warning("检测到Windows环境，自动切换到leveldbpy驱动")

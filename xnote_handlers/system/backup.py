@@ -21,6 +21,7 @@ from xutils import Storage
 from xutils import dbutil
 from xutils import fsutil, logutil
 from xutils import dateutil
+from xutils import webutil
 from xutils.db.driver_sqlite import SqliteKV
 from xnote.core import xtables
 from xnote.service import JobService, SysJob, JobStatusEnum, DatabaseLockService
@@ -487,12 +488,12 @@ class BackupHandler:
         
         if p == "backup_scripts":
             chk_scripts_backup()
-            return "OK"
+            return webutil.SuccessResult(data="backup scripts success")
 
         # 备份所有的
         chk_db_backup()
         chk_scripts_backup()
-        return "OK"
+        return webutil.SuccessResult(data="OK")
     
 # chk_backup()
 

@@ -894,6 +894,8 @@ def get_db_cache():
 
 def set_db_instance(db_instance: DBInterface):
     global _leveldb
+    if not isinstance(db_instance, DBInterface):
+        raise Exception(f"expect DBInterface but got {type(db_instance)}")
     _leveldb = db_instance
 
 

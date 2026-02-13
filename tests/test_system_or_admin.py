@@ -131,7 +131,9 @@ class TestMain(test_base.BaseTestCase):
         assert result["success"] == False
 
     def test_backup(self):
-        self.check_OK("/system/backup")
+        resp = self.json_request_return_dict("/system/backup")
+        assert resp["success"] == True
+
         db_path = SystemMetaEnum.db_backup_file.meta_value
         table_struct = get_sqlite_table_struct(db_path, "kv_store")
         print("table_struct:", table_struct.columns)

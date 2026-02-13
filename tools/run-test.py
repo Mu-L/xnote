@@ -5,6 +5,9 @@ import shutil
 import time
 import argparse
 import sys
+
+sys.path.append("./")
+
 from xutils import fsutil
 from argparse import Namespace
 

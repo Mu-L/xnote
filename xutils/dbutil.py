@@ -52,7 +52,7 @@ def get_table_v2(table_name=""):
     return KvTableV2(table_name)
 
 @xutils.log_init_deco("leveldb")
-def init(db_instance=None,
+def init(db_instance: DBInterface,
          db_cache=None,
          binlog=False,
          binlog_max_size=None):
