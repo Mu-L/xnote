@@ -21,3 +21,21 @@ AdminView.viewMainRecord = function (target) {
         }
     })
 }
+
+// 安装python库
+AdminView.installPythonLib = function (target) {
+    var libName = $(target).attr("data-lib-name");
+    xnote.confirm("确认要安装" + libName + "吗?", function () {
+        var params = {
+            lib_name: libName
+        };
+        xnote.http.post("/system/install_python_lib", params, function (resp) {
+            if (resp.success) {
+                xnote.toast("安装成功");
+                window.location.reload();
+            } else {
+                xnote.alert("安装失败:" + resp.message);
+            }
+        });
+    });
+};

@@ -28,13 +28,16 @@ class TestMain(test_base.BaseTestCase):
         self.check_OK("/system/db/struct?table_name=user")
         
         
-    def assert_no_auth(self, response):
+    def assert_no_auth(self, response, pattern: str):
         if response.status == "401 Unauthorized":
             return
         
+        if "Location" not in response.headers:
+            raise Exception(f"发现权限拦截漏洞, pattern={pattern}")
+        
         if "/unauthorized" in response.headers['Location']:
             return
-        raise Exception("发现权限拦截漏洞")
+        raise Exception(f"发现权限拦截漏洞, pattern={pattern}")
 
     def test_admin_auth(self):
         print("")
@@ -70,17 +73,14 @@ class TestMain(test_base.BaseTestCase):
                 if pattern.startswith("/system/") or pattern in check_list or pattern.startswith("/admin/"):
                     print(f"Check {pattern} ...")
                     handler = raw_handler.handler_class
-                    check_pass = False
+
                     if hasattr(handler, "GET"):
                         response = self.request_app(pattern, method="GET")
-                        self.assert_no_auth(response)
-                        check_pass = True
+                        self.assert_no_auth(response, pattern)
                     
                     if hasattr(handler, "POST"):
                         response = self.request_app(pattern, method="POST")
-                        self.assert_no_auth(response)
-                        check_pass = True
-                    assert check_pass
+                        self.assert_no_auth(response, pattern)
         finally:
             xauth.TestEnv.login_user("admin")
         

@@ -6,6 +6,8 @@ import sys
 import platform
 import xutils
 import os
+import logging
+import subprocess
 
 from xnote.core import xauth
 from xnote.core import xtemplate
@@ -15,9 +17,11 @@ from xutils import dateutil
 from xutils import fsutil
 from xutils import mem_util
 from xutils import Storage
+from xutils import webutil
 from xnote_handlers.config import LinkConfig
 from xnote.plugin.table_plugin import BaseTablePlugin
 from xnote.plugin.sidebar import get_admin_sidebar_html
+from xnote.service.lock_service import DatabaseLockService
 
 try:
     import sqlite3
@@ -116,6 +120,7 @@ class PythonLibInfo:
         self.lib_name = lib_name
         self.value = ""
         self.value_css_class = ""
+        self.is_installed = False
         self.check_lib_installed()
 
     def check_lib_installed(self):
@@ -123,6 +128,7 @@ class PythonLibInfo:
             __import__(self.lib_name)
             self.value = "已安装"
             self.value_css_class = "green"
+            self.is_installed = True
         except:
             self.value = "未安装"
             self.value_css_class = "red"
@@ -182,6 +188,7 @@ class InfoHandler:
         return xtemplate.render(
             "system/page/system_info_list.html",
             title="Python第三方库",
+            parent_link = LinkConfig.system_info,
             item_list=item_list,
         )
 
@@ -215,7 +222,26 @@ class BootConfigHandler(BaseTablePlugin):
         return self.response_page(**kw)
 
 
+class InstallLibHandler:
+
+    @xauth.admin_required()
+    def POST(self):
+        lib_name = xutils.get_argument_str("lib_name")
+        logging.info("start to install lib %s", lib_name)
+        with DatabaseLockService.lock(lock_key= "install_lib", timeout_seconds=600) as lock:
+            install_cmd = [sys.executable, "-m", "pip", "install", lib_name]
+            # 安装指定库
+            result = subprocess.check_call(
+                install_cmd,
+                stdout=subprocess.PIPE,  # 捕获标准输出
+                stderr=subprocess.PIPE,  # 捕获错误输出
+                encoding="utf-8"
+            )
+            # TODO 写入安装日志到缓存
+        return webutil.SuccessResult()
+
 xurls = (
     r"/system/info", InfoHandler,
     r"/system/info/boot_config", BootConfigHandler,
+    r"/system/install_python_lib", InstallLibHandler,
 )
