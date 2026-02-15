@@ -52,10 +52,10 @@
 
 <script type="text/javascript">
   var xnoteRole = '{{xconfig.WebConfig.cluster_node_role}}';
-  xnote.state.system.isAdmin = Boolean("{{_is_admin}}");
+  xnote.state.system.isAdmin = xnote.parseBoolean("{{_is_admin}}");
   xnote.config.serverHome = "{{_server_home}}";
   xnote.config.nodeRole = xnoteRole;
-  xnote.config.isMaster = "{{xconfig.WebConfig.is_leader()}}";
+  xnote.config.isMaster = xnote.parseBoolean("{{xconfig.WebConfig.is_leader()}}");
 </script>
 
 {% if load_base_layout %}

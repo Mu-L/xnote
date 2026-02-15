@@ -7,6 +7,10 @@
  * @FilePath     : /xnote/static/js/admin.js
  * @Description  : 后台管理脚本
  */
+
+/**
+ * @typedef {import('./xnote-ui/docs.js')}
+ */
 var AdminView = {}
 xnote.admin = AdminView;
 

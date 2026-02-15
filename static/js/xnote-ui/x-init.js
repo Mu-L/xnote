@@ -440,3 +440,15 @@ xnote.array.remove = function(srcArray, target, equalsFunction) {
     }
     return result;
 };
+
+/**
+ * 解析文本为boolean
+ * @param {string} text 
+ * @returns 
+ */
+xnote.parseBoolean = function (text) {
+    if (text.toLowerCase() == "true") {
+        return true;
+    }
+    return false;
+}

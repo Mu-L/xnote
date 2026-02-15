@@ -200,7 +200,9 @@ def _before_handle_kw(kw: dict):
     kw["FONT_SCALE"] = UserConfig.font_scale.get_str(user_id)
     kw["HOME_PATH"] = UserConfig.HOME_PATH.get_str(user_id)
     kw["THEME"] = UserConfig.THEME.get_str(user_id)
-    kw["_debug_info"] = xnote_trace.get_debug_info()
+    
+    if xconfig.DEV_MODE.get_bool():
+        _handle_dev_mode(kw)
 
     if hasattr(web.ctx, "env"):
         kw["HOST"] = web.ctx.env.get("HTTP_HOST")
@@ -220,6 +222,13 @@ def _after_handle_kw(kw):
 
     kw["_cost_time"] = xnote_trace.get_cost_time()
 
+def _handle_dev_mode(kw: dict):
+    from xnote.plugin import InfoTable, InfoItem
+    kw["_debug_info"] = xnote_trace.get_debug_info()
+    
+    dev_info = InfoTable()
+    dev_info.add_item(InfoItem(name="xconfig.WebConfig.is_leader()", value=str(xconfig.WebConfig.is_leader())))
+    kw["_dev_info"] = dev_info
 
 def get_mobile_template(name: str):
     global TEMPLATE_DIR

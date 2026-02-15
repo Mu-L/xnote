@@ -12,9 +12,12 @@
 {% if xconfig.DEV_MODE.get_bool() %}
 <div class="x-center">
     <div class="dev-info">
-        <div class="card sql-info">
-            <span>SQL信息 - ({{len(_debug_info.sql_logs)}})</span>
-            <textarea class="row" rows="{{len(_debug_info.sql_logs)}}">{{"\n".join(_debug_info.sql_logs)}}</textarea>
+        <div class="card">
+            {% render _dev_info %}
+            <div class="sql-info">
+                <span>SQL信息 - ({{len(_debug_info.sql_logs)}})</span>
+                <textarea class="row" rows="{{len(_debug_info.sql_logs)}}">{{"\n".join(_debug_info.sql_logs)}}</textarea>
+            </div>
         </div>
     </div>
 </div>

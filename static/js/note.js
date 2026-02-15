@@ -1,3 +1,6 @@
+/**
+ * @typedef { import('./xnote-ui/docs.js') }
+ */
 
 var NoteView = {};
 xnote.action.note = NoteView;
@@ -15,6 +18,8 @@ xnote.api.note = noteAPI;
  * 更新笔记的类目
  * @deprecated 已废弃
  * @param {object} req 更新请求
+ * @param {string | number} req.noteId
+ * @param {string} req.value
  */
 xnote.updateNoteCategory = function (req) {
     if (req === undefined) {
@@ -49,6 +54,8 @@ xnote.updateNoteCategory = function (req) {
 /**
  * 更新类目的名称
  * @param {object} req 请求对象
+ * @param {string} req.oldName
+ * @param {string} req.code
  */
 xnote.updateCategoryName = function (req) {
     if (req === undefined) {
@@ -164,8 +171,11 @@ noteAPI.bindTag = function (cmd) {
         });
     });
 };
-
-// 编辑笔记的标签
+ 
+/**
+ * 编辑笔记的标签
+ * @param {Element} target 
+ */
 NoteView.editNoteTag = function (target) {
     var parentId = $(target).attr("data-parent-id");
     var noteId = $(target).attr("data-id");

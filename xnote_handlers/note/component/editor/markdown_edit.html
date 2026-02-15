@@ -31,7 +31,7 @@
             <div class="grid-title btn-line-height">
                 <span>文档编辑器 - {{file.name}}</span>
                 <div class="float-right">
-                    <button class="inline-btn save-note-btn">保存</button>
+                    <button class="inline-btn save-note-btn" onclick="xnote.saveNote(event)">保存</button>
                     {% include common/button/back_button.html %}
                 </div>
             </div>
@@ -147,6 +147,8 @@
     }
 
     $(document).ready(function () {
+        console.log("xnote.config", xnote.config);
+        
         var oldContent = $("#markdown-input").val();
         var lastSaved = $("#markdown-input").val();
         var fileId = $("#fileId").text();
@@ -356,7 +358,7 @@
         }
 
         // 保存笔记操作
-        $(".save-note-btn").click(function (e) {
+        xnote.saveNote = function (e) {
             e.preventDefault();
             if (!xnote.config.isMaster) {
                 xnote.confirm("当前是从节点运行, 保存后可能被覆盖, 确认保存?", function (resp) {
@@ -365,7 +367,7 @@
             } else {
                 serverSaveNote();
             }
-        });
+        }
 
         // 退出确认的询问
         window.onbeforeunload=function(e){
