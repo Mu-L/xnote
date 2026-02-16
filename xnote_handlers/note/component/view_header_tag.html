@@ -1,23 +1,27 @@
 {% init file = None %}
 {% init can_edit = False %}
 
-<span>标签</span>
-{% if len(file.tags) == 0 %}
-    <span>(无)</span>
-{% end %}
+<div class="row">
+    <div class="note-meta-name">标签</div>
+    <div class="note-meta-value">
+        {% if len(file.tags) == 0 %}
+            <span>(无)</span>
+        {% end %}
 
-{% for tag_info in file.tag_info_list %}
-    <a class="tag lightgray large" href="{{tag_info.url}}">{{tag_info.tag_name}}</a>
-{% end %}
+        {% for tag_info in file.tag_info_list %}
+            <a class="tag lightgray large" href="{{tag_info.url}}">{{tag_info.tag_name}}</a>
+        {% end %}
 
-<div class="float-right">
-    {% if can_edit %}
-        <button class="btn btn-default tag-edit-btn"
-            data-parent-id="{{file.parent_id}}"
-            data-id="{{file.id}}"
-            data-tags="{{file.tags_json}}"
-            onclick="xnote.action.note.editNoteTag(this);">编辑</button>
-    {% end %}
+        <div class="float-right">
+            {% if can_edit %}
+                <button class="btn btn-default tag-edit-btn"
+                    data-parent-id="{{file.parent_id}}"
+                    data-id="{{file.id}}"
+                    data-tags="{{file.tags_json}}"
+                    onclick="xnote.action.note.editNoteTag(this);">编辑标签</button>
+            {% end %}
+        </div>
+    </div>
 </div>
 
 

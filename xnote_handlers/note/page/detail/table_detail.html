@@ -47,9 +47,7 @@
     {% include note/component/note_path.html %}
 </div>
 
-<div class="card btn-line-height">
-    {% include note/component/view_header_tag.html %}
-</div>
+{% include note/page/meta/note_meta.html %}
 
 <div class="card">
     <textarea id="content" class="hide">{{file.content}}</textarea>

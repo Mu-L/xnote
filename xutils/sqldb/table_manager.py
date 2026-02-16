@@ -492,13 +492,16 @@ class TableManagerFacade:
         """
         for old_name in old_names:
             self.rename_column(old_name=old_name, new_name=colname)
+            
+        if not_null and default_value is None:
+            raise Exception(f"default_value is None with not_null constraint, table_name={self.table_info.table_name}, column={colname}")
 
-        if TableHelper.is_varchar_type(coltype):
-            assert default_value != None, f"varchar column {colname} default value can not be NULL"
+        # if TableHelper.is_varchar_type(coltype):
+        #     assert default_value != None, f"varchar column {colname} default value can not be NULL"
         
-        if TableHelper.is_int_type(coltype):
-            assert default_value != None, f"{coltype} column {colname} default value can not be NULL"
-            assert isinstance(default_value, int)
+        # if TableHelper.is_int_type(coltype):
+        #     assert default_value != None, f"{coltype} column {colname} default value can not be NULL"
+        #     assert isinstance(default_value, int)
 
         self.table_info.add_column(colname, coltype, default_value, not_null, comment=comment)
         self.manager.add_column(colname, coltype, default_value, not_null, comment=comment)

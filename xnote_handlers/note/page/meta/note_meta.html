@@ -1,0 +1,35 @@
+{% init note_meta_list = [] %}
+{% init show_alias = False %}
+{% init show_tag = False %}
+{% init show_relation_row = False %}
+
+{% if show_alias or show_tag or show_relation_row %}
+<div class="card">
+    {% if show_alias %}
+        {% include note/component/view_header_alias.html %}
+    {% end %}
+
+    {% if show_tag %}
+    <div class="row">
+        {% include note/component/view_header_tag.html %}
+    </div>
+    {% end %}
+
+    {% if show_relation_row %}
+        {% include note/page/note_relation_row.html %}
+    {% end %}
+
+    {% for note_meta in note_meta_list %}
+        <div class="row">
+            <div class="note-meta-name">{{note_meta.meta_name}}</div>
+            <div class="note-meta-value">
+                {{note_meta.meta_value}}
+            </div>
+        </div>
+    {% end %}
+</div>
+{% end %}
+
+{% if show_meta_manage %}
+    {% include note/page/meta/note_meta_manage.html %}
+{% end %}

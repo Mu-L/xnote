@@ -26,6 +26,7 @@ from xnote.plugin.table_plugin import BaseTablePlugin
 from xnote.plugin import DataTable
 from xnote.plugin import TableActionType, LinkConfig
 from xnote.service.system_log_service import SystemLogService, SystemLogLevel, SystemLogType
+from xnote_handlers.config import AsideConfig
 
 uv_db = dbutil.get_table("uv")
 
@@ -272,6 +273,8 @@ class DatabaseLogHandler(BaseTablePlugin):
         table_name = xutils.get_argument_str("table_name", "system_log")
         page = xutils.get_argument_int("page", 1)
         page_size = 20
+        
+        self.update_aside(AsideConfig.get_admin_aside_html())
 
         if table_name == "system_log":
             return self.handle_system_log_page(table_name)

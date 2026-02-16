@@ -78,7 +78,7 @@ class _NoteRelationServiceImpl:
 
     def render_table(self, relation_list: typing.List[NoteRelationDO]):
         table = DataTable()
-        table.add_head("关系ID", "relation_id")
+        # table.add_head("关系ID", "relation_id")
         table.add_head("源笔记", "source_name", link_field="source_url")
         table.add_head("关系名称", "relation_name")
         table.add_head("关联笔记", "target_name", link_field="target_url")

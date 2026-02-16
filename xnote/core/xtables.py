@@ -222,6 +222,25 @@ def init_note_relation_table():
         manager.add_index("note_id")
         manager.add_index("target_id")
 
+
+def init_note_meta_table():
+    table_name = "note_meta"
+    comment = "笔记元信息"
+    pk_name = "meta_id"
+    with create_default_table_manager(table_name, comment=comment, pk_name=pk_name) as manager:
+        manager.add_column("create_time", "bigint", default_value=0)
+        manager.add_column("update_time", "bigint", default_value=0)
+        manager.add_column("note_id", "bigint", default_value=0)
+        manager.add_column("user_id", "bigint", default_value=0)
+        manager.add_column("meta_key", "varchar(50)", default_value="", comment="")
+        manager.add_column("meta_value", "text", default_value="", comment="")
+        manager.add_column("index_value", "varchar(50)", default_value=None, not_null=False)
+        manager.add_column("version", "int", default_value=0, comment="版本号")
+        
+        manager.add_index(["note_id", "meta_key"], is_unique=True, index_name="uk_noteMeta_noteId_metaKey")
+        manager.add_index(["user_id", "meta_key", "index_value"], index_name="idx_noteMeta_userId_metaKey_indexValue")
+
+
 def init_share_info_table():
     comment = "分享记录"
     table_name = "share_info"
@@ -569,7 +588,7 @@ def init_system_info_table():
         manager.add_column("ctime", "datetime", default_value=DEFAULT_DATETIME)
         manager.add_column("mtime", "datetime", default_value=DEFAULT_DATETIME)
         manager.add_column("info_key", "varchar(100)", default_value="", comment="")
-        manager.add_column("info_value", "text", comment="")
+        manager.add_column("info_value", "text", default_value="", comment="")
         manager.add_column("version", "int", default_value=0, comment="版本号")
         manager.add_index("info_key", is_unique=True)
 
@@ -581,7 +600,7 @@ def init_system_meta_table():
         manager.add_column("create_time", "bigint", default_value=0)
         manager.add_column("update_time", "bigint", default_value=0)
         manager.add_column("meta_key", "varchar(100)", default_value="", comment="")
-        manager.add_column("meta_value", "text", comment="")
+        manager.add_column("meta_value", "text", default_value="", comment="")
         manager.add_column("version", "int", default_value=0, comment="版本号")
         manager.add_index("meta_key", is_unique=True)
 
@@ -773,7 +792,7 @@ def init_user_meta_table():
         manager.add_column("update_time", "bigint", default_value=0)
         manager.add_column("user_id", "bigint", default_value=0)
         manager.add_column("meta_key", "varchar(100)", default_value="", comment="")
-        manager.add_column("meta_value", "text", comment="")
+        manager.add_column("meta_value", "text", default_value="", comment="")
         manager.add_column("version", "int", default_value=0, comment="版本号")
         manager.add_index(["user_id", "meta_key"], is_unique=True, index_name="uk_userMeta_userId_metaKey")
 
@@ -974,6 +993,7 @@ def init():
     init_note_index_table()
     init_note_history_index()
     init_note_relation_table()
+    init_note_meta_table()
 
     init_month_plan_index()
     init_txt_info_index()

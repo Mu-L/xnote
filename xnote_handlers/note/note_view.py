@@ -27,7 +27,7 @@ from xnote.core.xnote_user_config import UserConfig
 from .constant import CREATE_BTN_TEXT_DICT
 from . import dao_tag
 from .dao_api import NoteDao
-from xnote_handlers.note.models import NotePathInfo, NoteRelationGroup
+from xnote_handlers.note.models import NotePathInfo, NoteRelationGroup, NoteViewContext
 from xnote.plugin import TextLink
 from . import dao_draft
 from . import dao_log
@@ -38,83 +38,13 @@ from .note_helper import group_notes
 from xnote_handlers.note.note_service import NoteService, NoteRelationService
 from xnote.plugin.table import DataTable
 from xnote.plugin import TabBox
-
+from .note_meta import NoteMetaService
 
 PAGE_SIZE = xconfig.PAGE_SIZE
 NOTE_DAO = xutils.DAO("note")
 
 def is_empty_id(note_id):
     return note_id == 0 or note_id == ""
-
-class NoteViewContext(Storage):
-
-    note_detail_tab: TabBox
-
-    def __init__(self, **kw):
-        self.user_name = ""
-        self.user_id = 0
-        self.recommended_notes = [] # type: list|object
-        self.next_note = None # type: NoteIndexDO|None
-        self.prev_note = None # type: NoteIndexDO|None
-        
-        self.can_edit = False
-        self.show_left = False
-        self.show_groups = False
-        self.show_aside = True
-        self.show_right = True
-        self.show_contents_btn = False
-        self.show_comment_edit = False
-        self.show_comment = True
-        self.show_content = True
-        self.show_ext_info = True
-        self.show_nav = True
-        self.show_relation = False
-        self.show_relation_row = True
-        self.show_tag = True
-        self.show_search_div = True
-        self.show_parent_link = True
-
-        self.page = 1
-        self.pagesize = 20
-        self.page_max = 1
-        self.page_url = ""
-
-        self.groups = []
-        self.files = []
-        self.show_mdate = False
-        self.show_add_file = False
-        self.template_name = "note/page/detail/note_detail.html"
-        self.search_type = "note"
-        self.comment_source_class = "hide"
-        self.op = ""
-        self.is_public_page = False
-        self.OrderTypeEnum = OrderTypeEnum
-        self.file = None # type: NoteIndexDO|None
-        self.parent_id = 0
-        self.content = ""
-        self.note_alias_list = [] # type: list[NoteIndexDO]
-        self.show_recommend = False
-        self.show_pagination = False
-        self.edit_token = ""
-        self.tab = ""
-        self.create_btn_text = ""
-        self.relation_group_list = None # type: None|list[NoteRelationGroup]
-        self.related_notes = [] # type: list[TextLink]
-        self.relation_table = None # type: DataTable|None
-        self.rev_relation_table = None # type: DataTable|None
-        self.note_group_list = [] # type: list[NoteOptGroup]
-        self.q_tag = ""
-    
-        self.update(kw)
-
-    def hide_components(self):
-        self.show_comment = False
-        self.show_comment_edit = False
-        self.show_content = False
-        self.show_relation = False
-        self.show_relation_row = False
-        self.show_ext_info = False
-        self.show_tag = False
 
 
 @xmanager.listen("note.view", is_async=False)
@@ -174,6 +104,7 @@ def view_or_edit_md_func(file: NoteDO, kw: NoteViewContext):
     note_tab.add_item(title="全部", value="all")
     if not kw.is_public_page:
         note_tab.add_item(title="关联笔记", value="relation")
+        note_tab.add_item(title="元数据", value="meta")
     note_tab.add_item(title="评论", value="comment")
 
     kw.note_detail_tab = note_tab
@@ -181,9 +112,12 @@ def view_or_edit_md_func(file: NoteDO, kw: NoteViewContext):
     kw.show_recommend = True
     kw.show_pagination = False
     kw.edit_token = textutil.create_uuid()
-    kw.note_alias_list = NoteIndexDao.list(creator_id=creator_id, parent_id=note_id)
+    note_alias_list = NoteIndexDao.list(creator_id=creator_id, parent_id=note_id)
+    kw.show_alias = len(note_alias_list) > 0
+    kw.note_alias_list = note_alias_list
     kw.relation_group_list = []
     kw.related_notes = NoteRelationService.get_related_notes(note_id=note_id, user_id=creator_id)
+    kw.note_meta_list = NoteMetaService.get_meta_list(note_id=note_id)
 
     if kw.op == "edit":
         if load_draft:
@@ -216,6 +150,11 @@ def view_or_edit_md_func(file: NoteDO, kw: NoteViewContext):
         kw.create_btn_text = "创建关系"
         kw.relation_table = NoteRelationService.get_table(note_id=file.note_id, user_id=kw.user_id)
         kw.rev_relation_table = NoteRelationService.get_rev_table(target_id=file.note_id, user_id=kw.user_id)
+        
+    if kw.tab == "meta":
+        kw.hide_components()
+        kw.show_meta_manage = True
+        NoteMetaService.render_note_view_ctx(kw)
 
 def build_tag_meta_tab(user_id=0, file_id=0):
     meta_list = NoteTagInfoDao.list(user_id=user_id, group_id=file_id)
@@ -293,6 +232,7 @@ def view_checklist_func(note, kw: NoteViewContext):
     kw.template_name = "note/page/detail/checklist_detail.html"
     kw.search_type = "checklist"
     kw.search_ext_dict = dict(note_id=note.id)
+    kw.show_alias = False
 
 
 def view_table_func(note, kw: NoteViewContext):

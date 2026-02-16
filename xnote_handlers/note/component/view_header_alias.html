@@ -1,5 +1,9 @@
 {% init note_alias_list = [] %}
-<span>别名</span>
-{% for note_alias in note_alias_list %}
-    <a class="tag lightgray large" href="#">{{note_alias.name}}</a>
-{% end %}
+<div class="row">
+    <div class="note-meta-name">别名</div>
+    <div class="note-meta-value">
+        {% for note_alias in note_alias_list %}
+            <a class="tag lightgray large" href="#">{{note_alias.name}}</a>
+        {% end %}
+    </div>
+</div>

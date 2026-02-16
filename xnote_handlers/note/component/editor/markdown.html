@@ -36,21 +36,7 @@
     {% raw note_detail_tab.render() %}
 </div>
 
-{% if len(note_alias_list) > 0 %}
-<div class="card">
-    {% include note/component/view_header_alias.html %}
-</div>
-{% end %}
-
-{% if show_tag %}
-<div class="card btn-line-height">
-    {% include note/component/view_header_tag.html %}
-</div>
-{% end %}
-
-{% if show_relation_row %}
-    {% include note/page/note_relation_row.html %}
-{% end %}
+{% include note/page/meta/note_meta.html %}
 
 {% if show_relation %}
     {% include note/page/note_relation.html %}

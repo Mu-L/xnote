@@ -115,10 +115,10 @@ def decode_bytes(bytes: bytes):
 try_decode = decode_bytes
 
 
-class EnumItem:
+class BaseEnumItem:
     def __init__(self, name="", value=""):
-        self.name = name
-        self.value = value
+        self.name = name # enum name
+        self.value = value # enum value
         self._int_cache = None
     
     @property
@@ -129,15 +129,16 @@ class EnumItem:
         self._int_cache = int(self.value)
         return self._int_cache
 
+EnumItem = BaseEnumItem
 
 class BaseEnum:
     """枚举的基类,和python自带的不同,允许动态新增枚举值"""
     @classmethod
     def enums(cls):
-        result = [] # type: list[EnumItem]
+        result = [] # type: list[BaseEnumItem]
         for key in cls.__dict__:
             item = getattr(cls, key, None)
-            if isinstance(item, EnumItem):
+            if isinstance(item, BaseEnumItem):
                 result.append(item)
         return result
     

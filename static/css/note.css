@@ -360,3 +360,15 @@
 }
 
 /** markdown编辑的侧边菜单样式 END **/
+
+
+.note-meta-name {
+    width: 80px;
+    line-height: 29px;
+    float: left;
+}
+.note-meta-value {
+    float: left;
+    line-height: 29px;
+    width: calc(100% - 80px);
+}

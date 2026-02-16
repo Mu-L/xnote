@@ -3,6 +3,7 @@ import enum
 import typing
 import xutils
 
+from typing import List, Optional
 from xutils import Storage, EnumItem
 from xutils import dateutil
 from xnote.core import xtables
@@ -10,7 +11,7 @@ from xnote.core import xconfig
 from xutils.db.dbutil_helper import new_from_dict
 from xutils.base import EnumItem, BaseDataRecord
 from xnote_handlers.note.constant import NoteType
-from xnote.plugin import TextLink
+from xnote.plugin import TextLink, TabBox, DataTable
 from xutils.functions import del_dict_key, delete_None_values
 
 NOTE_ICON_DICT = {
@@ -298,3 +299,113 @@ class NoteVisitLogDO(BaseDataRecord):
         self.visit_cnt = 0
         self.atime = dateutil.format_datetime()
         self.update(kw)
+
+
+class NoteMetaRecord(BaseDataRecord):
+    _ignore_save_fields = ["meta_id", "meta_name", "value_type"]
+    def __init__(self):
+        current_ms = dateutil.timestamp_ms()
+        self.meta_id = 0
+        self.create_time = current_ms
+        self.update_time = current_ms
+        self.version = 0
+        self.note_id = 0
+        self.user_id = 0
+        self.meta_key = ""
+        self.meta_value = ""
+        self.index_value: Optional[str] = None
+        
+        # 虚拟字段
+        self.meta_name = ""
+        self.value_type = ""
+        
+    def validate(self):
+        if self.note_id <= 0:
+            raise Exception("invalid note_id")
+        if self.user_id <= 0:
+            raise Exception("invalid user_id")
+        if self.meta_key == "":
+            raise Exception("invalid meta_key")
+
+class NoteViewContext(Storage):
+
+    note_detail_tab: TabBox
+    meta_tab: TabBox
+    meta_table: DataTable
+
+    def __init__(self, **kw):
+        self.user_name = ""
+        self.user_id = 0
+        self.recommended_notes = [] # type: list|object
+        self.next_note = None # type: NoteIndexDO|None
+        self.prev_note = None # type: NoteIndexDO|None
+        
+        self.can_edit = False
+        self.show_left = False
+        self.show_groups = False
+        self.show_aside = True
+        self.show_right = True
+        self.show_contents_btn = False
+        self.show_comment_edit = False
+        self.show_comment = True
+        self.show_content = True
+        self.show_ext_info = True
+        self.show_nav = True
+        self.show_relation = False
+        self.show_relation_row = True
+        self.show_tag = True
+        self.show_search_div = True
+        self.show_parent_link = True
+        self.show_alias = True
+        # 元数据管理页面
+        self.show_meta_manage = False
+
+        self.page = 1
+        self.pagesize = 20
+        self.page_max = 1
+        self.page_url = ""
+
+        self.groups = []
+        self.files = []
+        self.show_mdate = False
+        self.show_add_file = False
+        self.template_name = "note/page/detail/note_detail.html"
+        self.search_type = "note"
+        self.comment_source_class = "hide"
+        self.op = ""
+        self.is_public_page = False
+        self.OrderTypeEnum = OrderTypeEnum
+        self.file = None # type: NoteIndexDO|None
+        self.parent_id = 0
+        self.content = ""
+        self.note_alias_list = [] # type: list[NoteIndexDO]
+        self.show_recommend = False
+        self.show_pagination = False
+        self.edit_token = ""
+        self.tab = ""
+        self.create_btn_text = ""
+        self.relation_group_list = None # type: None|list[NoteRelationGroup]
+        self.related_notes = [] # type: list[TextLink]
+        self.relation_table = None # type: DataTable|None
+        self.rev_relation_table = None # type: DataTable|None
+        self.note_group_list = [] # type: list[NoteOptGroup]
+        self.q_tag = ""
+        self.note_meta_list: List[NoteMetaRecord] = []
+    
+        self.update(kw)
+
+    def hide_components(self):
+        self.show_comment = False
+        self.show_comment_edit = False
+        self.show_content = False
+        self.show_relation = False
+        self.show_relation_row = False
+        self.show_ext_info = False
+        self.show_tag = False
+        self.show_alias = False
+
+    @property
+    def note_id(self):
+        if self.file:
+            return self.file.note_id
+        return 0

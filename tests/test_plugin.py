@@ -43,7 +43,7 @@ class TestMain(BaseTestCase):
         
     def test_plugin_db(self):
         with plugin_db.create_plugin_table(table_name="plugin_test") as manager:
-            manager.add_column("name", "text", comment="name")
+            manager.add_column("name", "text", default_value="", comment="name")
             manager.add_column("age", "int", default_value=0)
         
         db = xtables.get_table_by_name("plugin_test")

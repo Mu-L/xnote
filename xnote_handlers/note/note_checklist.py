@@ -16,13 +16,14 @@ from xnote.core import xtemplate
 from .dao import get_by_id as get_note_by_id
 from .dao import list_path
 from . import dao_tag
+from .models import NoteViewContext
 
 
 class ChecklistSearchHandler:
 
     @xauth.login_required()
     def GET(self):
-        note_id = xutils.get_argument("note_id", "")
+        note_id = xutils.get_argument_int("note_id")
         note_detail = get_note_by_id(note_id)
         user_name = xauth.current_name()
 
@@ -32,7 +33,7 @@ class ChecklistSearchHandler:
             raise Exception("无访问权限")
 
         dao_tag.handle_tag_for_note(note_detail)
-        kw = Storage()
+        kw = NoteViewContext()
         kw.search_type = "checklist"
         kw.search_ext_dict = dict(note_id = note_id)
         kw.comment_list_type = "search"
@@ -40,8 +41,11 @@ class ChecklistSearchHandler:
         kw.file = note_detail
         kw.show_checklist_search = True
         kw.key = xutils.get_argument_str("key")
+        kw.show_alias = False
+        kw.show_relation = False
+        kw.template_name = "note/page/detail/checklist_detail.html"
 
-        return xtemplate.render("note/page/detail/checklist_detail.html", **kw)
+        return xtemplate.render(**kw)
 
 
 xurls = (
