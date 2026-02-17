@@ -1,6 +1,7 @@
 
 {% import xutils.textutil as textutil %}
 {% init parent_path = None %}
+{% init show_gallery = True %}
 
 {% include note/component/css/gallery_css.html %}
 
@@ -12,8 +13,15 @@
     {% include note/component/note_path.html %}
 </div>
 
+{% if note_detail_tab %}
+<div class="card">
+    {% render note_detail_tab %}
+</div>
+{% end %}
+
 {% include note/page/meta/note_meta.html %}
 
+{% if show_gallery %}
 <style id="gallery-css" type="text/css"></style>
 
 <script type="text/javascript">
@@ -89,3 +97,4 @@ xnote.execute(function () {
     </div>
 </div>
 
+{% end %}

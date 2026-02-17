@@ -12,6 +12,7 @@ from xnote_handlers.note import dao_share
 from xnote.plugin import TextLink
 from xnote.plugin.table import DataTable, TableActionType
 from xnote_handlers.note.dao_relation import NoteRelationDao, NoteRelationDO
+from .models import NoteViewContext
 
 class YearGroup:
 
@@ -156,5 +157,15 @@ class _NoteRelationServiceImpl:
         for key in keys:
             result_list.append(result_dict[key])
         return result_list
+    
+    def render_note_view_ctx(self, ctx: NoteViewContext):
+        ctx.related_notes = self.get_related_notes(note_id=ctx.note_id, user_id=ctx.user_id)
+        if ctx.tab == "relation":
+            ctx.hide_components()
+            ctx.show_relation = True
+            ctx.create_btn_text = "创建关系"
+            ctx.relation_table = NoteRelationService.get_table(note_id=ctx.note_id, user_id=ctx.user_id)
+            ctx.rev_relation_table = NoteRelationService.get_rev_table(target_id=ctx.note_id, user_id=ctx.user_id)
+        
 
 NoteRelationService = _NoteRelationServiceImpl()

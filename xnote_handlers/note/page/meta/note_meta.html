@@ -2,6 +2,7 @@
 {% init show_alias = False %}
 {% init show_tag = False %}
 {% init show_relation_row = False %}
+{% init show_relation = False %}
 
 {% if show_alias or show_tag or show_relation_row %}
 <div class="card">
@@ -32,4 +33,8 @@
 
 {% if show_meta_manage %}
     {% include note/page/meta/note_meta_manage.html %}
+{% end %}
+
+{% if show_relation %}
+    {% include note/page/note_relation.html %}
 {% end %}

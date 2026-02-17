@@ -65,6 +65,13 @@ class NoteMetaService:
     
     @classmethod
     def render_note_view_ctx(cls, ctx: NoteViewContext):
+        if ctx.tab != "meta":
+            ctx.note_meta_list = cls.get_meta_list(note_id=ctx.note_id)
+            return
+        
+        ctx.hide_components()
+        ctx.show_meta_manage = True
+        
         tab = TabBox(tab_key="meta_category", tab_default="all")
         tab.add_item(title="全部", value="all")
         tab.add_item(title="人物信息", value="people")

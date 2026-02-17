@@ -34,7 +34,7 @@ DEFAULT_ICON = "fa-file-text-o"
 class NoteTypeEnum(xutils.BaseEnum):
     """笔记类型枚举"""
     alias = NoteType(name="别名", type="alias")
-
+    list = NoteType(name="清单", type="list")
 
 class NoteLevelEnum(xutils.BaseEnum):
     """笔记等级"""
@@ -147,6 +147,10 @@ class NoteIndexDO(BaseDataRecord):
     def is_pinned(self):
         """是否置顶"""
         return self.level > 0
+    
+    @property
+    def is_list(self):
+        return self.type == NoteTypeEnum.list.value
     
     def get_url(self):
         return f"{xconfig.WebConfig.server_home}/note/view/{self.id}"
@@ -359,6 +363,7 @@ class NoteViewContext(Storage):
         self.show_alias = True
         # 元数据管理页面
         self.show_meta_manage = False
+        self.show_gallery = False
 
         self.page = 1
         self.pagesize = 20
@@ -403,9 +408,26 @@ class NoteViewContext(Storage):
         self.show_ext_info = False
         self.show_tag = False
         self.show_alias = False
+        self.show_gallery = False
+        
+    def update_detail_tab(self):
+        note_tab = TabBox(tab_key="tab", tab_default="all", css_class="btn-style")
+        note_tab.add_item(title="全部", value="all")
+        if not self.is_public_page:
+            note_tab.add_item(title="关联笔记", value="relation")
+            note_tab.add_item(title="元数据", value="meta")
+        if not self.is_list_type:
+            note_tab.add_item(title="评论", value="comment")
+        self.note_detail_tab = note_tab
 
     @property
     def note_id(self):
         if self.file:
             return self.file.note_id
         return 0
+    
+    @property
+    def is_list_type(self):
+        if self.file:
+            return self.file.is_list
+        return False

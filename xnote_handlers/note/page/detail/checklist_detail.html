@@ -12,7 +12,8 @@
 
     {% init show_tags = False %}
     {% init show_checklist_search = False %}
-    {% set-global show_comment = False %}
+    {% init note_detail_tab = None %}
+    {% init show_comment = True %}
 
     <div class="card">
         {% include note/component/view_header.html %}
@@ -22,8 +23,15 @@
         {% include note/component/note_path.html %}
     </div>
 
-    {% include note/page/meta/note_meta.html %}
+    {% if note_detail_tab %}
+    <div class="card">
+        {% render note_detail_tab %}
+    </div>
+    {% end %}
 
+
+    {% include note/page/meta/note_meta.html %}
+    
     {% set-global comment_btn_text = T("添加清单项") %}
     {% set-global comment_placeholder = T("请输入清单项...") %}
     {% set-global comment_empty_text = T("暂无清单项~") %}
@@ -43,6 +51,8 @@
         </div>
     {% end %}
 
+    {% if show_comment %}
+
     <!-- 清单的底层就是直接复用的评论的能力 -->
     {% include note/page/comment/comment.html %}
 
@@ -54,6 +64,8 @@
         <div class="card">
             {% include mod_pagenation.html %}
         </div>
+    {% end %}
+
     {% end %}
 
 {% include note/component/script/delete_script.html %}

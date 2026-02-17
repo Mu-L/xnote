@@ -43,6 +43,7 @@ from .note_meta import NoteMetaService
 PAGE_SIZE = xconfig.PAGE_SIZE
 NOTE_DAO = xutils.DAO("note")
 
+
 def is_empty_id(note_id):
     return note_id == 0 or note_id == ""
 
@@ -70,15 +71,19 @@ def view_gallery_func(file: NoteDO, kw: NoteViewContext):
                          str(file.parent_id), str(file.id))
     filelist = []
     # 处理相册
-    # print(file)
-    fpath = note_dao.get_gallery_path(file)
-    # print(fpath)
-    if fpath != None:
-        filelist = fsutil.list_files(fpath, webpath=True)
-    file.path = fpath
-    kw.show_aside = False
-    kw.path = fpath
-    kw.filelist = filelist
+    if kw.tab == "all":
+        kw.show_gallery = True
+        fpath = note_dao.get_gallery_path(file)
+        if fpath != None:
+            filelist = fsutil.list_files(fpath, webpath=True)
+        file.path = fpath
+        kw.path = fpath
+        kw.filelist = filelist
+
+    kw.update_detail_tab()
+    NoteRelationService.render_note_view_ctx(kw)
+    NoteMetaService.render_note_view_ctx(kw)
+    render_comment(kw)
 
 
 def view_html_func(file: NoteDO, kw: NoteViewContext):
@@ -100,24 +105,19 @@ def view_or_edit_md_func(file: NoteDO, kw: NoteViewContext):
     creator_id = file.creator_id
     note_id = file.note_id
 
-    note_tab = TabBox(tab_key="tab", tab_default="all", css_class="btn-style")
-    note_tab.add_item(title="全部", value="all")
-    if not kw.is_public_page:
-        note_tab.add_item(title="关联笔记", value="relation")
-        note_tab.add_item(title="元数据", value="meta")
-    note_tab.add_item(title="评论", value="comment")
-
-    kw.note_detail_tab = note_tab
+    kw.update_detail_tab()
     kw.content = file.content
     kw.show_recommend = True
     kw.show_pagination = False
     kw.edit_token = textutil.create_uuid()
-    note_alias_list = NoteIndexDao.list(creator_id=creator_id, parent_id=note_id)
+    note_alias_list = NoteIndexDao.list(
+        creator_id=creator_id, parent_id=note_id)
     kw.show_alias = len(note_alias_list) > 0
     kw.note_alias_list = note_alias_list
     kw.relation_group_list = []
-    kw.related_notes = NoteRelationService.get_related_notes(note_id=note_id, user_id=creator_id)
-    kw.note_meta_list = NoteMetaService.get_meta_list(note_id=note_id)
+    NoteRelationService.render_note_view_ctx(kw)
+    NoteMetaService.render_note_view_ctx(kw)
+    render_comment(kw)
 
     if kw.op == "edit":
         if load_draft:
@@ -135,37 +135,29 @@ def view_or_edit_md_func(file: NoteDO, kw: NoteViewContext):
         # 强制使用移动端编辑器
         kw.template_name = "note/component/editor/markdown_edit.mobile.html"
 
-    
     if kw.op == "edit" and webutil.is_mobile_client():
         kw.show_nav = False
 
-    if kw.tab == "comment":
-        kw.hide_components()
-        kw.show_comment = True
-        kw.show_comment_edit = True
 
-    if kw.tab == "relation":
-        kw.hide_components()
-        kw.show_relation = True
-        kw.create_btn_text = "创建关系"
-        kw.relation_table = NoteRelationService.get_table(note_id=file.note_id, user_id=kw.user_id)
-        kw.rev_relation_table = NoteRelationService.get_rev_table(target_id=file.note_id, user_id=kw.user_id)
-        
-    if kw.tab == "meta":
-        kw.hide_components()
-        kw.show_meta_manage = True
-        NoteMetaService.render_note_view_ctx(kw)
+def render_comment(ctx: NoteViewContext):
+    if ctx.tab == "comment":
+        ctx.hide_components()
+        ctx.show_comment = True
+        ctx.show_comment_edit = True
+
 
 def build_tag_meta_tab(user_id=0, file_id=0):
     meta_list = NoteTagInfoDao.list(user_id=user_id, group_id=file_id)
-    tab = TabBox(tab_key="tag", tab_default="", css_class="btn-style", title="标签")
+    tab = TabBox(tab_key="tag", tab_default="",
+                 css_class="btn-style", title="标签")
     tab.add_item(title="全部")
 
     for item in meta_list:
         tab.add_item(
-            title=item.tag_name, value=item.tag_code, 
+            title=item.tag_name, value=item.tag_code,
             href=f"/note/{file_id}?tag={quote(item.tag_code)}")
     return tab
+
 
 def view_group_detail_func(file: note_dao.NoteDO, kw: NoteViewContext):
     page = kw.page
@@ -182,7 +174,7 @@ def view_group_detail_func(file: note_dao.NoteDO, kw: NoteViewContext):
         kw.show_recommend = False
         kw.template_name = "note/component/editor/markdown_edit.html"
         return
-    
+
     q_tags = None
     if q_tag != "":
         q_tags = [q_tag]
@@ -227,12 +219,17 @@ def view_checklist_func(note, kw: NoteViewContext):
     kw.show_aside = False
     kw.show_pagination = False
     kw.show_comment_title = True
+    kw.show_comment = True
+
     kw.comment_title = T("清单项")
     kw.op = "view"
     kw.template_name = "note/page/detail/checklist_detail.html"
     kw.search_type = "checklist"
     kw.search_ext_dict = dict(note_id=note.id)
     kw.show_alias = False
+    kw.update_detail_tab()
+    NoteRelationService.render_note_view_ctx(kw)
+    NoteMetaService.render_note_view_ctx(kw)
 
 
 def view_table_func(note, kw: NoteViewContext):
@@ -271,7 +268,8 @@ def view_func_before(kw: NoteViewContext):
     note = kw.file
     file = kw.file
     # 是否允许评论跟着笔记走
-    kw.show_comment_edit = UserConfig.show_comment_edit.get_bool(user_name=file.creator)
+    kw.show_comment_edit = UserConfig.show_comment_edit.get_bool(
+        user_name=file.creator)
     dao_tag.handle_tag_for_note(note)
 
 
@@ -294,9 +292,10 @@ def find_note_for_view(token, note_id, name):
         note.adate = dateutil.format_date(note.atime)
     return note
 
+
 class ViewHandler:
 
-    def handle_contents_btn(self, kw:NoteViewContext):
+    def handle_contents_btn(self, kw: NoteViewContext):
         file = kw.file
         if file is None:
             raise Exception("file is None")
@@ -315,25 +314,25 @@ class ViewHandler:
             return note_dao.list_path(file)
 
     @xutils.timeit(name="Note.View", logfile=True)
-    def GET(self, op:str, id=0, is_public_page=False):
+    def GET(self, op: str, id=0, is_public_page=False):
         try:
             return self.do_get(op, id, is_public_page)
         except Exception as e:
             xutils.print_exc()
             return xtemplate.render("error.html", error=str(e))
 
-    def do_get(self, op:str, id=0, is_public_page=False):
+    def do_get(self, op: str, id=0, is_public_page=False):
         if id == 0:
             id = xutils.get_argument_int("id")
         else:
             id = int(id)
-        
+
         name = xutils.get_argument("name", "")
         page = xutils.get_argument_int("page", 1)
         pagesize = xutils.get_argument_int("pagesize", xconfig.PAGE_SIZE)
         is_iframe = xutils.get_argument_str("is_iframe", "false")
         token = xutils.get_argument_str("share_token")
-        
+
         user_info = xauth.current_user()
         if user_info != None:
             user_name = user_info.name
@@ -362,7 +361,7 @@ class ViewHandler:
         else:
             # 回收站的笔记也能看到
             file = find_note_for_view(token, id, name)
-        
+
         kw.file = file
         if file is None:
             if id != 0:
@@ -383,7 +382,8 @@ class ViewHandler:
         # 定义一些变量
         recent_created = []
 
-        event_ctx = xnote_event.NoteViewEvent(id=file.id, user_name=user_name, user_id=user_id)
+        event_ctx = xnote_event.NoteViewEvent(
+            id=file.id, user_name=user_name, user_id=user_id)
         xmanager.fire("note.view", event_ctx)
 
         # 通用的预处理
@@ -429,6 +429,7 @@ class ViewHandler:
 
     def check_has_draft(self, note_id=0):
         return dao_draft.DraftDao.exists(note_id)
+
 
 class ViewByIdHandler(ViewHandler):
 
@@ -569,6 +570,7 @@ class ViewPublicHandler:
         id = xutils.get_argument_int("id")
         return ViewHandler().GET("view", id, is_public_page=True)
 
+
 class PreviewPopupHandler:
     @xauth.login_required()
     def GET(self):
@@ -576,7 +578,8 @@ class PreviewPopupHandler:
         user_id = xauth.current_user_id()
         if name == "":
             return "错误:笔记名称为空"
-        note_info = note_dao.get_by_name_or_alias(name = name, creator_id = user_id)
+        note_info = note_dao.get_by_name_or_alias(
+            name=name, creator_id=user_id)
         if note_info is None:
             return self.render_search(name)
         if not note_info.is_markdown:
@@ -590,13 +593,14 @@ class PreviewPopupHandler:
             <a href="{search_url}">搜索【{name}】</a>
         </div>"""
         return markdown_util.render_html(content) + footer
-    
-    def get_search_url(self,name=""):
+
+    def get_search_url(self, name=""):
         return f"/s/{encode_uri_component(name)}"
-        
+
     def render_search(self, name=""):
         search_url = self.get_search_url(name)
         return f"""<div class="row"><a href="{search_url}">搜索【{name}】</a></div>"""
+
 
 xurls = (
     r"/note/(edit|view)", ViewHandler,
