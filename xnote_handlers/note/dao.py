@@ -1568,7 +1568,7 @@ def list_history(note_id, limit=1000):
     result_list = _note_history_index_db.select(where=dict(note_id=note_id), limit=limit, order="version DESC")
     return NoteHistoryIndexDO.from_list(result_list)
 
-def delete_history(note_id, version=None):
+def delete_history(note_id: int, version=None):
     pass
 
 

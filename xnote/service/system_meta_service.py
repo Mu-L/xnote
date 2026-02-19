@@ -102,6 +102,12 @@ class SystemMetaEnumItem:
             return 0
         return int(self.meta_value)
     
+    @property
+    def meta_value_float(self):
+        if self.meta_value == "":
+            return 0.0
+        return float(self.meta_value)
+    
     def expire_cache(self):
         self._cache.expire()
 
@@ -111,6 +117,7 @@ class SystemMetaEnum:
     db_backup_count = SystemMetaEnumItem("数据总量", "db.backup.rows")
     db_backup_binlog_id = SystemMetaEnumItem("备份时的binlog_id", "db.backup.binlog_id")
     db_backup_table_names = SystemMetaEnumItem("备份的表", "db.backup.table_names")
+    db_schema_version = SystemMetaEnumItem("数据库schema版本", "db.schema.version")
 
     # 配置信息
     trace_malloc_enabled = SystemMetaEnumItem("trace_malloc开关", "config.trace_malloc.enabled")

@@ -37,3 +37,8 @@ class NoteMetaDao:
     @classmethod
     def delete_by_meta_id(cls, meta_id=0, user_id=0):
         return cls.db.delete(where = dict(meta_id=meta_id, user_id=user_id))
+    
+    @classmethod
+    def delete_by_note_id(cls, note_id=0):
+        return cls.db.delete(where = dict(note_id = note_id))
+

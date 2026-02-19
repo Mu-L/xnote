@@ -7,9 +7,11 @@ import logging
 import os
 import xutils
 from xutils import six
+from xnote.core import xconfig
 
 def migrate():
     logging.info("升级数据库中 ...")
+    from xnote.service.system_meta_service import SystemMetaEnum
     dirname = os.path.dirname(__file__)
     for fname in sorted(os.listdir(dirname)):
         if not fname.startswith("upgrade_"):
@@ -26,5 +28,11 @@ def migrate():
             xutils.print_exc()
             logging.info("升级数据库失败!")
             raise e
+
+    old_version = SystemMetaEnum.db_schema_version.meta_value_float
+    new_version = xconfig.DatabaseConfig.db_schema_version
+    if new_version > old_version:
+        SystemMetaEnum.db_schema_version.save_meta(str(new_version))
+        logging.info("update db_schema_version, old=%s, new=%s", old_version, new_version)
 
     logging.info("数据库升级完成!")

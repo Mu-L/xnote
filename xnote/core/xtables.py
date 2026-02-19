@@ -1007,3 +1007,6 @@ def init():
     init_kv_cache_table()
 
     BinLog.init(get_table_by_name("system_sync_binlog"))
+    
+    # 更新schema版本, 年份.子版本号
+    xconfig.DatabaseConfig.db_schema_version = 2026.0

@@ -24,6 +24,7 @@ from .dao import (
 )
 
 from .dao_tag import NoteTagBindDao
+from .dao_meta import NoteMetaDao
 from .constant import DELETED_PREFIX
 from xutils import textutil
 
@@ -34,6 +35,7 @@ def delete_note_physically(creator: str, note_id: int):
     _full_db.delete_by_id(note_id)
     NoteIndexDao.delete_by_id(int(note_id))
     delete_history(note_id)
+    NoteMetaDao.delete_by_note_id(note_id=note_id)
 
 
 def delete_note(id):

@@ -9,7 +9,9 @@ from xutils import webutil
 from .dao_meta import NoteMetaRecord, NoteMetaDao
 
 class NoteMetaValueType:
+    text = "text"
     date = "date"
+    number = "number"
 
 class NoteMetaItem:
     def __init__(self, meta_name="", meta_key="", meta_category="", value_type=""):
@@ -21,6 +23,10 @@ class NoteMetaItem:
 class NoteMetaDateItem(NoteMetaItem):
     def __init__(self, meta_name="", meta_key="", meta_category=""):
         super().__init__(meta_name, meta_key, meta_category, NoteMetaValueType.date)
+
+class NoteMetaNumberItem(NoteMetaItem):
+    def __init__(self, meta_name="", meta_key="", meta_category=""):
+        super().__init__(meta_name, meta_key, meta_category, NoteMetaValueType.number)
     
 class NoteMetaConfig:
     
@@ -43,23 +49,27 @@ class NoteMetaConfig:
         return meta_key
     
     @classmethod
-    def add_item(cls, enum_item: NoteMetaItem):
+    def add_item(cls, meta_item: NoteMetaItem):
         """添加配置项, 插件可以通过这个接口新增配置项"""
-        old = cls.get_by_meta_key(enum_item.meta_key)
+        old = cls.get_by_meta_key(meta_item.meta_key)
         if old is not None:
             return
-        cls._items.append(enum_item)
-        cls._dict[enum_item.meta_key] = enum_item
+        cls._items.append(meta_item)
+        cls._dict[meta_item.meta_key] = meta_item
 
     @classmethod
-    def add_items(cls, items: List[NoteMetaItem]):
+    def add_items(cls, items: List[NoteMetaItem], meta_category = ""):
         for item in items:
+            if meta_category != "":
+                item.meta_category = meta_category
             cls.add_item(item)
 
 NoteMetaConfig.add_items([
-    NoteMetaDateItem(meta_name="出生日期", meta_key="birthday", meta_category="people"),
-    NoteMetaItem(meta_name="公司", meta_key="company", meta_category="people"),
-])
+    NoteMetaNumberItem(meta_name="出生年份", meta_key="birth_year"),
+    NoteMetaDateItem(meta_name="出生日期", meta_key="birth_date"),
+    NoteMetaItem(meta_name="手机号", meta_key="mobile"),
+    NoteMetaItem(meta_name="公司", meta_key="company"),
+], meta_category="people")
 
 class NoteMetaService:
     
@@ -166,6 +176,8 @@ class NoteMetaHandler(BaseTablePlugin):
         
         if value_type == NoteMetaValueType.date:
             form.add_date_input(title="属性值", field="meta_value", value=meta_info.meta_value)
+        elif value_type == NoteMetaValueType.number:
+            form.add_row(title="属性值", field="meta_value", value=meta_info.meta_value)
         else:
             form.add_textarea(title="属性值", field="meta_value", value=meta_info.meta_value)
         

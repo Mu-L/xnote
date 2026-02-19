@@ -51,6 +51,7 @@ xnote.state.note = {
         {% end %}
 
         {% if item.is_deleted %}
+            <a class="dropdown-option-red" href="javascript:remove('{{item.id}}', '{{item.name}}', '{{item.parent_id}}')">彻底删除</a>
             <a class="dropdown-option-red recover-option" data-id="{{item.id}}">恢复笔记</a>
         {% else %}
             <a class="dropdown-option-red" href="javascript:remove('{{item.id}}', '{{item.name}}', '{{item.parent_id}}')">删除</a>
