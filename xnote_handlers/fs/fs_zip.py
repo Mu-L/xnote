@@ -76,11 +76,6 @@ class ZipFileHandler(FileSystemHandler):
             file_item = self.tree_node_to_file_item(tree_node, zip_path)
             filelist.append(file_item)
         
-        def sort_key(node: ziputil.ZipFileTreeNode):
-            if node.is_dir:
-                return 0
-            return 1
-        
         fs_helper.sort_files(filelist)
     
         web.header("Content-Type", "text/html")

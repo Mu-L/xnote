@@ -29,6 +29,7 @@ json_request = test_base.json_request
 json_request_return_dict = test_base.json_request_return_dict
 request_html = test_base.request_html
 BaseTestCase = test_base.BaseTestCase
+build_data_param = test_base.build_data_param
 
 # 必须init之后再import
 
@@ -418,3 +419,8 @@ class TestMain(BaseTestCase):
     def test_message_template(self):
         self.check_OK("/message/template")
         
+        data = build_data_param(name = "template-test", content = "template-content", sort_num=10, type = "task")
+        result = json_request_return_dict("/message/template?action=save", method="POST", data = data)
+        assert result.get_bool("success")
+
+        self.check_OK("/message/template?type=task")

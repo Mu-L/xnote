@@ -12,10 +12,10 @@ import xutils
 # cannot perform relative import
 try:
     import test_base
-    from test_base import login_test_user, logout_test_user
+    from test_base import login_test_user, logout_test_user, build_data_param
 except ImportError:
     from tests import test_base
-    from tests.test_base import login_test_user, logout_test_user
+    from tests.test_base import login_test_user, logout_test_user, build_data_param
 
 from xnote.core import xauth
 from xnote.core.xtemplate import T
@@ -904,3 +904,16 @@ x^3 + x + 1
         delete_note_for_test(name="latex-test")
         latex_note_id = create_note_for_test(type="md", name="latex-test", content=content)
         self.check_OK(f"/note/view/{latex_note_id}")
+
+    def test_meta(self):
+        delete_note_for_test(name="note-meta-test")
+        note_id = create_note_for_test(type="md", name="note-meta-test")
+        
+        self.check_OK(f"/note/view/{note_id}?tab=meta")
+        
+        data = build_data_param(note_id = note_id, meta_key = "birth_year", meta_value = "2010")
+        result = json_request_return_dict("/note/meta?action=save", method = "POST", data=data)
+        assert result.get_bool("success")
+        self.check_OK(f"/note/view/{note_id}?tab=meta")
+        
+    

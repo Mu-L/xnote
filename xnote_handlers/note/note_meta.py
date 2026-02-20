@@ -138,6 +138,7 @@ class NoteMetaService:
             row.meta_name = item.meta_name
             row.meta_key = item.meta_key
             row.value_type = item.value_type
+            row.note_id = ctx.note_id
             
             if row.meta_key not in meta_keys:
                 cls._fill_links(row)
@@ -145,12 +146,15 @@ class NoteMetaService:
                 
     @classmethod
     def _fill_links(cls, row: NoteMetaRecord):
+        assert row.note_id > 0
         q_meta_name = xutils.quote(row.meta_name)
         row.edit_url = f"/note/meta?action=edit&meta_id={row.meta_id}&note_id={row.note_id}"\
             f"&value_type={row.value_type}&meta_key={row.meta_key}&meta_name={q_meta_name}"
-        row.delete_url = f"/note/meta?action=delete&meta_id={row.meta_id}"
-        row.delete_msg = f"确定清空属性【{row.meta_name}】吗"
-    
+        
+        if row.meta_id > 0:
+            row.delete_url = f"/note/meta?action=delete&meta_id={row.meta_id}"
+            row.delete_msg = f"确定清空属性【{row.meta_name}】吗"
+        
     @classmethod
     def fill_record_values(cls, meta_rows: List[NoteMetaRecord], records: List[NoteMetaRecord]):
         for row in meta_rows:

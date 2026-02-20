@@ -61,6 +61,12 @@ def get_abs_path_list(dirname, pathlist):
 
 
 def zip_dir(input_dir: str, outpath: str, skip_hidden=True, filter=None, excluded=[]):
+    """压缩文件夹到指定的文件路径
+    
+    :param input_dir: 待压缩的文件夹
+    :param outpath: 目标zip文件路径
+    
+    """
     # 创建目标文件
     absroot = os.path.abspath(outpath)
     # print(absroot)

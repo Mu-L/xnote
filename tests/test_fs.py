@@ -7,7 +7,8 @@ from .a import *
 import os
 from xnote.core import xconfig
 from xnote.core import xauth
-from xutils import textutil, jsonutil
+from xutils import textutil, jsonutil, fsutil
+from zipfile import ZipFile
 from .test_base import json_request, BaseTestCase, request_html, json_request_return_dict
 from .test_base import init as init_app, get_test_file_path
 from xnote_handlers.fs.fs_index import build_fs_index
@@ -170,3 +171,14 @@ class TestMain(BaseTestCase):
         file_info = FileInfoDao.get_by_id(file_id=file_id, user_id=user_id)
         assert file_info != None
         assert file_info.remark == "update remark"
+        
+    def test_fs_zip(self):
+        txt_file = get_test_file_path("./zip.txt")
+        zip_file = get_test_file_path("./zip.zip")
+        fsutil.writefile(txt_file, "hello,world")
+        with ZipFile(zip_file, mode="w") as fp:
+            fp.write(txt_file, arcname="zip.txt")
+        
+        zip_path_b64 = textutil.encode_base64(zip_file)
+        self.check_OK(f"/fs/zip/{zip_path_b64}")
+        self.check_OK(f"/fs/zip/{zip_path_b64}/zip.txt")

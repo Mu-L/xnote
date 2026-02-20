@@ -8,6 +8,7 @@ import web
 import json
 import xutils
 
+from typing import Optional, Union
 from xnote.core import xconfig
 from xnote.core import xtables
 from xnote.core import xmanager
@@ -108,7 +109,7 @@ def json_request(localpart='/', method='GET', data=None, **kw):
         return json.loads(data)
     return json.loads(data.decode("utf-8"))
 
-def json_request_return_dict(localpart='/', method='GET', data=None, **kw):
+def json_request_return_dict(localpart='/', method='GET', data: Union[dict, str, None]=None, **kw):
     """请求接口,返回json,实例如下
     - json_request_return_dict("/api/test", method="POST", data=dict(name="test"))
     - json_request_return_dict("/api/get_info?p1=1&p2=test")
@@ -140,6 +141,9 @@ def remove_tmp_file(name):
     if os.path.exists(path):
         os.remove(path)
 
+
+def build_data_param(**kw):
+    return dict(data = json.dumps(kw))
 
 class BaseTestCase(unittest.TestCase):
 
