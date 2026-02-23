@@ -22,6 +22,7 @@ try:
 except ImportError:
     ctypes = None
 
+from typing import Optional
 from io import BufferedReader
 from xutils import six
 from xutils.imports import *
@@ -348,7 +349,7 @@ def readfile(path: str, mode="r", limit=-1):
         except Exception as e:
             last_err = e
     
-    raise Exception("can not read file %s" % path, last_err)
+    raise Exception(f"can not read file {path}", last_err)
 
 
 def _try_readlines(fpath: str, limit=-1, encoding='utf-8'):
@@ -636,7 +637,7 @@ class FileItem(Storage):
         if name != None:
             self.name = name
 
-    def handle_file_stat(self, merge, parent):
+    def handle_file_stat(self, merge:bool, parent:Optional[str]):
         path = self.path
         try:
             st = os.stat(path)
@@ -756,9 +757,7 @@ def listdir_abs(dirname, recursive=True):
         return pathlist
 
 
-def _parse_line(line):
-    if line == None:
-        return None
+def _parse_line(line: str):
     line = line.strip()
     if line == "":
         return None
@@ -767,7 +766,7 @@ def _parse_line(line):
     return line
 
 
-def load_list_config(fpath):
+def load_list_config(fpath: str):
     """加载列表配置文件"""
     text = readfile(fpath)
     lines = text.split("\n")
@@ -779,7 +778,7 @@ def load_list_config(fpath):
     return result
 
 
-def load_set_config(fpath):
+def load_set_config(fpath: str):
     """加载集合配置文件"""
     text = readfile(fpath)
     lines = text.split("\n")

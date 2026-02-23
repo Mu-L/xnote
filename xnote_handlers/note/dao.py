@@ -42,7 +42,7 @@ from xutils import lists
 from web.db import SQLLiteral
 from xnote_handlers.note.dao_api import NoteDao
 from xnote_handlers.note import dao_log
-from xnote_handlers.note.models import NoteIndexDO, NoteDO, del_dict_key
+from xnote_handlers.note.models import NoteIndexDO, NoteDO, del_dict_key, NoteMetaRecord
 from xnote_handlers.note.models import NotePathInfo
 from xnote_handlers.note.models import NOTE_ICON_DICT
 from xnote_handlers.note.models import OrderTypeEnum
@@ -356,6 +356,16 @@ class NoteIndexDao:
     @classmethod
     def delete(cls, note_index:NoteIndexDO):
         return cls.db.delete(where=dict(id=note_index.note_id))
+    
+    @classmethod
+    def update_field(cls, meta_info: NoteMetaRecord):
+        if meta_info.meta_key == "_create_date":
+            time_obj = dateutil.parse_date_to_object(meta_info.meta_value)
+            ctime = meta_info.meta_value + " " + time_obj.time_str
+            cls.db.update(where=dict(id=meta_info.note_id, creator_id=meta_info.user_id), ctime = ctime)
+            return
+        
+        raise Exception(f"invalid meta_key:{meta_info.meta_key}")
 
 class ShareTypeEnum(enum.Enum):
     note_public = "note_public"
@@ -745,6 +755,7 @@ def get_by_id(id: typing.Union[str, int], include_full=True, creator=None) -> ty
 
     if note != None and note_index != None:
         note.name = note_index.name
+        note.ctime = note_index.ctime
         note.mtime = note_index.mtime
         note.atime = note_index.atime
         note.size = note_index.size
@@ -1869,7 +1880,7 @@ def get_note_stat(user_name):
     return stat
 
 
-def get_gallery_path(note):
+def get_gallery_path(note: NoteDO):
     from xnote.core import xconfig
     # 新的位置, 增加一级子目录（100个，二级子目录取决于文件系统
     # 最少的255个，最多无上限，也就是最少2.5万个相册，对于一个用户应该够用了）

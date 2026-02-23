@@ -9,6 +9,7 @@
 @Description  : 数据库表-API, 不建议使用, 建议使用 dbutil_table_v2
 """
 
+from typing import Union
 from urllib.parse import quote
 from xutils import Storage
 from xutils.db.dbutil_base import *
@@ -240,7 +241,7 @@ class LdbTable:
         else:
             return key.startswith(self.prefix + user_name)
 
-    def get_by_id(self, row_id, default_value=None, user_name=None):
+    def get_by_id(self, row_id: Union[int, str], default_value=None, user_name=None):
         """通过ID查询记录
         :param row_id: 记录ID
         :param default_value: 默认值

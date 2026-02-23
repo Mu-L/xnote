@@ -351,7 +351,7 @@ class ViewHandler:
         kw.pagesize = pagesize
         kw.page_url = f"/note/view?id={id}&page="
         kw.is_public_page = is_public_page
-        kw.tab = xutils.get_argument_str("tab")
+        kw.tab = xutils.get_argument_str("tab", default_value="all")
 
         if token == "" and is_empty_id(id):
             raise web.found("/")

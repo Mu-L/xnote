@@ -1,75 +1,15 @@
 import xutils
-from typing import List, Dict
+from typing import List, Dict, Optional
 from .models import NoteViewContext
 from xnote.core import xconfig
 from xnote.core import xauth
 from xnote.plugin import TabBox, DataTable, TableActionType
 from xnote.plugin.table_plugin import BaseTablePlugin
 from xutils import webutil
+from .models import NoteIndexDO
+from .dao import NoteIndexDao
 from .dao_meta import NoteMetaRecord, NoteMetaDao
-
-class NoteMetaValueType:
-    text = "text"
-    date = "date"
-    number = "number"
-
-class NoteMetaItem:
-    def __init__(self, meta_name="", meta_key="", meta_category="", value_type=""):
-        self.meta_key = meta_key
-        self.meta_name = meta_name
-        self.meta_category = meta_category
-        self.value_type = value_type
-
-class NoteMetaDateItem(NoteMetaItem):
-    def __init__(self, meta_name="", meta_key="", meta_category=""):
-        super().__init__(meta_name, meta_key, meta_category, NoteMetaValueType.date)
-
-class NoteMetaNumberItem(NoteMetaItem):
-    def __init__(self, meta_name="", meta_key="", meta_category=""):
-        super().__init__(meta_name, meta_key, meta_category, NoteMetaValueType.number)
-    
-class NoteMetaConfig:
-    
-    _items: List[NoteMetaItem] = []
-    _dict: Dict[str, NoteMetaItem] = {}
-    
-    @classmethod
-    def items(cls):
-        return cls._items
-    
-    @classmethod
-    def get_by_meta_key(cls, meta_key: str):
-        return cls._dict.get(meta_key)
-    
-    @classmethod
-    def get_name_by_key(cls, meta_key: str):
-        info = cls._dict.get(meta_key)
-        if info:
-            return info.meta_name
-        return meta_key
-    
-    @classmethod
-    def add_item(cls, meta_item: NoteMetaItem):
-        """添加配置项, 插件可以通过这个接口新增配置项"""
-        old = cls.get_by_meta_key(meta_item.meta_key)
-        if old is not None:
-            return
-        cls._items.append(meta_item)
-        cls._dict[meta_item.meta_key] = meta_item
-
-    @classmethod
-    def add_items(cls, items: List[NoteMetaItem], meta_category = ""):
-        for item in items:
-            if meta_category != "":
-                item.meta_category = meta_category
-            cls.add_item(item)
-
-NoteMetaConfig.add_items([
-    NoteMetaNumberItem(meta_name="出生年份", meta_key="birth_year"),
-    NoteMetaDateItem(meta_name="出生日期", meta_key="birth_date"),
-    NoteMetaItem(meta_name="手机号", meta_key="mobile"),
-    NoteMetaItem(meta_name="公司", meta_key="company"),
-], meta_category="people")
+from .note_meta_config import NoteMetaConfig, NoteMetaValueType
 
 class NoteMetaService:
     
@@ -84,8 +24,8 @@ class NoteMetaService:
         
         tab = TabBox(tab_key="meta_category", tab_default="all")
         tab.add_item(title="全部", value="all")
+        tab.add_item(title="基本信息", value="basic")
         tab.add_item(title="人物信息", value="people")
-        tab.add_item(title="提醒信息", value="remind")
         
         meta_category = xutils.get_argument_str("meta_category", "all")
         note_id = ctx.note_id
@@ -119,12 +59,12 @@ class NoteMetaService:
                 meta_keys.append(item.meta_key)
                 table.add_row(row)
         
-        records = NoteMetaDao.list_by_note_id(note_id=ctx.note_id, meta_keys = meta_keys)
+        records = cls.get_meta_list(note_id=note_id, note_info=ctx.file)
         cls.fill_record_values(meta_rows, records)
         
     @classmethod
     def _render_all(cls, ctx: NoteViewContext, table:DataTable):
-        meta_list = cls.get_meta_list(note_id=ctx.note_id)
+        meta_list = cls.get_meta_list(note_id=ctx.note_id, note_info=ctx.file)
         
         meta_keys = set()
         
@@ -148,8 +88,12 @@ class NoteMetaService:
     def _fill_links(cls, row: NoteMetaRecord):
         assert row.note_id > 0
         q_meta_name = xutils.quote(row.meta_name)
+        q_meta_value = ""
+        if row.meta_id == 0:
+            q_meta_value = xutils.quote(row.meta_value)
+            
         row.edit_url = f"/note/meta?action=edit&meta_id={row.meta_id}&note_id={row.note_id}"\
-            f"&value_type={row.value_type}&meta_key={row.meta_key}&meta_name={q_meta_name}"
+            f"&value_type={row.value_type}&meta_key={row.meta_key}&meta_name={q_meta_name}&meta_value={q_meta_value}"
         
         if row.meta_id > 0:
             row.delete_url = f"/note/meta?action=delete&meta_id={row.meta_id}"
@@ -172,8 +116,11 @@ class NoteMetaService:
         return None
     
     @classmethod
-    def get_meta_list(cls, note_id: int):
+    def get_meta_list(cls, note_id: int, note_info: Optional[NoteIndexDO] = None):
         records = NoteMetaDao.list_by_note_id(note_id=note_id)
+        if note_info:
+            records += note_info.to_meta_list()
+            
         for record in records:
             record.meta_name = NoteMetaConfig.get_name_by_key(record.meta_key)
         return records
@@ -188,8 +135,12 @@ class NoteMetaHandler(BaseTablePlugin):
         meta_key = xutils.get_argument_str("meta_key")
         meta_name = xutils.get_argument_str("meta_name")
         note_id = xutils.get_argument_int("note_id")
-        value_type = xutils.get_argument_str("value_type")
         user_id = xauth.current_user_id()
+        
+        meta_config = NoteMetaConfig.get_by_meta_key(meta_key)
+        value_type = NoteMetaValueType.text
+        if meta_config:
+            value_type = meta_config.value_type
         
         if meta_id > 0:
             meta_info = NoteMetaDao.get_by_meta_id(meta_id=meta_id, user_id=user_id)
@@ -199,6 +150,7 @@ class NoteMetaHandler(BaseTablePlugin):
             meta_info = NoteMetaRecord()
             meta_info.meta_key = meta_key
             meta_info.note_id = note_id
+            meta_info.meta_value = xutils.get_argument_str("meta_value")
             
         form = self.create_form()
         form.path = "/note/meta"
@@ -220,6 +172,7 @@ class NoteMetaHandler(BaseTablePlugin):
         user_id = xauth.current_user_id()
         data = self.get_param_dict()
         meta_id = data.get_int("meta_id")
+        meta_key = data.get_str("meta_key")
         
         if meta_id > 0:
             meta_info = NoteMetaDao.get_by_meta_id(meta_id=meta_id, user_id=user_id)
@@ -229,9 +182,15 @@ class NoteMetaHandler(BaseTablePlugin):
             meta_info = NoteMetaRecord()
         
         meta_info.user_id = user_id
-        meta_info.meta_key = data.get_str("meta_key")
+        meta_info.meta_key = meta_key
         meta_info.meta_value = data.get_str("meta_value")
         meta_info.note_id = data.get_int("note_id")
+        
+        meta_config = NoteMetaConfig.get_by_meta_key(meta_key)
+        if meta_config and meta_config.is_note_field:
+            NoteIndexDao.update_field(meta_info)
+            return webutil.SuccessResult()
+            
         NoteMetaDao.save(meta_info)
         return webutil.SuccessResult()
     

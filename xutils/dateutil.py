@@ -79,6 +79,14 @@ class DateInfo:
     
     def format_date(self):
         return f"{self.year:04}-{self.month:02}-{self.day:02}"
+    
+    @property
+    def date_str(self):
+        return f"{self.year:04}-{self.month:02}-{self.day:02}"
+    
+    @property
+    def time_str(self):
+        return self.time
 
     def __repr__(self):
         return "(%r,%r,%r)" % (self.year, self.month, self.day)

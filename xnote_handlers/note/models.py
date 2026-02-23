@@ -13,6 +13,7 @@ from xutils.base import EnumItem, BaseDataRecord
 from xnote_handlers.note.constant import NoteType
 from xnote.plugin import TextLink, TabBox, DataTable
 from xutils.functions import del_dict_key, delete_None_values
+from xutils.fsutil import FileItem
 
 NOTE_ICON_DICT = {
     "group": "fa-folder",
@@ -157,6 +158,20 @@ class NoteIndexDO(BaseDataRecord):
     
     def get_edit_url(self):
         return f"{xconfig.WebConfig.server_home}/note/edit?id={self.id}"
+    
+    def _new_meta(self, meta_key: str, meta_value: str):
+        meta = NoteMetaRecord()
+        meta.note_id = self.note_id
+        meta.user_id = self.creator_id
+        meta.meta_key = meta_key
+        meta.meta_value = meta_value
+        return meta
+    
+    def to_meta_list(self):
+        return [
+            self._new_meta("_type", self.type),
+            self._new_meta("_create_date", dateutil.format_date(self.ctime))
+        ]
     
 class NoteDO(NoteIndexDO):
     _virtual_fields = [
@@ -336,6 +351,7 @@ class NoteViewContext(Storage):
     note_detail_tab: TabBox
     meta_tab: TabBox
     meta_table: DataTable
+    filelist: List[FileItem]
 
     def __init__(self, **kw):
         self.user_name = ""

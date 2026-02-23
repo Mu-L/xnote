@@ -685,7 +685,7 @@ def load_default_boot_config():
     return textutil.parse_config_text_to_dict(text)
 
 
-def _parse_int(value):
+def _parse_int(value: str):
     assert xutils.is_str(value)
     if value == "":
         return 0
