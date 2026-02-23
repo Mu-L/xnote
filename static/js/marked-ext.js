@@ -2,10 +2,11 @@
  * marked.js 插件扩展
  * 依赖: marked.js/jquery
  */
+
 (function (window) {
 
-    var LATEX_INLINE_START = '.LATEX.INLINE.START.';
-    var LATEX_INLINE_END = '.LATEX.INLINE.END.';
+    var LATEX_INLINE_START = '_latex_inline_start_';
+    var LATEX_INLINE_END = '_latex_inline_end_';
     var gHeadingToLinkMap = {};
 
 
@@ -130,6 +131,10 @@
         contents: new MarkedContents()
     };
 
+    
+    /**
+     * @typedef { import('../lib/marked/marked.js') }
+     */
     // marked 初始化操作
     var myRenderer = new marked.Renderer();
 
@@ -144,9 +149,6 @@
 
     marked.showMenu = true;
     var originalParse = marked.parse;
-    // 自定义转义函数
-    var originalEscapeRegexp = marked.InlineLexer.rules.escape;
-    
     var newEscapeRegexp = /^\\([\\`*{}\[\]#+\-.!_>])/;
     // 不对 \( 和 \) 进行转义
     marked.InlineLexer.rules.escape = newEscapeRegexp;
@@ -292,6 +294,35 @@
         }
     }
 
+    function getMarkdownText(content) {
+        if (/<[^>]+>/g.test(content)) {
+            // contains tag
+            var contentLi = $("<li>" + content + "</li>");
+            var newContent = "";
+            var contents = contentLi.contents();
+            var hasError = false;
+            for (var i = 0; i < contents.length; i++) {
+                var item = contents[i];
+                if (item.nodeName === "#text") {
+                    newContent += item.textContent;
+                } else if (item.tagName == "CODE") {
+                    newContent += "`" + item.textContent + "`";
+                } else {
+                    console.debug("unknown element:", item);
+                    hasError = true;
+                    break;
+                }
+            };
+            if (hasError) {
+                return content;
+            } else {
+                return newContent;
+            }
+        } else {
+            return content;
+        }
+    }
+
     // 处理待办的样式
     function processCheckbox(text, clickable) {
         var result = {};
@@ -304,10 +335,12 @@
         // 多选框选项索引
         extOptions.checkboxIndex++;
 
+        var dataText = getMarkdownText(text);
+
         var checkbox = $("<input>")
             .attr("type", "checkbox")
             .addClass("marked")
-            .attr("data-text", text);
+            .attr("data-text", dataText);
 
         if (disabled) {
             checkbox.attr("disabled", true);
@@ -442,7 +475,8 @@
 
     // 单行的code
     myRenderer.codespan = function (text) {
-        return '<code class="marked-codespan">' + text + '</code>';
+        var element = $("<code>").text(text).addClass("marked-codespan");
+        return element.prop("outerHTML");
     }
 
     // 重写strong
@@ -591,6 +625,8 @@
      */
     function preHandleText(text) {
         // 预处理：替换行内公式定界符
+        // '\(' {公式内容} '\)'
+        // '\[' {公式内容} '\]'
         try {
             var replace_func = function(match, content) {
                 return LATEX_INLINE_START + btoa(encodeURIComponent(content)) + LATEX_INLINE_END;
