@@ -1179,7 +1179,7 @@ def visit_note(user_name: str, note_id: int, user_id = 0):
         update_atime = now
         NoteIndexDao.incr_visit_cnt(note_id=note_id, atime=update_atime)
 
-def visit_public(note_id):
+def visit_public(note_id: int):
     ShareInfoDao.incr_visit_cnt(target_id=note_id)
 
 def update_children_count(parent_id, db=None, parent_note=None):
@@ -1583,11 +1583,12 @@ def delete_history(note_id: int, version=None):
     pass
 
 
-def get_history(note_id, version):
+def get_history(note_id: int, version: int):
     """获取笔记历史的详情"""
-    note_id = str(note_id)
+    note_id_str = str(note_id)
     version_str = str(version)
-    return _note_history_db.with_user(note_id).get(version_str)
+    result = _note_history_db.with_user(note_id_str).get(version_str)
+    return NoteDO.from_dict_or_None(result)
 
 
 def search_name(words: typing.List[str], creator="", creator_id = 0, parent_id=0, orderby="hot_index", limit=1000, 

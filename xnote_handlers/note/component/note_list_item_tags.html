@@ -8,12 +8,13 @@
     {% if item.is_sticky %}
         <span class="tag orange">置顶</span>
     {% end %}
-    {% if item.archived %}
-        <span class="tag system">归档</span>
-    {% end %}
-    {% if item.is_alias %}
-        <span class="tag lightblue">别名</span>
-    {% end %}
+{% end %}
+
+{% if item.archived %}
+    <span class="tag system">归档</span>
+{% end %}
+{% if item.is_alias %}
+    <span class="tag system">别名</span>
 {% end %}
 
 {% if item.tags != None %}

@@ -92,8 +92,9 @@ class FileRenameEvent(BaseEvent):
         self.add_field_desc("fpath", "str", not_empty=True)
         self.add_field_desc("old_fpath", "str", not_empty=True)
 
-class NoteViewEvent(Storage):
+class NoteViewEvent(BaseEvent):
     """笔记访问事件"""
+    event_type = "note.view"
     def __init__(self, id=0, user_name="", user_id=0):
         super().__init__()
         self.id = id
@@ -101,8 +102,9 @@ class NoteViewEvent(Storage):
         self.user_id = user_id
 
 
-class MessageEvent(Storage):
+class MessageEvent(BaseEvent):
     """待办/随手记变更事件"""
+    event_type = "message.updated"
     def __init__(self, msg_key="", user_id=0, tag="", content=""):
         super().__init__()
         self.msg_key = msg_key

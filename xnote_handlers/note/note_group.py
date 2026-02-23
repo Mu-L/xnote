@@ -499,9 +499,9 @@ class GroupSelectHandler:
     def GET(self):
         id = xutils.get_argument("id", "")
         callback = xutils.get_argument("callback")
-        user_name = xauth.current_name()
+        user_name = xauth.current_name_str()
         view = xutils.get_argument("view", "")
-        parent_id = xutils.get_argument("parent_id", "0")
+        parent_id = xutils.get_argument_int("parent_id")
         q_parent_id = None
 
         groups_tuple = load_category(xauth.current_name())
@@ -909,7 +909,7 @@ class NoteIndexHandler:
 
     def POST(self):
         clazz = self.find_class()
-        return clazz().POST()
+        return clazz().POST() # type: ignore
 
 
 class DateListHandler:
@@ -955,14 +955,15 @@ class DateListHandler:
         notes_by_date = [("置顶", notes)]
         # notes_by_date = NOTE_DAO.assemble_notes_by_date(notes)
 
-        return xtemplate.render("note/page/list_by_date.html",
-                                html_title=T("我的笔记"),
-                                date=date,
-                                year=year,
-                                month=month,
-                                notes_by_date=notes_by_date,
-                                show_back=show_back,
-                                search_type="default")
+        return xtemplate.render(
+            "note/page/list_by_date.html",
+            html_title=T("我的笔记"),
+            date=date,
+            year=year,
+            month=month,
+            notes_by_date=notes_by_date,
+            show_back=show_back,
+            search_type="default")
 
 
 xutils.register_func("url:/note/group", GroupListHandler)

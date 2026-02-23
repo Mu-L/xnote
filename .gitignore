@@ -86,3 +86,5 @@ start-cmd.bat
 /dist/
 pypi_token.txt
 xnote-reboot.txt
+
+nohup.out

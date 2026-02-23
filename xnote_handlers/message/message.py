@@ -318,7 +318,7 @@ def update_message_tag(id, tag):
         MessageDao.update_tag(data, tag)
 
     event = xnote_event.MessageEvent(msg_key=data._key, user_id=data.user_id, tag=tag, content=data.content)
-    xmanager.fire("message.updated", event)
+    event.fire()
 
     return webutil.SuccessResult()
 

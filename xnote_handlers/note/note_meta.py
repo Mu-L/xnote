@@ -188,7 +188,10 @@ class NoteMetaHandler(BaseTablePlugin):
         
         meta_config = NoteMetaConfig.get_by_meta_key(meta_key)
         if meta_config and meta_config.is_note_field:
-            NoteIndexDao.update_field(meta_info)
+            try:
+                NoteIndexDao.update_field(meta_info)
+            except Exception as e:
+                return webutil.FailedResult(message=str(e))
             return webutil.SuccessResult()
             
         NoteMetaDao.save(meta_info)

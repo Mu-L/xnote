@@ -273,7 +273,7 @@ def view_func_before(kw: NoteViewContext):
     dao_tag.handle_tag_for_note(note)
 
 
-def find_note_for_view0(token, note_id=0, name=""):
+def find_note_for_view0(token: str, note_id=0, name=""):
     if token != "":
         return dao_share.NoteTokenDao.get_note_by_token(token)
     if note_id != 0:
@@ -284,7 +284,7 @@ def find_note_for_view0(token, note_id=0, name=""):
     raise HTTPError(504)
 
 
-def find_note_for_view(token, note_id, name):
+def find_note_for_view(token: str, note_id: int, name: str):
     note = find_note_for_view0(token, note_id, name)
     if note != None:
         note.mdate = dateutil.format_date(note.mtime)
@@ -321,13 +321,13 @@ class ViewHandler:
             xutils.print_exc()
             return xtemplate.render("error.html", error=str(e))
 
-    def do_get(self, op: str, id=0, is_public_page=False):
-        if id == 0:
-            id = xutils.get_argument_int("id")
+    def do_get(self, op: str, note_id=0, is_public_page=False):
+        if note_id == 0:
+            note_id = xutils.get_argument_int("id")
         else:
-            id = int(id)
+            note_id = int(note_id)
 
-        name = xutils.get_argument("name", "")
+        name = xutils.get_argument_str("name", "")
         page = xutils.get_argument_int("page", 1)
         pagesize = xutils.get_argument_int("pagesize", xconfig.PAGE_SIZE)
         is_iframe = xutils.get_argument_str("is_iframe", "false")
@@ -342,6 +342,8 @@ class ViewHandler:
             user_id = 0
 
         skey = xutils.get_argument_str("skey")
+        if skey != None and skey != "":
+            return xtemplate.render("error.html", error="skey属性已经废弃")            
 
         kw = NoteViewContext()
         kw.op = op
@@ -349,23 +351,19 @@ class ViewHandler:
         kw.user_id = user_id
         kw.page = page
         kw.pagesize = pagesize
-        kw.page_url = f"/note/view?id={id}&page="
+        kw.page_url = f"/note/view?id={note_id}&page="
         kw.is_public_page = is_public_page
         kw.tab = xutils.get_argument_str("tab", default_value="all")
 
-        if token == "" and is_empty_id(id):
+        if token == "" and is_empty_id(note_id):
             raise web.found("/")
 
-        if skey != None and skey != "":
-            return xtemplate.render("error.html", error="skey属性已经废弃")
-        else:
-            # 回收站的笔记也能看到
-            file = find_note_for_view(token, id, name)
-
+        # 回收站的笔记也能看到
+        file = find_note_for_view(token, note_id, name)
         kw.file = file
         if file is None:
-            if id != 0:
-                event = Storage(id=id, user_name=user_name)
+            if note_id != 0:
+                event = Storage(id=note_id, user_name=user_name)
                 xmanager.fire("note.notfound", event)
             raise web.notfound()
 
@@ -384,7 +382,7 @@ class ViewHandler:
 
         event_ctx = xnote_event.NoteViewEvent(
             id=file.id, user_name=user_name, user_id=user_id)
-        xmanager.fire("note.view", event_ctx)
+        event_ctx.fire()
 
         # 通用的预处理
         view_func_before(kw)
@@ -413,17 +411,16 @@ class ViewHandler:
         self.handle_contents_btn(kw)
 
         kw.html_title = file.name
-        kw.note_id = id
         kw.pathlist = pathlist
         kw.recent_created = recent_created
         kw.CREATE_BTN_TEXT_DICT = CREATE_BTN_TEXT_DICT
         kw.is_iframe = is_iframe
 
         if is_public_page:
-            note_dao.visit_public(id)
+            note_dao.visit_public(note_id)
 
         if can_edit:
-            kw.show_draft_edit = self.check_has_draft(id)
+            kw.show_draft_edit = self.check_has_draft(note_id)
 
         return xtemplate.render_by_ua(template_name, **kw)
 
@@ -492,34 +489,35 @@ class NoteHistoryHandler:
 
     @xauth.login_required()
     def GET(self):
-        note_id = xutils.get_argument("id")
-        creator = xauth.current_name()
+        note_id = xutils.get_argument_int("id")
+        creator = xauth.current_name_str()
         note = note_dao.get_by_id_creator(note_id, creator)
         if note is None:
             history_list = []
         else:
             history_list = note_dao.list_history(note_id)
-        return xtemplate.render("note/page/history_list.html",
-                                current_note=note,
-                                history_list=history_list,
-                                show_aside=True)
+        return xtemplate.render(
+            "note/page/history_list.html",
+            current_note=note,
+            history_list=history_list,
+            show_aside=True)
 
 
 class HistoryViewHandler:
 
     @xauth.login_required()
     def GET(self):
-        note_id = xutils.get_argument("id")
-        version = xutils.get_argument("version")
+        note_id = xutils.get_argument_int("id")
+        version = xutils.get_argument_int("version")
 
-        creator = xauth.current_name()
+        creator = xauth.current_name_str()
         note = note_dao.get_by_id_creator(note_id, creator)
         content = ""
         if note != None:
-            history = xutils.call("note.get_history", note_id, version)
+            history = note_dao.get_history(note_id, version)
             if history != None:
                 content = history.content
-        return dict(code="success", data=content)
+        return webutil.SuccessResult(data=content)
 
 
 class QueryHandler:
@@ -528,11 +526,13 @@ class QueryHandler:
     def GET(self, action=""):
         if action == "get_by_id":
             id = xutils.get_argument_int("id")
-            return dict(code="success", data=note_dao.get_by_id(id))
+            return webutil.SuccessResult(data=note_dao.get_by_id(id))
+        
         if action == "get_by_name":
             name = xutils.get_argument_str("name")
-            return dict(code="success", data=note_dao.get_by_name(xauth.current_name_str(), name))
-        return dict(code="fail", message="unknown action")
+            return webutil.SuccessResult(data=note_dao.get_by_name(xauth.current_name_str(), name))
+        
+        return webutil.SuccessResult(message="unknown action")
 
 
 class GetDialogHandler:

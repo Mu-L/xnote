@@ -23,7 +23,8 @@ xnote.state.note = {
     <span class="dropdown-btn btn btn-default">更多▾</span>
     <div class="dropdown-mask"></div>
     <div class="dropdown-content {%if _is_mobile%}mobile{% end %}">
-        <a class="dropdown-option link" href="javascript:rename('{{item.id}}', '{{item.name}}')">重命名</a>
+        <a class="dropdown-option link" data-id="{{item.id}}" data-name="{{item.name}}" 
+            onclick="xnote.note.renameByElement(this);">重命名</a>
         <a class="dropdown-option link" href="{{_server_home}}/note/alias/edit?parent_id={{file.id}}">管理别名</a>
         <a class="dropdown-option link" href="{{_server_home}}/note/share/edit?note_id={{file.id}}">分享</a>
 
