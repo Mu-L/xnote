@@ -24,6 +24,7 @@ class LinkConfig:
     customized_js = TextLink(text="自定义JavaScript", href="/code/edit?type=script&path=user.js")
     create_note = TextLink(text="新建笔记", href="/note/create")
     calendar = TextLink(text="今天", href="/note/calendar")
+    user_settings = TextLink(text="用户设置", href="/user/info")
 
 
 class TabConfig:

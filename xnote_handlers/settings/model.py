@@ -25,6 +25,6 @@ server_home = xconfig.WebConfig.server_home
 class SettingTabEnum(BaseEnum):
 
     base = SettingTabEnumItem("基本设置", f"{server_home}/system/settings", category="base")
-    user = SettingTabEnumItem("账号设置", f"{server_home}/user/info?category=user", category="user")
+    user = SettingTabEnumItem("账号设置", f"{server_home}/user/info", category="user")
     search = SettingTabEnumItem("搜索设置", f"{server_home}/system/settings?category=search", category="search")
     admin = SettingTabEnumItem("管理员设置", f"{server_home}/system/settings?category=admin", category="admin", need_admin=True)

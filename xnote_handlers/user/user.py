@@ -22,10 +22,11 @@ from . import dao
 
 from xnote.plugin.table_plugin import BaseTablePlugin
 from xnote.plugin import DataTable, TableActionType, InfoTable, InfoItem
-from xnote.plugin import DataForm, LinkConfig
+from xnote.plugin import DataForm
 from xnote.plugin.form import FormRowType
 from xnote.plugin.list import ItemList, ListItem, ConfirmButton
 from xnote.plugin import sidebar
+from xnote_handlers.config import LinkConfig, AsideConfig
 
 OP_LOG_TABLE = xauth.UserOpLogDao
 
@@ -229,6 +230,8 @@ class UserInfoHandler(BasePlugin):
 </div>
 """
 
+    parent_link = LinkConfig.app_index
+
     def get_aside_html(self):
         return sidebar.get_settings_sidebar_html()
     
@@ -245,7 +248,7 @@ class UserInfoHandler(BasePlugin):
         logout.action_btn = ConfirmButton("登出", url="/logout?_format=json", message="确认登出吗?", css_class="danger")
         item_list.add_item(logout)
 
-        self.writehtml(self.HTML, item_list = item_list)
+        self.writehtml(self.HTML, item_list = item_list, tab_default = "user")
 
 class UserInfoAjaxHandler:
     def getDesensitizedUserInfo(self):
@@ -280,8 +283,13 @@ class ChangePasswordHandler:
         """获取页面, 修改密码后也需要跳转到这里，所以不能校验登录态"""
         old_password = xutils.get_argument_str("old_password", "")
         new_password = xutils.get_argument_str("new_password", "")
-        return xtemplate.render("user/page/change_password.html",
-                                old_password=old_password, new_password=new_password, error=error)
+        kw = Storage()
+        kw.old_password = old_password
+        kw.new_password = new_password
+        kw.error = error
+        kw.parent_link = LinkConfig.user_settings
+        kw.title = "修改密码"
+        return xtemplate.render("user/page/change_password.html", **kw)
 
     @xauth.login_required()
     def POST(self):
@@ -321,6 +329,7 @@ class UserOpLogHandler(BaseTablePlugin):
     title = "用户日志"
     NAV_HTML = ""
     PAGE_HTML = BaseTablePlugin.TABLE_HTML
+    parent_link = LinkConfig.user_settings
 
     @xauth.login_required()
     def handle_page(self):
@@ -329,7 +338,7 @@ class UserOpLogHandler(BaseTablePlugin):
         assert user_info != None
         UserHandler().handle_user_log(kw, user_info=user_info)
 
-        self.write_aside("""{% include settings/page/settings_sidebar.html %}""")
+        self.write_aside(AsideConfig.get_settings_aside_html())
 
         return self.response_page(**kw)
 

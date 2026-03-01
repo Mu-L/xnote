@@ -1,7 +1,9 @@
 {% from xnote_handlers.settings.model import SettingTabEnum %}
 {% init tab_list = SettingTabEnum.enums() %}
+{% init tab_default = "base" %}
+
 <div class="card">
-    <div class="x-tab-box float-left" data-tab-default="base" data-tab-key="category">
+    <div class="x-tab-box float-left" data-tab-default="{{tab_default}}" data-tab-key="category">
         {% for item in tab_list %}
             {% if item.is_visible() %}
                 <a class="x-tab" href="{{item.url}}" data-tab-value="{{item.category}}">{{item.name}}</a>
