@@ -35,6 +35,11 @@ class NoteMetaDao:
         return NoteMetaRecord.from_dict_or_None(result)
     
     @classmethod
+    def get_by_meta_key(cls, note_id=0, meta_key=""):
+        result = cls.db.select_first(where = dict(note_id=note_id, meta_key=meta_key))
+        return NoteMetaRecord.from_dict_or_None(result)
+    
+    @classmethod
     def delete_by_meta_id(cls, meta_id=0, user_id=0):
         return cls.db.delete(where = dict(meta_id=meta_id, user_id=user_id))
     

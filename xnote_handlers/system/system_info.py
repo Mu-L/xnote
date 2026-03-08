@@ -69,7 +69,7 @@ class SystemInfoItem:
 
 def get_db_info():
     return Storage(
-        sqlite_instance_count = len(xtables.MySqliteDB._instances)
+        sqlite_instance_count = len(xtables.DBPool._sqlite_pool)
     )
 
 def get_sys_info_detail():

@@ -80,8 +80,8 @@ h3.marked-heading {
     /* background-color: rgba(27,31,35,.05); */
     background-color: #eee;
     border-radius: 4px;
-    padding: 3px;
-    font-size: 10px;
+    padding: 1px;
+    font-size: 12px;
     border: 1px solid #ccc;
     line-height: 23px;
 }

@@ -142,7 +142,7 @@ def init_note_tables():
     db = dbutil.register_table("search_history", "搜索历史", user_attr="user", check_user=True, is_deleted=True)
     db.drop_index("user", comment = "使用二级key的表,不需要user索引")
 
-    # 分享关系
+    # 分享关系（已删除）
     db = dbutil.register_table("note_share", "笔记分享", category="note")
     db.drop_index("note_id", comment = "笔记ID")
     db.drop_index("to_user", comment = "分享的目标用户")
@@ -154,14 +154,14 @@ def init_note_tables():
     db.drop_index("user", comment = "用户索引")
     db.drop_index("note_id", comment = "笔记ID索引")
 
-    # 公共笔记
+    # 公共笔记（已删除）
     db = dbutil.register_table("note_public", "公共笔记", category="note")
     db.drop_index("hot_index")
     db.drop_index("share_time")
     db.rebuild_index("v1")
     db.delete_table()
 
-    # 操作日志
+    # 操作日志（已删除）
     db = dbutil.register_table("user_note_log", "用户笔记操作日志", check_user=True, user_attr="user")
     db.drop_index("visit_cnt")
     db.drop_index("atime")
@@ -177,14 +177,17 @@ def init_note_tables():
 
 def init_message_tables():
     dbutil.register_deleted_table("message", "短文本", check_user=True, user_attr="user")
-    dbutil.register_table("msg_v2", "短文本", check_user=True, 
-                          user_attr="user_id", encode_user_func=str, is_deleted=True)
     dbutil.register_table("msg_v3", "短文本")
-    dbutil.register_table("msg_key", "备忘关键字/标签", check_user=True, user_attr="user").delete_table()
+    
     
     dbutil.register_deleted_table("msg_backup", "随手记备份", check_user=True, user_attr="user")
-    dbutil.register_table("msg_search_history", "备忘搜索历史", check_user=True, user_attr="user", is_deleted=True)
     
     msg_history_index = xtables.get_table_by_name("msg_history_index")
     dbutil.register_table("msg_history", "备忘历史", index_db=msg_history_index)
 
+    # 已删除
+    dbutil.register_table("msg_key", "备忘关键字/标签", check_user=True, user_attr="user", is_deleted=True)
+    dbutil.register_table("msg_search_history", "备忘搜索历史", check_user=True, user_attr="user", is_deleted=True)
+    dbutil.register_table(
+        "msg_v2", "短文本", check_user=True, 
+        user_attr="user_id", encode_user_func=str, is_deleted=True)

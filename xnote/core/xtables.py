@@ -8,7 +8,11 @@
 import os
 import threading
 import xutils
+import time
 import web.db
+import logging
+
+from typing import List, Dict
 from xnote.core import xconfig
 from xutils import dbutil
 from xutils.dbutil import interfaces
@@ -23,8 +27,9 @@ class MySqliteDB(web.db.SqliteDB):
     _lock = threading.RLock()
     _instances = set() # type: set[MySqliteDB]
     dbpath = ""
-
+    
     def __init__(self, db=""):
+        self.dbpath = db
         super().__init__(db=db)
         with self._lock:
             MySqliteDB._instances.add(self)
@@ -35,24 +40,27 @@ class MySqliteDB(web.db.SqliteDB):
 
     def __hash__(self):
         return id(self)
+    
+    def init_pragma(self):
+        self.query("pragma journal_mode = %s" % xconfig.DatabaseConfig.sqlite_journal_mode)
+        if xconfig.DatabaseConfig.sqlite_page_size != 0:
+            self.query("pragma page_size = %s" % xconfig.DatabaseConfig.sqlite_page_size)
 
 class DBPool:
     # TODO 池化会导致资源无法释放
-
-    sqlite_pool = {} # type: dict[str, MySqliteDB]
+    
+    _sqlite_pool:Dict[str, MySqliteDB] = {}
     mysql_instance = None # type: web.db.MySQLDB|None
 
     @classmethod
     def get_sqlite_db(cls, dbpath=""):
         # type: (str) -> MySqliteDB
         assert dbpath != ""
-        db = cls.sqlite_pool.get(dbpath)
+        db = cls._sqlite_pool.get(dbpath)
         if db is None:
             db = MySqliteDB(db=dbpath)
-            db.query("pragma journal_mode = %s" % xconfig.DatabaseConfig.sqlite_journal_mode)
-            if xconfig.DatabaseConfig.sqlite_page_size != 0:
-                db.query("pragma page_size = %s" % xconfig.DatabaseConfig.sqlite_page_size)
-            cls.sqlite_pool[dbpath] = db
+            db.init_pragma()
+            cls._sqlite_pool[dbpath] = db
         return db
 
 def create_table_manager_with_dbpath(table_name="", dbpath="", **kw):
@@ -61,6 +69,7 @@ def create_table_manager_with_dbpath(table_name="", dbpath="", **kw):
     db = get_db_instance(dbpath)
     kw["db_type"] = xconfig.DatabaseConfig.db_driver_sql
     kw["dbpath"] = dbpath
+    
     return TableManager(table_name, db=db, mysql_database=xconfig.DatabaseConfig.mysql_database, **kw)
 
 def create_table_manager_with_db(table_name="", db=None, **kw):
@@ -115,7 +124,6 @@ def is_table_exists(table_name=""):
 
 
 def get_table_by_name(table_name=""):
-    # type: (str) -> TableProxy
     """通过表名获取操作代理"""
     table_info = TableManager.get_table_info(table_name)
     if table_info is None:
@@ -124,9 +132,8 @@ def get_table_by_name(table_name=""):
     return TableProxy(db, table_name)
 
 def get_all_tables(is_deleted=False):
-    # type: (bool) -> list[TableProxy]
     """获取所有的sql-数据库代理实例"""
-    result = []
+    result:List[TableProxy] = []
     table_dict = TableManager.get_table_info_dict()
     for table_name in table_dict:
         table_info = table_dict[table_name]

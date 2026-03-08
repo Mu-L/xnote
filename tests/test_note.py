@@ -911,9 +911,15 @@ x^3 + x + 1
         
         self.check_OK(f"/note/view/{note_id}?tab=meta")
         
+        # create birth_year meta
         data = build_data_param(note_id = note_id, meta_key = "birth_year", meta_value = "2010")
         result = json_request_return_dict("/note/meta?action=save", method = "POST", data=data)
         assert result.get_bool("success")
         self.check_OK(f"/note/view/{note_id}?tab=meta")
         
+        # create birth_year meta again
+        data = build_data_param(note_id = note_id, meta_key = "birth_year", meta_value = "2011")
+        result = json_request_return_dict("/note/meta?action=save", method = "POST", data=data)
+        assert result.get_bool("success") == False
+        assert result.get_str("code") == "400"        
     

@@ -9,6 +9,7 @@ class NoteMetaValueType:
 class NoteMetaCategory:
     basic = "basic"
     people = "people"
+    custom = "custom"
 
 class NoteMetaItem:
     def __init__(self, meta_name="", meta_key="", meta_category="", value_type="", is_note_field=False):
@@ -74,3 +75,7 @@ NoteMetaConfig.add_items([
     NoteMetaItem(meta_name="公司", meta_key="company"),
     NoteMetaItem(meta_name="地址", meta_key="address"),
 ], meta_category=NoteMetaCategory.people)
+
+NoteMetaConfig.add_items([
+    NoteMetaItem(meta_name="新增自定义属性", meta_key="_new_custom"),
+], meta_category=NoteMetaCategory.custom)

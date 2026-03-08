@@ -321,7 +321,7 @@ class NoteVisitLogDO(BaseDataRecord):
 
 
 class NoteMetaRecord(BaseDataRecord):
-    _ignore_save_fields = ["meta_id", "meta_name", "value_type"]
+    _ignore_save_fields = ["meta_id", "meta_name", "value_type", "meta_category"]
     def __init__(self):
         current_ms = dateutil.timestamp_ms()
         self.meta_id = 0
@@ -337,6 +337,7 @@ class NoteMetaRecord(BaseDataRecord):
         # 虚拟字段
         self.meta_name = ""
         self.value_type = ""
+        self.meta_category = ""
         
     def validate(self):
         if self.note_id <= 0:
