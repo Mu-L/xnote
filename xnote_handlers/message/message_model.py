@@ -55,11 +55,11 @@ class MessageTagEnum(BaseEnum):
     done = MessageTagItem(name="完成", value="done")
     log = MessageTagItem(name="随手记", value="log")
 
-    book = MessageTagItem("书籍", "$book$")
-    people = MessageTagItem("人物", "$people$")
-    file = MessageTagItem("文件", "$file$")
-    phone = MessageTagItem("电话", "$phone$")
-    link = MessageTagItem("链接", "$link$")
+    book = MessageTagItem("书籍", "_book")
+    people = MessageTagItem("人物", "_people")
+    file = MessageTagItem("文件", "_file")
+    phone = MessageTagItem("电话", "_phone")
+    link = MessageTagItem("链接", "_link")
 
     system_tag_list = [file, link, book, people, phone]
     first_tag_list = [task, done, log]

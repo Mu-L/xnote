@@ -280,11 +280,10 @@ NoteView.addNoteToTag = function (tagCode) {
     console.log(selectedIds);
 
     var params = {
-        action: "add_note_to_tag",
         tag_code: tagCode,
         note_ids: selectedIds.join(",")
     };
-    xnote.http.post("/note/tag/bind", params, function (resp) {
+    xnote.http.post("/note/tag/add_note_to_tag", params, function (resp) {
         if (resp.code != "success") {
             xnote.alert(resp.message);
         } else {

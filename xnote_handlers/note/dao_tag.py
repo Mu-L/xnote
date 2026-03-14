@@ -22,7 +22,7 @@ from xutils import dbutil
 from xutils import Storage
 from xutils.base import BaseDataRecord, BaseEnum, EnumItem
 from xnote_handlers.note.dao_api import NoteDao
-from xnote.service import NoteTagBindService, TagTypeEnum, TagBindDO, TagPrefixEnum
+from xnote.service import NoteTagBindService, TagTypeEnum, TagBindRecord, TagPrefixEnum
 from xnote.service import NoteTagInfoService, TagInfoDO
 from xnote.service import TagCategoryService, TagCategoryDO
 from xnote.service import SystemTagEnum
@@ -97,7 +97,7 @@ class _TagBindDaoImpl:
         note_id_list = [x.target_id for x in tag_bind_list]
         return note_dao.batch_query_list(id_list=note_id_list, creator_id=user_id), amount
     
-    def batch_get_tag_bind(self, user_id=0, target_id_list=[]) -> typing.List[TagBindDO]:
+    def batch_get_tag_bind(self, user_id=0, target_id_list=[]) -> typing.List[TagBindRecord]:
         if len(target_id_list) == 0:
             return []
         result, _ = NoteTagBindService.get_page(user_id=user_id, target_id_list=target_id_list, skip_count=True)

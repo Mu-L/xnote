@@ -48,7 +48,7 @@ from xnote_handlers.note.dao_api import NoteDao
 def get_note_info(id):
     return get_by_id(id)
 
-def assert_json_request_success(test_case, url):
+def assert_json_request_success(test_case: BaseTestCase, url):
     result = json_request_return_dict(url)
     test_case.assertEqual('success', result['code'])
 
@@ -380,7 +380,7 @@ class TestMain(BaseTestCase):
             login_test_user(target_user)
             assert xauth.current_name_str() == target_user
             result = json_request_return_dict(f"/note/api/timeline?_type=json&type=default&parent_id={group_id}")
-            data = result.get("data", [])
+            data = result.get_list("data", [])
             assert len(data) == 1
             
             no_auth_result = json_request_return_dict(f"/note/api/timeline?_type=json&type=default&parent_id={unauthorized_id}")
@@ -541,7 +541,7 @@ class TestMain(BaseTestCase):
         delete_note_for_test("search-content-test")
         create_note_for_test(type = "md", name = "search-content-test", content = "hello,world")
         result = json_request_return_dict("/search?search_type=note&category=content&key=hello&_format=json")
-        files = result.get("files", [])
+        files = result.get_list("files", [])
         assert len(files) > 0
 
     def test_split_words(self):
@@ -727,16 +727,16 @@ A example image
 
     def test_append_tag(self):
         note_id = create_note_for_test("md", "bind-tag-test")
-        dao_tag.append_tag(note_id, "$todo$")
+        dao_tag.append_tag(note_id, "_todo")
 
         index_do = NoteIndexDao.get_by_id(note_id)
         assert index_do != None
-        assert index_do.tag_str == "$todo$"
+        assert index_do.tag_str == "_todo"
 
         note_info = note_dao.get_by_id(note_id)
         assert note_info != None
         assert isinstance(note_info.tags, list)
-        self.assertEqual(note_info.tags, ["$todo$"])
+        self.assertEqual(note_info.tags, ["_todo"])
         delete_note_for_test("bind-tag-test")
 
     def test_group_manage(self):

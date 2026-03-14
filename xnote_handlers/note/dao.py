@@ -132,7 +132,15 @@ class NoteIndexDao:
         if note_id == 0:
             return
         return cls.db.update(where=dict(id=note_id), mtime = dateutil.format_datetime())
-
+    
+    @classmethod
+    def update_tags(cls, note_id: int, tags: List[str]):
+        if note_id == 0:
+            return
+        
+        tag_str = " ".join(tags)
+        return cls.db.update(where=dict(id=note_id), tag_str = tag_str)
+        
     @classmethod
     def get_by_id(cls, note_id=0, creator_id=0, check_user=False):
         if check_user:

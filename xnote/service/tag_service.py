@@ -10,108 +10,13 @@
 """
 # encoding=utf-8
 import typing
-
+from typing import List, Set
 from xutils import Storage, dateutil
 from xnote.core import xtables
 from xutils.base import BaseDataRecord, BaseEnum, EnumItem
 from xutils import dateutil
 from xutils import quote
-
-class SystemTagEnum(BaseEnum):
-    todo = EnumItem("待办", "$todo$")
-    important = EnumItem("重要", "$1$")
-    file = EnumItem("文件", "$file$")
-    link = EnumItem("链接", "$link$")
-    book = EnumItem("书籍", "$book$")
-    people = EnumItem("人物", "$people$")
-    phone = EnumItem("电话", "$phone$")
-
-    _enums = [todo, important, file, link, book, people, phone]
-    _note_enums = [todo, important]
-
-    @staticmethod
-    def is_sys_tag(tag_code=""):
-        return SystemTagEnum.get_by_value(tag_code) != None
-    
-    @classmethod
-    def get_name_by_code(cls, tag_code=""):
-        for item in cls._enums:
-            if item.value == tag_code:
-                return item.name
-        return tag_code
-
-    @classmethod
-    def get_note_tags(cls):
-        result = [] # type: list[TagInfoDO]
-        for item in cls._note_enums:
-            result.append(TagInfoDO(tag_code=item.value, tag_name=item.name))
-        return result
-
-class TagTypeEnum(BaseEnum):
-    """枚举无法扩展,所以这里不用,从外部添加枚举值可以直接设置新的属性"""
-    note_tag = EnumItem("笔记标签", "1")
-    msg_tag = EnumItem("随手记标签", "2")
-
-
-class TagPrefixEnum:
-    heading = EnumItem("标题标签", "_h:")
-
-
-class TagInfoDO(BaseDataRecord):
-    def __init__(self, **kw):
-        self.tag_id = 0
-        self.ctime = xtables.DEFAULT_DATETIME
-        self.mtime = xtables.DEFAULT_DATETIME
-        self.user_id = 0
-        self.tag_type = 0
-        self.second_type = 0
-        self.tag_code = ""
-        self.tag_name = ""
-        self.score = 0.0
-        self.amount = 0
-        self.visit_cnt = 0
-        self.category_id = 0
-        self.update(kw)
-
-    def handle_from_dict(self):
-        if self.tag_name == "":
-            self.tag_name = SystemTagEnum.get_name_by_code(self.tag_code)
-
-    def to_save_dict(self):
-        result = dict(**self)
-        result.pop("tag_id", None)
-        result.pop("tag_name", None)
-        return result
-    
-    @property
-    def url(self):
-        if self.tag_type == TagTypeEnum.msg_tag.int_value:
-            if SystemTagEnum.is_sys_tag(self.tag_code):
-                return f"/message/system_tag?tag_code={self.tag_code}"
-            return f"/message?tag=search&key={quote(self.tag_code)}"
-        return f"/note/taginfo?tag_code={quote(self.tag_code)}"
-    
-    @property
-    def tag_type_name(self):
-        return TagTypeEnum.get_name_by_value(str(self.tag_type))
-        
-
-class TagBindDO(BaseDataRecord):
-    """标签绑定信息, 业务唯一键=tag_type+tag_code+target_id"""
-    def __init__(self):
-        self.ctime = dateutil.format_datetime()
-        self.user_id = 0
-        self.tag_type = 0
-        self.tag_code = ""
-        self.target_id = 0    # target_id 对应的是 tag_type
-        self.second_type = 0  # 二级类型, 这是target_id实体的一个属性
-        self.sort_value = ""  # 排序字段
-
-    @property
-    def tag_name(self):
-        return SystemTagEnum.get_name_by_code(self.tag_code)
-
-TagBind = TagBindDO
+from .tag_model import *
 
 class TagBindServiceImpl:
     """标签绑定服务"""
@@ -190,6 +95,16 @@ class TagBindServiceImpl:
         where_dict["target_id"] = target_id
 
         self.db.update(where=where_dict, second_type=second_type, sort_value=sort_value)
+        
+    def update(self, tag_bind: TagBindRecord):
+        self.db.update(where = dict(id = tag_bind.id))
+        
+    def get_tag_codes(self, user_id: int, target_id: int, second_type=0):
+        old_tags = self.get_by_target_id(user_id=user_id, target_id=target_id, second_type=second_type)
+        old_tag_set:Set[str] = set()
+        for tag_info in old_tags:
+            old_tag_set.add(tag_info.tag_code)
+        return [x for x in old_tag_set]
 
     def bind_tags(self, user_id=0, target_id=0, tags:typing.Sequence[str]=[], update_only_changed = False, second_type=0, sort_value=""):
         assert target_id > 0
@@ -233,6 +148,11 @@ class TagBindServiceImpl:
         vars["tag_type"] = self.get_tag_type()
         for item in self.db.iter(where=new_where, vars=vars, batch_size=batch_size):
             yield TagBind.from_dict(item)
+            
+    def rename(self, user_id=0, old_tag_code="", new_tag_code=""):
+        where_sql = "user_id=$user_id AND tag_code=$old_tag AND tag_type=$tag_type"
+        vars = dict(user_id=user_id, tag_type=self.get_tag_type(), old_tag=old_tag_code)
+        return self.db.update(where=where_sql, vars=vars, tag_code=new_tag_code)
 
 class TagInfoServiceImpl:
 
@@ -356,6 +276,20 @@ class TagInfoServiceImpl:
         where_sql = "user_id=$user_id AND tag_type=$tag_type"
         vars = dict(tag_type=self.tag_type, user_id=user_id)
         return self.db.count(where=where_sql, vars=vars)
+    
+    def rename(self, user_id:int, old_tag_code:str, new_tag_code:str):
+        """重命名标签"""
+        assert user_id > 0
+        assert len(old_tag_code) > 0
+        assert len(new_tag_code) > 0
+        # rename tag_bind
+        tag_bind_service = TagBindServiceImpl(tag_type=self.tag_type)
+        tag_bind_service.rename(user_id=user_id, old_tag_code=old_tag_code, new_tag_code=new_tag_code)
+        # rename tag_info
+        self.db.update(where=dict(user_id=user_id, tag_type=self.tag_type, tag_code=old_tag_code), tag_code = new_tag_code)
+        # update tag_info.amount
+        amount = tag_bind_service.count_user_tag(user_id=user_id, tag_code=new_tag_code)
+        self.update_amount(user_id=user_id, tag_code=new_tag_code, amount=amount)
 
 class TagCategoryDO(BaseDataRecord):
 

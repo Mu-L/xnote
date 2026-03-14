@@ -307,7 +307,7 @@ class TestMain(BaseTestCase):
         assert isinstance(data, dict)
         
         link_msg_resp = json_request_return_dict(
-            "/message/list?tag_code=%24link%24&tag=%24link%24&page=1&key=&format=json&displayTag=", method="GET"
+            "/message/list?tag_code=%24link%24&tag=_link&page=1&key=&format=json&displayTag=", method="GET"
         )
         
         assert link_msg_resp["success"]

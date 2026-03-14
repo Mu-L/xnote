@@ -324,6 +324,13 @@ class TypedDict:
             return TypedDict({})
         return TypedDict(value)
     
+    def get_list(self, key: str, default_value=[]):
+        value = self.dict_.get(key)
+        if value is None:
+            return default_value
+        assert isinstance(value, list)
+        return value
+    
     def get_int(self, key: str) -> int:
         return self.dict_.get(key, 0)
     
