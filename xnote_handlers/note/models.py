@@ -11,7 +11,7 @@ from xnote.core import xconfig
 from xutils.db.dbutil_helper import new_from_dict
 from xutils.base import EnumItem, BaseDataRecord
 from xnote_handlers.note.constant import NoteType
-from xnote.plugin import TextLink, TabBox, DataTable
+from xnote.plugin import TextLink, TabBox, DataTable, Card
 from xutils.functions import del_dict_key, delete_None_values
 from xutils.fsutil import FileItem
 
@@ -353,6 +353,7 @@ class NoteViewContext(Storage):
     meta_tab: TabBox
     meta_table: DataTable
     filelist: List[FileItem]
+    note_fragment: Card
 
     def __init__(self, **kw):
         self.user_name = ""
@@ -448,3 +449,27 @@ class NoteViewContext(Storage):
         if self.file:
             return self.file.is_list
         return False
+
+
+class NoteFragmentRecord(BaseDataRecord):
+    _ignore_save_fields = ["frag_id"]
+    
+    def __init__(self):
+        super().__init__()
+        self.frag_id = 0
+        self.create_time = 0
+        self.update_time = 0
+        self.sort_num = 0
+        self.date_text = ""
+        self.date_sort = 0
+        self.date_precision = 0
+        self.frag_type = ""
+        self.frag_status = 1
+        self.content = ""
+        self.meta = ""
+        self.note_id = 0
+        self.user_id = 0
+        self.file_ids = ""
+        
+        
+        

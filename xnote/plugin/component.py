@@ -133,14 +133,32 @@ class TextLink(BaseComponent):
             return f"""<a href="{href}">{text}</a>"""
 
 
-class TextSpan(BaseComponent):
-    """行内文本"""
-    def __init__(self, text="", css_class=""):
+class EditFormLink(TextLink):
+    """编辑表单的链接"""
+    def __init__(self, text = "", url = "", css_class=""):
         self.text = text
+        self.url = url
         self.css_class = css_class
+        self.href = "#"
 
     def render(self):
         text = escape_html(self.text)
+        return f"""
+[<a class="btn {self.css_class}" onclick="xnote.table.handleEditForm(this)"
+    data-url="{self.url}" data-title="{text}">{text}</a>]
+"""
+
+class TextSpan(BaseComponent):
+    """行内文本"""
+    def __init__(self, text="", css_class="", id=""):
+        self.text = text
+        self.css_class = css_class
+        self.id = id
+
+    def render(self):
+        text = escape_html(self.text)
+        if self.id:
+            return f"""<span id="{self.id}" class="{self.css_class}">{text}</span>"""
         return f"""<span class="{self.css_class}">{text}</span>"""
 
 class TagSpan(BaseComponent):

@@ -1,5 +1,7 @@
 from xnote.plugin.base import BaseComponent, BaseContainer
 from xnote.plugin.component import TextSpan, EditFormButton, ConfirmButton, TextLink
+from xnote.core import xtemplate
+from typing import Optional
 
 class ActionBar(BaseContainer):
     """表格动作栏"""
@@ -21,8 +23,8 @@ class ActionBar(BaseContainer):
         else:
             self.add(item)
 
-    def add_span(self, text="", css_class="", float_right=False):
-        span = TextSpan(text=text, css_class=css_class)
+    def add_span(self, text="", css_class="", float_right=False, id=""):
+        span = TextSpan(text=text, css_class=css_class, id=id)
         self._add(span, float_right)
 
     def add_edit_button(self, text="", url="", css_class="", float_right=False):

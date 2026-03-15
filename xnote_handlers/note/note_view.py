@@ -36,6 +36,7 @@ from .dao_tag import NoteTagInfoDao
 from .dao import NoteIndexDao, NoteDO
 from .note_helper import group_notes
 from xnote_handlers.note.note_service import NoteService, NoteRelationService
+from xnote_handlers.note.note_fragment import render_note_fragment
 from xnote.plugin.table import DataTable
 from xnote.plugin import TabBox
 from .note_meta import NoteMetaService
@@ -117,6 +118,7 @@ def view_or_edit_md_func(file: NoteDO, kw: NoteViewContext):
     kw.relation_group_list = []
     NoteRelationService.render_note_view_ctx(kw)
     NoteMetaService.render_note_view_ctx(kw)
+    render_note_fragment(kw)
     render_comment(kw)
 
     if kw.op == "edit":

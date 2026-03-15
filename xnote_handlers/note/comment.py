@@ -6,6 +6,7 @@ import math
 import xutils
 import typing
 
+from typing import List
 from xnote.core import xconfig
 from xnote.core import xauth
 from xnote.core import xtemplate
@@ -21,10 +22,12 @@ from xutils import webutil
 from xutils import dateutil
 from xnote.core.models import SearchContext, SearchResult
 from .dao_comment import search_comment, CommentDO
+from .dao_meta import NoteMetaDao
 from xutils.text_parser import TokenType
 from .models import NoteTypeInfo
 from xnote_handlers.note.note_service import NoteService
 from xnote_handlers.note.dao import NoteIndexDao
+from xnote.plugin import DataTable, TableActionType
 
 NOTE_DAO = DAO("note")
 
@@ -108,7 +111,9 @@ def on_search_comments(ctx: SearchContext):
     if ctx.category == "comment":
         search_comment_detail(ctx)
 
-def convert_to_html(comments, show_note = False, page = 1, page_max = 1, show_edit = False, note_user_id=0):
+def render_to_html(
+    comments: List[CommentDO], show_note = False, page = 1, page_max = 1, show_edit = False, 
+    note_user_id=0):
     return xtemplate.render("note/page/comment/comment_list_ajax.html", 
         show_comment_edit = show_edit,
         page = page,
@@ -170,8 +175,9 @@ class CommentListAjaxHandler:
         process_comments(comments, show_note)
 
         if resp_type == "html":
-            return convert_to_html(comments, show_note, 
-                page = page, page_max = page_max, show_edit = show_edit, note_user_id=note_user_id)
+            return render_to_html(
+                comments, show_note, page = page, page_max = page_max, show_edit = show_edit, 
+                note_user_id=note_user_id)
         else:
             return comments
     

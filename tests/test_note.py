@@ -28,6 +28,7 @@ from xnote_handlers.note import html_importer
 from xnote_handlers.note import dao as note_dao
 from xnote_handlers.note.dao import NoteIndexDao
 from xnote_handlers.note.dao_relation import NoteRelationDao
+from xnote_handlers.note.dao_fragment import NoteFragmentDao
 from xnote_handlers.note.models import NoteIndexDO
 
 from xutils import Storage
@@ -921,5 +922,38 @@ x^3 + x + 1
         data = build_data_param(note_id = note_id, meta_key = "birth_year", meta_value = "2011")
         result = json_request_return_dict("/note/meta?action=save", method = "POST", data=data)
         assert result.get_bool("success") == False
-        assert result.get_str("code") == "400"        
+        assert result.get_str("code") == "400"
+        
+    def test_fragment(self):
+        delete_note_for_test(name="note-fragment-test")
+        note_id = create_note_for_test(type="md", name="note-fragment-test")
+        
+        # check edit page
+        self.check_OK(f"/note/fragment?action=edit&note_id={note_id}")
+        
+        # check save(create)
+        data = build_data_param(note_id=note_id, date_text = "2026-03-15", content = "fragment test")
+        result = json_request_return_dict("/note/fragment?action=save", method="POST", data=data)
+        assert result.get_bool("success") == True
     
+        # check query
+        self.check_OK(f"/note/view/{note_id}")
+        
+        # check create result
+        results = NoteFragmentDao.list_by_note_id(note_id=note_id)
+        assert len(results) == 1
+        assert results[0].content == "fragment test"
+        frag_id = results[0].frag_id
+        
+        # check save(update)
+        data = build_data_param(note_id=note_id, date_text = "2026-03-15", content = "fragment test v2", frag_id=frag_id)
+        result = json_request_return_dict(f"/note/fragment?action=save", method="POST", data=data)
+        assert result.get_bool("success") == True
+        
+        # check update result
+        results = NoteFragmentDao.list_by_note_id(note_id=note_id)
+        assert len(results) == 1
+        assert results[0].content == "fragment test v2"
+        
+        result = json_request_return_dict(f"/note/fragment?action=delete&frag_id={frag_id}", method="POST")
+        assert result.get_bool("success") == True

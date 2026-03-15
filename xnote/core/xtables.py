@@ -247,6 +247,35 @@ def init_note_meta_table():
         manager.add_index(["note_id", "meta_key"], is_unique=True, index_name="uk_noteMeta_noteId_metaKey")
         manager.add_index(["user_id", "meta_key", "index_value"], index_name="idx_noteMeta_userId_metaKey_indexValue")
 
+def init_note_fragment_table():
+    table_name = "note_fragment"
+    comment = "笔记片段"
+    pk_name = "frag_id"
+    with create_default_table_manager(table_name, comment=comment, pk_name=pk_name) as manager:
+        # 基本字段
+        manager.add_column("create_time", "bigint", default_value=0)
+        manager.add_column("update_time", "bigint", default_value=0)
+        manager.add_column("sort_num", "int", default_value=0, comment="排序字段")
+        
+        # 基本属性
+        manager.add_column("date_text", "varchar(64)", default_value="")
+        manager.add_column("date_sort", "bigint", default_value=0)
+        manager.add_column("date_precision", "tinyint", default_value=0, comment="时间精度")
+        
+        manager.add_column("frag_type", "varchar(32)", default_value="")
+        manager.add_column("frag_status", "tinyint", default_value=0)
+        manager.add_column("content", "text", default_value="")
+        manager.add_column("meta", "text", default_value="")
+        
+        # 关系字段
+        manager.add_column("note_id", "bigint", default_value=0)
+        manager.add_column("user_id", "bigint", default_value=0)
+        manager.add_column("file_ids", "text", default_value="")
+        
+        manager.add_index("note_id", index_name="idx_noteFragment_noteId")
+        manager.add_index(["user_id", "create_time"], index_name="idx_noteFragment_userId_createTime")
+        
+
 
 def init_share_info_table():
     comment = "分享记录"
@@ -1001,6 +1030,7 @@ def init():
     init_note_history_index()
     init_note_relation_table()
     init_note_meta_table()
+    init_note_fragment_table()
 
     init_month_plan_index()
     init_txt_info_index()

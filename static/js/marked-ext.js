@@ -67,6 +67,7 @@
         menuText += "<ul>";
 
         // 先把基础层级计算好
+        // level从1开始
         for (var i = 0; i < myRenderer.headings.length; i++) {
             var heading = myRenderer.headings[i];
             var text = heading.text;
@@ -85,6 +86,9 @@
         if (minLevel === null) {
             minLevel = 1;
         }
+
+        menuList.push([1, "事件时间线", "#events-timeline"])
+        menuList.push([1, "评论区", "#note-comments"])
 
         console.log("contents minLevel:", minLevel);
 
@@ -119,9 +123,8 @@
         }
 
         menuText += repeatElement("</ul>", prevLevel);
-        menuText += "</ul>";
         menuText += "</div>";
-
+        
         console.log("contents.generateHtml end");
         return menuText;
     }

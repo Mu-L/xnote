@@ -205,7 +205,7 @@ class TableAction:
         link = self.get_link(row)
         return link not in (None, "")
 
-class DataTable:
+class DataTable(BaseComponent):
     """数据表格"""
     
     def __init__(self):

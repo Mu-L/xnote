@@ -46,9 +46,7 @@
         <!-- 图标和标题 -->
         <i class="fa {{item.icon}} fa-{{item.icon}} black"></i>
         <span>{{item.name}}</span>
-        {% if item.archived %}
-            <span class="tag system">归档</span>
-        {% end %}
+        
         {% include note/component/note_list_item_tags.html %}
 
         <div class="float-right">
