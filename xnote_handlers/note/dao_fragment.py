@@ -25,6 +25,7 @@ class NoteFragmentDao:
         if record.frag_id > 0:
             return cls.db.update(where=dict(frag_id=record.frag_id), **record.to_save_dict())
         else:
+            assert len(record.frag_type) > 0, "invalid frag_type"
             record.create_time = dateutil.timestamp_ms()
             return cls.db.insert(**record.to_save_dict())
         

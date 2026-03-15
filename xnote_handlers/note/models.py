@@ -450,6 +450,8 @@ class NoteViewContext(Storage):
             return self.file.is_list
         return False
 
+class FragmentType:
+    event = "event"
 
 class NoteFragmentRecord(BaseDataRecord):
     _ignore_save_fields = ["frag_id"]
@@ -463,7 +465,7 @@ class NoteFragmentRecord(BaseDataRecord):
         self.date_text = ""
         self.date_sort = 0
         self.date_precision = 0
-        self.frag_type = ""
+        self.frag_type = FragmentType.event
         self.frag_status = 1
         self.content = ""
         self.meta = ""
