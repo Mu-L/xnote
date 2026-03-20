@@ -62,7 +62,7 @@
     
     
 <div style="float:left;width:100%;">
-<script>
+<script type="text/javascript">
     function switchRename() {
         if ($("#renameDiv").css("display") == "none") {
             $("#oldName").hide();
@@ -157,14 +157,14 @@
             return escape(code);
         }
     }
-
     // set marked code highlight function
     marked.defaults.highlight = highlight;
-
+    
     $(function () {
         var old_content = "";
 
         function repaint() {
+            markedConfig.showSystemContents = false;
             var input = $("#markdown-input").val();
             // not modified
             if (input == old_content) {

@@ -82,7 +82,9 @@
             }
             old_content = input;
             
-            marked.showMenu = true;
+            markedConfig.showSystemContents = false;
+            markedConfig.showMenu = true;
+
             $("#markdown-output-div").html(marked.parse(input));
             marked.afterRender();
         }, 200);

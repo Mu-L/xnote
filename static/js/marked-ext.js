@@ -3,6 +3,12 @@
  * 依赖: marked.js/jquery
  */
 
+var markedConfig = {
+    showMenu: true,
+    // 是否展示时间线、评论区之类的系统组件菜单
+    showSystemContents: true
+};
+
 (function (window) {
 
     var LATEX_INLINE_START = '_latex_inline_start_';
@@ -87,8 +93,10 @@
             minLevel = 1;
         }
 
-        menuList.push([1, "事件时间线", "#events-timeline"])
-        menuList.push([1, "评论区", "#note-comments"])
+        if (markedConfig.showSystemContents) {
+            menuList.push([minLevel, "事件时间线", "#events-timeline"])
+            menuList.push([minLevel, "评论区", "#note-comments"])
+        }
 
         console.log("contents minLevel:", minLevel);
 
@@ -150,7 +158,7 @@
         breaks: true
     });
 
-    marked.showMenu = true;
+    markedConfig.showMenu = true;
     var originalParse = marked.parse;
     var newEscapeRegexp = /^\\([\\`*{}\[\]#+\-.!_>])/;
     // 不对 \( 和 \) 进行转义
@@ -602,7 +610,7 @@
         // reset vars
         gHeadingToLinkMap = {};
 
-        if (!marked.showMenu) {
+        if (!markedConfig.showMenu) {
             return originalParse(text);
         }
 
