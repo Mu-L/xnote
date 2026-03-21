@@ -14,6 +14,14 @@ from xnote.core import xtemplate
 
 FormValueType = typing.Union[int, str, list]
 
+class FormType:
+    # 弹窗编辑
+    edit = "edit"
+    # 页面编辑
+    page_edit = "page_edit"
+    # 查询表单
+    query = "query"
+
 class FormRowType:
     """表单行的类型"""
     input = "input"
@@ -121,7 +129,7 @@ class FormRow:
 class DataForm:
     """数据表格"""
 
-    form_type = "edit"
+    form_type = FormType.edit
     form_type_css = ""
     form_method = "POST"
     footer_btn_group_css = "float-right"
@@ -247,20 +255,20 @@ class DataForm:
     
     @property
     def is_page_edit_form(self):
-        return self.form_type == "page_edit"
+        return self.form_type == FormType.page_edit
     
     @property
     def is_query_form(self):
-        return self.form_type == "query"
+        return self.form_type == FormType.query
 
 class QueryForm(DataForm):
-    form_type = "query"
+    form_type = FormType.query
     form_type_css = "query-form"
     form_method = "GET"
     footer_btn_group_css = ""
 
 class PageEditForm(DataForm):
-    form_type = "page_edit"
+    form_type = FormType.page_edit
     form_type_css = "page-edit-form"
     footer_btn_group_css = ""
     delete_btn_css = "danger"

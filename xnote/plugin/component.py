@@ -13,6 +13,13 @@ from xnote.plugin.base import BaseComponent, BaseContainer
 from xnote.core import xtemplate
 from xutils import escape_html
 
+class RawHtml(BaseComponent):
+    def __init__(self, html: str) -> None:
+        self.html = html
+        
+    def render(self):
+        return self.html
+
 class Panel(BaseContainer):
 
     def __init__(self, css_class=""):
@@ -162,20 +169,24 @@ class TextSpan(BaseComponent):
         return f"""<span class="{self.css_class}">{text}</span>"""
 
 class TagSpan(BaseComponent):
-    def __init__(self, text="", href="", css_class="", badge_info=""):
+    def __init__(self, text="", href="", css_class="", badge_info="", icon_class=""):
         self.text = text
         self.href = href
         self.css_class = css_class
         self.badge_info = badge_info
+        self.icon_class = icon_class
 
     def render(self):
         text = escape_html(self.text)
+        icon_html = ""
+        if self.icon_class:
+            icon_html = f"""<i class="{self.icon_class}"></i>"""
         return f"""
 <span class="tag-span {self.css_class}">
+    {icon_html}
     <a class="tag-link" href="{self.href}">{text}</a>
     {self.badge_info}
-</span>
-        """
+</span>"""
 
 class TextTag(BaseComponent):
     def __init__(self, text="", css_class=""):

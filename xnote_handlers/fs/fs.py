@@ -42,6 +42,8 @@ from . import fs_helper
 from . import fs_checker
 from .fs_dao import FileInfoDao
 
+from xnote.plugin import ActionBar
+
 def is_stared(path):
     return xconfig.has_config("STARED_DIRS", path)
 
@@ -659,10 +661,6 @@ class BookmarkHandler:
         filelist.append(FileItem(os_user_home_path, name = "操作系统用户目录"))
         filelist.append(FileItem(xconfig.DATA_DIR, name = "Xnote数据目录"))
         
-        sidebar_link = FileItem(xconfig.DATA_DIR, name="侧边栏视图")
-        sidebar_link.customized_url = fs_helper.get_fs_url(xconfig.DATA_DIR) + "?mode=sidebar"
-        filelist.append(sidebar_link)
-
         for fpath in bookmark.get():
             item = FileItem(fpath)
             item.is_user_defined = True
@@ -676,8 +674,19 @@ class BookmarkHandler:
         kw.fake_path_url = "/fs_bookmark"
         kw.fake_path_name = "文件收藏夹"
         kw.filelist = filelist
+        kw.fs_toolbar = self.get_fs_toolbar()
         
         return xtemplate.render("fs/page/fs_bookmark.html", **kw)
+    
+    def get_fs_toolbar(self):
+        fs_toolbar = ActionBar("card btn-line-height")
+        fs_toolbar.add_span("文件工具: ", css_class="card-title-span")
+        fs_toolbar.add_link(text="侧边栏视图", href=fs_helper.get_fs_url(xconfig.DATA_DIR) + "?mode=sidebar")
+        fs_toolbar.add_span("|")
+        fs_toolbar.add_link(text="上传文件", href="/fs_upload/manage")
+        fs_toolbar.add_span("|")
+        fs_toolbar.add_link(text="更多工具", href="/plugin_list?category=dir&show_back=true")
+        return fs_toolbar
 
 class UserHomeHandler(BookmarkHandler):
     pass

@@ -6,7 +6,6 @@ class BaseComponent:
     def render(self):
         return ""
 
-
 class BaseContainer(BaseComponent):
     def __init__(self, css_class=""):
         self.css_class = css_class
@@ -14,6 +13,7 @@ class BaseContainer(BaseComponent):
 
     def add(self, item: BaseComponent):
         self.children.append(item)
+        return self
 
     def set_children(self, children: typing.List[BaseComponent]):
         self.children = children

@@ -16,8 +16,10 @@ from xnote.core import xtemplate
 from xnote.core import xconfig
 from xutils import textutil
 from xutils import xhtml_escape, Storage
+from typing import List
 
 
+MAX_RESULT_LINES = 1000
 CODE_EXT_LIST = xconfig.FS_TEXT_EXT_LIST
 
 # TODO 对于小文件可以尝试当成文本文件来处理
@@ -99,7 +101,7 @@ class LineInfo:
     def __str__(self):
         return "%04d:%s" % (self.lineno, self.text)
 
-def code_find(text, key, blacklist_str="", ignore_case=True):
+def code_find(text:str, key:str, blacklist_str="", ignore_case=True):
     """ find key in text, return a list
 
     >>> find('hello,world', 'hello')
@@ -140,7 +142,7 @@ class FileSearch:
         self.recursive = False
         self.use_regexp = False
 
-    def set_exclude_dirs(self, blacklist_dir):
+    def set_exclude_dirs(self, blacklist_dir:str):
         path = self.path
         self.exclude_dirs = []
         if blacklist_dir != "":
@@ -186,7 +188,7 @@ class FileSearch:
             lineno += 1
         return result
 
-    def search_files(self, path, key, blacklist_str, filename, **kw):
+    def search_files(self, path:str, key:str, blacklist_str, filename, **kw):
         ignore_case = self.ignore_case
         recursive   = self.recursive
         total_lines = 0
@@ -226,6 +228,8 @@ class FileSearch:
                     continue
                 total_lines += len(result)
                 result_list.append(Storage(name=fpath, result = result))
+                if total_lines > MAX_RESULT_LINES:
+                    break
 
             if not recursive:
                 break
@@ -237,11 +241,11 @@ class handler:
     def GET(self):
         ignore_case = xutils.get_argument("ignore_case", "off")
         recursive   = xutils.get_argument("recursive", "off")
-        path        = xutils.get_argument("path", "", strip=True)
-        key         = xutils.get_argument("key", "", strip=True)
+        path        = xutils.get_argument_str("path")
+        key         = xutils.get_argument_str("key")
         blacklist   = xutils.get_argument("blacklist", "", strip=True)
         filename    = xutils.get_argument("filename", "", strip=True)
-        blacklist_dir = xutils.get_argument("blacklist_dir", "")
+        blacklist_dir = xutils.get_argument_str("blacklist_dir")
         regexp      = xutils.get_argument("regexp", "", strip=True)
         total_lines = 0
         error       = ""
@@ -259,7 +263,7 @@ class handler:
 
         try:
             if path != "":
-                files, total_lines = searcher.search_files(path, key, blacklist, filename);
+                files, total_lines = searcher.search_files(path, key, blacklist, filename)
         except Exception as e:
             error = e
         return xtemplate.render("code/page/code_search.html", 

@@ -33,6 +33,8 @@
         {% include fs/component/fs_title.html %}
     </div>
 
+    {% render fs_toolbar %}
+
     <div class="card">
         {% for _item in filelist %}
             <a class="list-item" href="{{_item.url}}">

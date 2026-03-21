@@ -602,11 +602,6 @@ li.menu-item:hover {
     padding-left: 5px;
 }
 
-.card-title-span {
-    padding-left: 5px;
-    font-weight: bold;
-}
-
 .card-title-2 {
     padding: 5px;
     margin: 0px;
@@ -942,6 +937,9 @@ li.menu-item:hover {
 }
 .padding-10, .padding-md {
     padding: 10px;
+}
+.padding-lg {
+    padding: 20px;
 }
 .padding-top-5, .padding-top-sm {
     padding-top: 5px;

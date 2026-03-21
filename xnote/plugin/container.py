@@ -41,6 +41,12 @@ class ActionBar(BaseContainer):
     
 
 class Card(BaseContainer):
+    """卡片容器，一个卡片可以包含多个行"""
     def __init__(self, css_class="") -> None:
         super().__init__(css_class="card " + css_class)
 
+
+class CardRow(BaseContainer):
+    """行容器"""
+    def __init__(self, css_class="") -> None:
+        super().__init__(css_class="row " + css_class)

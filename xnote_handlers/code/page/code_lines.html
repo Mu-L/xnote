@@ -2,15 +2,22 @@
 
 {% block body %}
 
-<div class="col-md-12 card">
+<style>
+    td textarea {
+        width: 600px;
+    }
+</style>
 
+<div class="col-md-12 card">
     <h3 class="card-title btn-line-height">
         <span>代码统计</span>
         <div class="float-right">
             <a class="btn btn-default" href="javascript:history.back();">返回</a>
         </div>
     </h3>
+</div>
 
+<div class="col-md-12 card">
     {% include "mod_fs_path.html" %}
 <!-- POST会被GET参数覆盖 -->
 <form method="GET">
@@ -18,16 +25,16 @@
     <input type="text" name="path" class="hide" value="{{path}}">
     <table class="no-border-table">
         <tr>
-            <td>包含内容</td>
+            <td style="min-width: 100px;">包含内容</td>
             <td>
-                <textarea cols="100" name="filter_text">{{filter_text}}</textarea>
+                <textarea name="filter_text">{{filter_text}}</textarea>
             </td>
         </tr>
         <tr>
             <td>黑名单</td>
             <td>
                 <div class="input-help-text" style="color: red;">*匹配任意字符，比如lib/*, 一行一个规则</div>
-                <textarea name="blacklist" cols=100 autoheight>{{blacklist}}</textarea>
+                <textarea name="blacklist" autoheight>{{blacklist}}</textarea>
             </td>
         <tr>
             <td>类型</td>
