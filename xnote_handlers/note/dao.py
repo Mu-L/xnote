@@ -39,6 +39,7 @@ from xutils import Storage
 from xutils import dateutil, dbutil, textutil, fsutil
 from xutils import cacheutil
 from xutils import lists
+from xutils import htmlutil
 from web.db import SQLLiteral
 from xnote_handlers.note.dao_api import NoteDao
 from xnote_handlers.note import dao_log
@@ -1685,7 +1686,8 @@ def search_group(words: typing.List[str], creator_id=0, parent_id=0) -> typing.L
 
     html = ""
     for group in groups:
-        html += TagSpan(text=group.name, href=group.url).render()
+        name_html = htmlutil.highlight(group.name, words)
+        html += TagSpan(text_html=name_html, href=group.url).render()
     result.html = html
     return [result]
 

@@ -79,9 +79,8 @@
                 {% else %}
                     <i class="fa {{file.icon}}"></i>
                 {% end %}
-
-                {% if file.category == "note" %}
-                    <a class="dialog-link" href="{{file.url}}">{{file.name}}</a>
+                {% if file.name_html %}
+                    <a href="{{file.url}}">{% raw file.name_html %}</a>
                 {% else %}
                     <a href="{{file.url}}">{{file.name}}</a>
                 {% end %}

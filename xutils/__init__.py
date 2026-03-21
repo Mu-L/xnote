@@ -95,6 +95,7 @@ class SearchResult(Storage):
     def __init__(self, name="", url='#', raw=None, **kw):
         super().__init__()
         self.name = name
+        self.name_html = ""
         self.url = url # 查看的URL
         self.edit_url = "" # 编辑的URL
         self.raw = raw # 文本按照原始格式展示在<pre>标签里面

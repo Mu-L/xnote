@@ -169,15 +169,20 @@ class TextSpan(BaseComponent):
         return f"""<span class="{self.css_class}">{text}</span>"""
 
 class TagSpan(BaseComponent):
-    def __init__(self, text="", href="", css_class="", badge_info="", icon_class=""):
+    def __init__(self, text="", href="", css_class="", badge_info="", icon_class="", text_html=""):
         self.text = text
+        self.text_html = text_html
         self.href = href
         self.css_class = css_class
         self.badge_info = badge_info
         self.icon_class = icon_class
 
     def render(self):
-        text = escape_html(self.text)
+        if self.text_html:
+            text = self.text_html
+        else:
+            text = escape_html(self.text)
+        
         icon_html = ""
         if self.icon_class:
             icon_html = f"""<i class="{self.icon_class}"></i>"""

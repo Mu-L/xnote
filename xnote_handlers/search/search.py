@@ -12,12 +12,14 @@ import typing
 import xnote_handlers.note.dao as note_dao
 import xnote_handlers.dict.dict_dao as dict_dao
 
+from typing import List
 from xnote.core import xconfig, xauth, xmanager, xtemplate, xnote_hooks
 from xutils import textutil, u
 from xutils import Storage
 from xutils import dateutil
 from xutils import mem_util
 from xutils import six
+from xutils import htmlutil
 from xnote.core.xtemplate import T
 from xnote.core.models import SearchContext, SearchResult
 from xnote.service.search_service import SearchHistoryDO
@@ -63,9 +65,10 @@ class BaseRule:
         self.func_str = ""
         self.scope   = scope
 
-def fill_note_info(files: typing.List[SearchResult]):
+def fill_note_info(files: typing.List[SearchResult], words:List[str]=[]):
     ids = []
     for file in files:
+        file.name_html = htmlutil.highlight(file.name, words)
         if file.category == "note":
             ids.append(file.parent_id)
     
@@ -189,7 +192,7 @@ class SearchHandler:
         logger.info("after fire search.after")
 
         search_result = ctx.join_as_files()
-        fill_note_info(search_result)
+        fill_note_info(search_result, ctx.words)
         return search_result[offset:offset+limit], len(search_result)
 
     @mem_util.log_mem_info_deco("do_search_with_profile", log_args = True)
@@ -239,7 +242,7 @@ class SearchHandler:
         for note in notes:
             note.category = "note"
 
-        fill_note_info(notes)
+        fill_note_info(notes, ctx.words)
 
         if parent_id != "" and parent_id != None:
             ctx.parent_note = note_dao.get_by_id(parent_id, include_full=False)
