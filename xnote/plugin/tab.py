@@ -12,20 +12,20 @@ from typing import List
 from xnote.core import xtemplate
 from xnote.core import xconfig
 from xnote.plugin.component import BlockTitle
-from xnote.plugin.base import BaseComponent
+from xnote.plugin.base import BaseComponent, BaseContainer
 
 # TODO: 支持多级tab, 例如 tab=dev.text
 
 class TabBox(BaseComponent):
     
     _tab_html_v1 = """
-<div class="row">
+<div class="row x-tab-box {{css_class}}" data-tab-key="{{tab_key}}" data-tab-default="{{tab_default}}">
     {% render block_title %}
     {% if title %}
         <span class="x-tab title" style="{{title_style}}">{{title}}</span>
     {% end %}
 
-    <div class="x-tab-box {{css_class}}" data-tab-key="{{tab_key}}" data-tab-default="{{tab_default}}">
+    <div>
         {% for item in tab_list %}
             <a class="x-tab {{item.css_class}}" 
                 {% if item.href != "" %} href="{{item.href}}" {% end %}
@@ -33,6 +33,8 @@ class TabBox(BaseComponent):
                 data-tab-value="{{item.value}}">{{item.title}}</a>
         {% end %}
     </div>
+    
+    {% render right_box %}
 </div>
 """
     _template_v1 = xtemplate.compile_template(_tab_html_v1, "xnote.plugin.tab_v1")
@@ -46,6 +48,7 @@ class TabBox(BaseComponent):
         self.tab_list = [] # type: list[TabItem]
         self.block_title = BlockTitle()
         self._title_style = ""
+        self.right_box = BaseContainer("float-right")
     
     def add_item(self, title="", value="", href="", css_class="", onclick="", item_id=""):
         item = TabItem(title=title, value=value, href=href, css_class=css_class, onclick=onclick, item_id=item_id)
@@ -77,7 +80,8 @@ class TabBox(BaseComponent):
             title=self.title,
             tab_list=self.tab_list,
             block_title=self.block_title,
-            title_style=self._title_style)
+            title_style=self._title_style,
+            right_box=self.right_box)
 
 
 class TabItem:
