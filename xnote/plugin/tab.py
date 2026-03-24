@@ -22,10 +22,12 @@ class TabBox(BaseComponent):
 <div class="row x-tab-box {{css_class}}" data-tab-key="{{tab_key}}" data-tab-default="{{tab_default}}">
     {% render block_title %}
     {% if title %}
-        <span class="x-tab title" style="{{title_style}}">{{title}}</span>
+        <div style="{{title_style}}">
+            <span class="x-tab title" >{{title}}</span>
+        </div>
     {% end %}
 
-    <div>
+    <div style="{{tabs_style}}">
         {% for item in tab_list %}
             <a class="x-tab {{item.css_class}}" 
                 {% if item.href != "" %} href="{{item.href}}" {% end %}
@@ -48,6 +50,7 @@ class TabBox(BaseComponent):
         self.tab_list = [] # type: list[TabItem]
         self.block_title = BlockTitle()
         self._title_style = ""
+        self._tabs_style = ""
         self.right_box = BaseContainer("float-right")
     
     def add_item(self, title="", value="", href="", css_class="", onclick="", item_id=""):
@@ -65,7 +68,8 @@ class TabBox(BaseComponent):
     
     def _update(self):
         if self.title_width:
-            self._title_style = f"width: {self.title_width}"
+            self._title_style = f"float: left; width: {self.title_width}"
+            self._tabs_style = f"float: left; width: calc(100% - {self.title_width})"
 
     def render(self, tab_value=""):
         tab_default = self.tab_default
@@ -81,6 +85,7 @@ class TabBox(BaseComponent):
             tab_list=self.tab_list,
             block_title=self.block_title,
             title_style=self._title_style,
+            tabs_style=self._tabs_style,
             right_box=self.right_box)
 
 
