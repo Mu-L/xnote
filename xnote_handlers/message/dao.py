@@ -451,7 +451,7 @@ def get_message_stat0(user=""):
 def get_empty_stat():
     return MessageStatDO()
 
-def get_message_stat(user):
+def get_message_stat(user: str):
     # type: (str) -> MessageStatDO
     """读取随手记的状态"""
     if user == None:

@@ -12,6 +12,7 @@ from xutils.db.dbutil_helper import new_from_dict
 from . import dao as msg_dao
 from . import message_utils
 from .message_model import MsgTagInfo, MessageTagEnum
+from .message_tab import get_message_tab
 from xutils.text_parser import TokenType
 from xutils import netutil
 from xutils.functions import safe_list
@@ -206,6 +207,7 @@ class ListTagPage:
         kw.html_title = T("随手记标签")
         kw.tag_category_list = tag_category_list
         kw.tab_default = "log.tags"
+        kw.message_tab_component = get_message_tab(user_name, "log.tags")
 
         return xtemplate.render("message/page/message_tag.html", **kw)
 
@@ -216,6 +218,7 @@ class SystemTagHandler:
     def GET(self):
         kw = self.create_kw()
         tag_code = xutils.get_argument_str("tag_code")
+        user_name = xauth.current_name_str()
         kw.tag = "log"
         kw.tab_default = "log.tags"
         kw.message_tag= tag_code
@@ -224,6 +227,7 @@ class SystemTagHandler:
         kw.show_side_tags=False
         kw.message_left_class = "hide"
         kw.message_right_class = "row"
+        kw.message_tab_component = get_message_tab(user_name, "log.tags")
 
         return xtemplate.render("message/page/message_list_view.html", **kw)
     
@@ -292,6 +296,6 @@ xurls = (
     r"/message/tag/list", ListTagPage,
     r"/message/tag/list_ajax", ListAjaxHandler,
     r"/message/tag/search_dialog", SearchDialogHandler,
-    r"/message/system_tag", SystemTagHandler,
+    r"/message/tag/system_tag", SystemTagHandler,
     r"/api/message/tag/list", ListTagAjaxHandler,
 )

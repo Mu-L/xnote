@@ -290,6 +290,9 @@ class TestMain(BaseTestCase):
 
     def test_message_search_page(self):
         self.check_OK("/message?tag=search&key=123")
+        
+    def test_message_tag_list(self):
+        self.check_OK("/message/tag/system_tag")
 
     def test_message_tag_search(self):
         self.check_OK("/message/tag/search_dialog")

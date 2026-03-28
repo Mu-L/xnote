@@ -178,7 +178,8 @@ MessageView.saveMessage = function (target) {
         if (resp.code == "success") {
             xnote.toast("更新成功");
             self.closeEdit();
-            self.refreshList();
+            // self.refreshList();
+            window.location.reload();
         } else {
             xnote.alert("更新失败:" + resp.message);
         }
@@ -199,7 +200,8 @@ MessageView.createMessage = function (target) {
                 $(".input-box").val(defaultContent);
                 $(".input-box")[0].style.height = "52px";
                 // 刷新列表
-                MessageView.refreshList();
+                // MessageView.refreshList();
+                window.location.reload();
             } else {
                 xnote.alert(data.message);
             }
@@ -397,7 +399,8 @@ MessageView.deleteMessage = function(target) {
     xnote.confirm("确认删除[" + content + "]吗?", function (result) {
         xnote.http.post("/message/delete", { id: id }, function (resp) {
             if (resp.code == "success") {
-                MessageView.refreshList();
+                // MessageView.refreshList();
+                window.location.reload();
             } else {
                 xnote.alert(resp.message);
             }

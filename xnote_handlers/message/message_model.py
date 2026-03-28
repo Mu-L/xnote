@@ -48,7 +48,7 @@ class MessageTagItem(EnumItem):
 
     @property
     def url(self):
-        return f"{server_home}/message/system_tag?tag_code={self.value}"
+        return f"{server_home}/message/tag/system_tag?tag_code={self.value}"
 
 class MessageTagEnum(BaseEnum):
     task = MessageTagItem(name="任务", value="task")
