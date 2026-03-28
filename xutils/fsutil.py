@@ -139,7 +139,7 @@ def get_relative_path(path:str, parent:str):
     return relative_path
 
 
-def detect_encoding(fpath: str):
+def detect_encoding(fpath: str, default_encoding=None) -> Optional[str]:
     last_err = None
     for encoding in ENCODING_TUPLE:
         try:
@@ -153,7 +153,7 @@ def detect_encoding(fpath: str):
     if last_err:
         raise Exception("can not detect file encoding, path=[%s]" % fpath,
                         last_err)
-    return None
+    return default_encoding
 
 
 def get_file_ext(fname):

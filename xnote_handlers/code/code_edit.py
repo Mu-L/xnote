@@ -103,16 +103,19 @@ class ViewSourceHandler:
         part_links = []
 
         try:
+            encoding = fsutil.detect_encoding(path, default_encoding="utf-8")
+            assert isinstance(encoding, str)
+            
             max_file_size = xconfig.MAX_TEXT_SIZE
-            file_size = xutils.get_file_size_int(path, raise_exception=True)
-            if file_size >= max_file_size:
+            file_str_len = self.get_file_str_len(path, encoding)
+            if file_str_len >= max_file_size:
                 readonly = True
                 file_too_large = True
 
             if file_too_large:
-                part_links = self.build_part_links(file_size, max_file_size, offset)
+                part_links = self.build_part_links(file_str_len, max_file_size, offset)
             
-            content = self.read_part(path, offset, max_file_size)
+            content = self.read_part(path, offset, max_file_size, encoding)
 
             plugin_name = fsutil.get_relative_path(path, xconfig.PLUGINS_DIR)
             # 使用JavaScript来处理搜索关键字高亮问题
@@ -165,13 +168,30 @@ class ViewSourceHandler:
             offset += max_file_size
         return part_links
 
-    def read_part(self, path: str, offset: int, max_file_size: int):
+    def read_part(self, path: str, offset: int, max_file_size: int, encoding: str):
         if offset < 0:
             offset = 0
-        with open(path, "rb") as fp:
-            fp.seek(offset)
-            content_bytes = fp.read(max_file_size)
-            return content_bytes.decode("utf-8", errors="ignore")
+        
+        seek_size = offset
+        buf_size = 1024*100 # 100K
+        with open(path, "r+", encoding=encoding) as fp:
+            while seek_size > 0:
+                buf = fp.read(buf_size)
+                if not buf:
+                    break
+                seek_size -= len(buf)
+            return fp.read(max_file_size)
+        
+    def get_file_str_len(self, fpath: str, encoding: str):
+        str_len = 0
+        buf_size = 1024*100 # 100K
+        with open(fpath, "r+", encoding=encoding) as fp:
+            while True:
+                buf = fp.read(buf_size)
+                if not buf:
+                    break
+                str_len += len(buf)
+        return str_len
 
 class UpdateHandler(object):
 
@@ -191,9 +211,10 @@ class UpdateHandler(object):
             event = xnote_event.FileUploadEvent()
             event.fpath = path
             event.user_name = user_name
+            event.user_id = xauth.current_user_id()
 
             # 发送通知刷新文件索引
-            xmanager.fire("fs.update", event)
+            event.fire()
             # raise web.seeother("/code/edit?path=" + xutils.quote(path))
             return webutil.SuccessResult()
 
