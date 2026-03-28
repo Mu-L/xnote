@@ -680,7 +680,7 @@ class BookmarkHandler:
     
     def get_fs_toolbar(self):
         fs_toolbar = ActionBar("card btn-line-height")
-        fs_toolbar.add_span("文件工具: ", css_class="card-title-span")
+        fs_toolbar.add_span("工具: ", css_class="card-title-span")
         fs_toolbar.add_link(text="侧边栏视图", href=fs_helper.get_fs_url(xconfig.DATA_DIR) + "?mode=sidebar")
         fs_toolbar.add_span("|")
         fs_toolbar.add_link(text="上传文件", href="/fs_upload/manage")
