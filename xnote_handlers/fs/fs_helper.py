@@ -53,9 +53,9 @@ def handle_file_item(item: fsutil.FileItem):
     return item
 
 def handle_file_url(item: fsutil.FileItem):
-    if item.customized_url:
-        item.url = item.customized_url
-        item.data_url = item.customized_url
+    if item.custom_url:
+        item.url = item.custom_url
+        item.data_url = item.custom_url
         return
     
     item.css_class = ""

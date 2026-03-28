@@ -110,7 +110,7 @@ class MsgTagInfo(TagInfoDO):
         super().__init__(**kw)
         self.search_tag = ""
         self.html = ""
-        self.customized_url = kw.get("url", "")
+        self.custom_url = kw.get("url", "")
         self.badge_info = ""
         self.update(kw)
 
@@ -147,7 +147,7 @@ class MsgTagInfo(TagInfoDO):
         result.pop("tag_name", None)
         result.pop("html", None)
         result.pop("search_tag", None)
-        result.pop("customized_url", None)
+        result.pop("custom_url", None)
         result.pop("badge_info", None)
         return result
     
@@ -163,8 +163,8 @@ class MsgTagInfo(TagInfoDO):
         if SystemTagEnum.is_sys_tag(self.tag_code):
             return f"/message/tag/list?tag=log.tags&sys_tag={self.tag_code}"
         
-        if self.customized_url != "":
-            return self.customized_url
+        if self.custom_url != "":
+            return self.custom_url
         
         if self.search_tag != "":
             return f"/message?tag={self.search_tag}&key={quote(self.tag_code)}"

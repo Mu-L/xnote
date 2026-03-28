@@ -596,7 +596,7 @@ class FileItem(Storage):
     css_class: str
     is_user_defined: bool
     # 自定义URL
-    customized_url: str
+    custom_url: str
     size: str
 
     def __init__(

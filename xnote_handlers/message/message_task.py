@@ -41,9 +41,9 @@ class TaskListHandler:
     def fix_side_tags(cls, side_tags: typing.List[MessageTag]):
         for tag in side_tags:
             if tag.is_no_tag:
-                tag.customized_url = f"/message?tag=task&filterKey=$no_tag"
+                tag.custom_url = f"/message?tag=task&filterKey=$no_tag"
             else:
-                tag.customized_url = f"/message?tag=task&filterKey={xutils.quote(tag.content)}"
+                tag.custom_url = f"/message?tag=task&filterKey={xutils.quote(tag.content)}"
     
     @classmethod
     def get_task_create_page(cls):

@@ -8,7 +8,7 @@ import logging
 import typing
 import types
 
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 from xnote.core import xconfig, xmanager, xtables, xauth
 
 from xutils import dbutil, cacheutil, textutil, Storage, functions
@@ -402,9 +402,9 @@ def list_by_tag(user: str, tag: str, offset=0, limit=xconfig.PAGE_SIZE):
     return chatlist, amount
 
 
-def list_by_date(user, date, offset=0, limit=xconfig.PAGE_SIZE, tag=""):
+def list_by_date(user, date, offset=0, limit=xconfig.PAGE_SIZE, tag="") -> Tuple[list, int]:
     if date is None or date == "":
-        return []
+        return [], 0
     
     user_id = xauth.UserDao.get_id_by_name(user)
     index_list = MsgIndexDao.list(user_id=user_id,tag=tag, date_prefix=date, offset=offset, limit=limit)

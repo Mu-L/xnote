@@ -20,14 +20,13 @@ import xutils
 import xnote_handlers.message.dao as msg_dao
 import logging
 
-
+from typing import List, Tuple
 from xnote.core import xauth, xconfig, xmanager, xtemplate
 from xutils import BaseRule, Storage
 from xnote.core.xtemplate import T
 from xutils import netutil, webutil
 from xutils.textutil import quote
 from xnote_handlers.message.message_task import TaskListHandler
-from xnote_handlers.message.message_month_tags import MonthTagsPage
 from xnote_handlers.message.message_date import MessageDateHandler
 from xnote_handlers.message.message_date import MessageListByDayHandler
 from xnote_handlers.message.message_log import LogPageHandler
@@ -156,7 +155,7 @@ class ListAjaxHandler:
         result.current_user = xauth.current_name()
         return result
 
-    def do_list_message(self, user_name, tag, offset, pagesize):
+    def do_list_message(self, user_name, tag, offset, pagesize) -> Tuple[list, int]:
         key = xutils.get_argument_str("key", "")
         date = xutils.get_argument_str("date", "")
         filter_date = xutils.get_argument_str("filterDate", "")
@@ -553,9 +552,6 @@ class MessagePageHandler:
 
         # 记录日志
         xmanager.add_visit_log(user, "/message?tag=%s" % tag)
-
-        if tag == "month_tags":
-            return MonthTagsPage().do_get()
 
         if tag == "api.tag_list":
             return self.get_tag_list()

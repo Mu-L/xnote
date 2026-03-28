@@ -12,7 +12,7 @@ from xutils.db.dbutil_helper import new_from_dict
 from . import dao as msg_dao
 from . import message_utils
 from .message_model import MsgTagInfo, MessageTagEnum
-from .message_tab import get_message_tab
+from .message_tab import get_message_log_tab
 from xutils.text_parser import TokenType
 from xutils import netutil
 from xutils.functions import safe_list
@@ -41,7 +41,7 @@ def get_tag_list_by_msg_list(msg_list, date=""):
     server_home = xconfig.WebConfig.server_home
     for tag_info in result:
         tag_name = tag_info.name
-        tag_info.customized_url = f"{server_home}/message/calendar?tag=log.date&date={date}&filterKey={quote(tag_name)}"
+        tag_info.custom_url = f"{server_home}/message/calendar?tag=log.date&date={date}&filterKey={quote(tag_name)}"
         tag_info.badge_info = f"{tag_info.amount}"
     result.sort(key = lambda x:x.amount, reverse=True)
     return result
@@ -207,7 +207,7 @@ class ListTagPage:
         kw.html_title = T("随手记标签")
         kw.tag_category_list = tag_category_list
         kw.tab_default = "log.tags"
-        kw.message_tab_component = get_message_tab(user_name, "log.tags")
+        kw.message_tab_component = get_message_log_tab(user_name, "log.tags")
 
         return xtemplate.render("message/page/message_tag.html", **kw)
 
@@ -227,7 +227,7 @@ class SystemTagHandler:
         kw.show_side_tags=False
         kw.message_left_class = "hide"
         kw.message_right_class = "row"
-        kw.message_tab_component = get_message_tab(user_name, "log.tags")
+        kw.message_tab_component = get_message_log_tab(user_name, "log.tags")
 
         return xtemplate.render("message/page/message_list_view.html", **kw)
     

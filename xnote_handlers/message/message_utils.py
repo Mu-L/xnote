@@ -629,7 +629,7 @@ class MessageListParser(object):
         self.keywords = []
         for word in keywords:
             amount = keywords[word]
-            keyword_info = MessageTag(tag_name=word, tag_code=word, customized_url=build_search_url(word), amount=amount)
+            keyword_info = MessageTag(tag_name=word, tag_code=word, custom_url=build_search_url(word), amount=amount)
             self.keywords.append(keyword_info)
 
     def get_message_list(self):
@@ -694,7 +694,7 @@ def list_hot_tags(user_name:str, limit=20):
     sort_tag_list(msg_list, "amount_desc")
     server_home = xconfig.WebConfig.server_home
     for msg in msg_list:
-        msg.customized_url = f"{server_home}/message?tag=log.search&key={quote(msg.content)}"
+        msg.custom_url = f"{server_home}/message?tag=log.search&key={quote(msg.content)}"
     return msg_list[:limit]
 
 

@@ -121,6 +121,7 @@ class TestMain(BaseTestCase):
         json_request("/message/list?tag=file")
         json_request("/message/list?tag=link")
         json_request("/message/list?tag=todo")
+        json_request("/message/list?tag=log.date")
         # search
         json_request("/message/list?key=1")
 
@@ -209,6 +210,7 @@ class TestMain(BaseTestCase):
         self.check_OK("/message?tag=task&action=create")
         self.check_OK("/message?tag=task&filterKey=test")
         self.check_OK("/message/task")
+        self.check_OK("/message/task/done")
         self.check_OK("/message/task?p=done")
         self.check_OK("/message/task/list_ajax")
         self.check_OK("/message/task/list_ajax?p=done")
@@ -293,6 +295,12 @@ class TestMain(BaseTestCase):
         
     def test_message_tag_list(self):
         self.check_OK("/message/tag/system_tag")
+        self.check_OK("/message/tag/list")
+        self.check_OK("/message/tag/list_ajax")
+        
+        content = quote("hello,world")
+        new_tag = quote("#test#")
+        self.check_OK(f"/message/add_tag?content={content}&new_tag={new_tag}")
 
     def test_message_tag_search(self):
         self.check_OK("/message/tag/search_dialog")

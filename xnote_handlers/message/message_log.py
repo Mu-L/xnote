@@ -16,7 +16,7 @@ from xnote_handlers.message.message_utils import filter_key
 from .dao_template import MessageTemplateDao
 from .message_template_service import handle_template_tab
 from .message_utils import mark_filter_text
-from .message_tab import get_message_tab
+from .message_tab import get_message_log_tab
 from xnote.core.xnote_user_config import UserConfig
 
 class LogPageHandler:
@@ -45,7 +45,7 @@ class LogPageHandler:
         kw.search_ext_dict = dict(tag="log.search")
         kw.message_left_class = "hide"
         kw.message_right_class = "row"
-        kw.message_tab_component = get_message_tab(user_name, input_tag)
+        kw.message_tab_component = get_message_log_tab(user_name, input_tag)
         
         filter_content = UserConfig.msg_filter.get_str(user_id=user_id)
         kw.show_tag_filter = True

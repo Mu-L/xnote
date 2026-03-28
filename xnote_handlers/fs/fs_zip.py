@@ -65,7 +65,7 @@ class ZipFileHandler(FileSystemHandler):
             file_item.size = fsutil.format_size(tree_node.zip_info.file_size)
         encoded_path = textutil.encode_uri_component(tree_node.path)
         zip_path_b64 = textutil.encode_base64(zip_path)
-        file_item.customized_url = f"/fs/zip/{zip_path_b64}/{encoded_path}"
+        file_item.custom_url = f"/fs/zip/{zip_path_b64}/{encoded_path}"
         fs_helper.handle_file_item(file_item)
         return file_item
     
@@ -86,7 +86,7 @@ class ZipFileHandler(FileSystemHandler):
     def build_fs_path_list(self, zip_path: str, inner_path: str):
         zip_item = FileItem(path = zip_path)
         zip_path_b64 = textutil.encode_base64(zip_path)
-        zip_item.customized_url = f"/fs/zip/{zip_path_b64}/"
+        zip_item.custom_url = f"/fs/zip/{zip_path_b64}/"
         fs_helper.handle_file_item(zip_item)
         
         zip_parent = os.path.dirname(zip_path)
@@ -102,7 +102,7 @@ class ZipFileHandler(FileSystemHandler):
                 continue
             abspath = dirname + "/" + path
             item = FileItem(path = abspath)
-            item.customized_url = f"/fs/zip/{zip_path_b64}{abspath}"
+            item.custom_url = f"/fs/zip/{zip_path_b64}{abspath}"
             fs_helper.handle_file_item(item)
             result.append(item)
             dirname = abspath

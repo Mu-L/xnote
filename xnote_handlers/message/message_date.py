@@ -16,7 +16,7 @@ from xnote_handlers.message.message_utils import convert_message_list_to_day_fol
 from xnote_handlers.message.message_utils import count_month_size
 from . import message_tag
 from . import message_template_service
-from .message_tab import get_message_tab
+from .message_tab import get_message_log_tab
 
 class MessageDateHandler:
 
@@ -59,7 +59,7 @@ class MessageListByDayHandler():
         kw.search_type = "message"
         kw.search_ext_dict = dict(tag="log.search")
         kw.tab_default = "log.date"
-        kw.message_tab_component = get_message_tab(user_name, "log.date")
+        kw.message_tab_component = get_message_log_tab(user_name, "log.date")
 
         return xtemplate.render("message/page/message_list_by_day.html",
                                 date=date,
@@ -100,7 +100,7 @@ class CalendarHandler:
         kw.search_type = "message"
         kw.filter_tab = filter_tab
         kw.tab_default = "log.date"
-        kw.message_tab_component = get_message_tab(user_name, "log.date")
+        kw.message_tab_component = get_message_log_tab(user_name, "log.date")
         
         # 实际数据从 /message/date 接口获取
 
@@ -127,7 +127,7 @@ class DateDetailHandler:
         kw.tag = "log"
         kw.message_tag = "log.date"
         kw.create_date = date
-        kw.message_tab_component = get_message_tab(user_name, "log.date")
+        kw.message_tab_component = get_message_log_tab(user_name, "log.date")
 
         message_template_service.handle_template_tab(kw, default_content="")
 
