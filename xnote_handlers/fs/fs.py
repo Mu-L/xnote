@@ -44,6 +44,13 @@ from .fs_dao import FileInfoDao
 
 from xnote.plugin import ActionBar
 
+# 配置文件
+# 强制使用Range请求的文件大小阈值（超过此大小的文件首次请求时只返回部分内容）
+FORCE_RANGE_THRESHOLD = 10 * 1024 * 1024   # 10MB
+# 强制Range请求时返回的初始数据大小（必须足够大以包含moov盒子）
+# 4K视频moov盒子可能很大（包含大量样本表），建议设置2MB以上
+FORCE_RANGE_DATA_SIZE = 2 * 1024 * 1024  # 2MB
+
 def is_stared(path):
     return xconfig.has_config("STARED_DIRS", path)
 
@@ -219,7 +226,7 @@ class FileSystemHandler:
         raise web.seeother("/fs/~/")
 
     def read_range(self, path:str, http_range:str, blocksize:int):
-        xutils.trace("Download", "==> HTTP_RANGE %s" % http_range)
+        logging.debug("read_range HTTP_RANGE %s", http_range)
         range_list = http_range.split("bytes=")
         if len(range_list) == 2:
             # 包含完整的范围
@@ -229,52 +236,75 @@ class FileSystemHandler:
                 range_start = int(range_start)
                 total_size = os.stat(path).st_size
                 if range_end != "":
-                    range_end = int(range_end)
+                    # 浏览器指定了结束位置
+                    range_end = min(int(range_end), total_size - 1, range_start + FORCE_RANGE_DATA_SIZE - 1)
                 else:
-                    range_end  = total_size-1
-                    web.header("Content-Length", total_size)
+                    # 浏览器未指定结束位置，只返回一个数据块（1MB）
+                    # 避免一次性传输过多数据，让浏览器继续发送Range请求
+                    range_end = min(range_start + FORCE_RANGE_DATA_SIZE - 1, total_size - 1)
+                content_length = range_end - range_start + 1
+                web.header("Content-Length", content_length)
                 content_range = "bytes %s-%s/%s" % (range_start, range_end, total_size)
                 # 设置HTTP响应状态
                 web.ctx.status = "206 Partial Content"
                 # 发送HTTP首部
                 web.header("Accept-Ranges", "bytes")
                 web.header("Content-Range", content_range)
-
-                xutils.trace("Download", "<== Content-Range:%s" % content_range)
+                logging.debug("resp Content-Range:%s", content_range)
+                
                 # 发送数据
-                fp = open(path, "rb")
-                try:
+                logging.debug("open file %s, range: %s-%s", path, range_start, range_end)
+                with open(path, "rb") as fp:
                     fp.seek(range_start)
-                    rest = range_end - range_start + 1
-                    readsize = min(rest, blocksize)
-                    while readsize > 0:
-                        # print("%s send %s K" % (time.ctime(), readsize))
-                        yield fp.read(readsize)
-                        rest -= readsize
-                        readsize = min(rest, blocksize)
-                finally:
-                    # 基本上和with等价，这里打印出来
-                    xutils.trace("Download", "close %s" % path)
-                    fp.close()
+                    buf = fp.read(content_length)
+                    yield buf
+                    total_sent = len(buf)
+                    logging.debug("file %s sent %s bytes, expected %s bytes\n", 
+                                  path, fsutil.format_size(total_sent), fsutil.format_size(content_length))
+            except ValueError as e:
+                # Range 解析错误（如非数字），返回 416 Range Not Satisfiable
+                logging.warning("Range parse error: %s, range: %s", e, http_range)
+                web.ctx.status = "416 Range Not Satisfiable"
+                web.header("Content-Range", "bytes */%s" % os.stat(path).st_size)
+                yield b""
             except Exception as e:
-                # 其他未知异常
+                # 其他未知异常，返回 500
+                logging.error("Range request error: %s", e)
                 xutils.print_stacktrace()
-                # yield最好不要和return value混用
-                yield self.read_all(path, blocksize)
+                web.ctx.status = "500 Internal Server Error"
+                yield b""
         else:
-            # 处理不了，返回所有的数据
+            # 处理不了Range格式，返回所有的数据（200 OK）
             yield self.read_all(path, blocksize)
 
     def read_all(self, path: str, blocksize: int):
         total_size = os.stat(path).st_size
         web.header("Content-Length", total_size)
+        logging.debug("read_all Content-Length %s", total_size)
         with open(path, "rb") as fp:
             block = fp.read(blocksize)
             while block:
                 # print("%s Read %s K" % (time.ctime(), blocksize))
                 yield block
                 block = fp.read(blocksize)
-            
+
+    def read_range_initial(self, path: str, blocksize: int, total_size: int):
+        # 大文件首次请求时，返回初始数据并使用206状态码
+        # 这样浏览器会继续使用Range请求分段加载，避免一次性传输大文件
+        initial_size = min(FORCE_RANGE_DATA_SIZE, total_size)
+        range_end = initial_size - 1
+
+        content_range = "bytes %s-%s/%s" % (0, range_end, total_size)
+        web.ctx.status = "206 Partial Content"
+        web.header("Content-Length", initial_size)
+        web.header("Content-Range", content_range)
+        logging.debug("read_range_initial: %s, range: %s", path, content_range)
+
+        with open(path, "rb") as fp:
+            yield fp.read(initial_size)
+            logging.debug("file %s sent %s bytes, expected %s bytes\n", 
+                          path, fsutil.format_size(initial_size), fsutil.format_size(initial_size))
+
     def read_thumbnail(self, path, blocksize: int, version="v1"):
         # TODO 限制进程数量
         # 在SAE环境中，pillow处理图片后无法释放内存，改成用子进程处理
@@ -321,8 +351,11 @@ class FileSystemHandler:
         self.set_cache_control(mtime, etag)
         self.handle_content_type(path, content_type)
 
+        # 告诉浏览器支持断点续传（Range请求）
+        web.header("Accept-Ranges", "bytes")
+
         http_range = environ.get("HTTP_RANGE")
-        blocksize = 64 * 1024
+        blocksize = 64 * 1024 # 64K
 
         if http_range is not None:
             return self.read_range(path, http_range, blocksize)
@@ -333,6 +366,11 @@ class FileSystemHandler:
             if mode == "thumbnail_v2":
                 # 等比例缩放
                 return self.read_thumbnail(path, blocksize, version="v2")
+            # 对于大文件，首次请求返回部分内容（206），让浏览器使用Range请求分段加载
+            # 如果moov盒子不完整，浏览器会发送新的Range请求继续获取
+            total_size = os.stat(path).st_size
+            if total_size > FORCE_RANGE_THRESHOLD:
+                return self.read_range_initial(path, blocksize, total_size)
             return self.read_all(path, blocksize)            
 
     def handle_get(self, path: str, content_type=None):
