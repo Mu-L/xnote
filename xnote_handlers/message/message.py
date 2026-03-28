@@ -133,7 +133,7 @@ class ListAjaxHandler:
         if tag == "key" or tag == "log.tags":
             return webutil.FailedResult(message="功能已迁移")
 
-        user_name = xauth.get_current_name()
+        user_name = xauth.current_name_str()
         chatlist, amount = self.do_list_message(
             user_name, tag, offset, pagesize)
 

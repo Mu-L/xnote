@@ -133,8 +133,6 @@ class DateDetailHandler:
 
         return xtemplate.render("message/page/message_list_view.html",
                                 search_type="message",
-                                show_system_tag=False,
-                                show_sub_link=False,
                                 html_title=T("随手记"),
                                 show_back_btn=True,
                                 **kw)

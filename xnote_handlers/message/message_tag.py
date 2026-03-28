@@ -12,7 +12,7 @@ from xutils.db.dbutil_helper import new_from_dict
 from . import dao as msg_dao
 from . import message_utils
 from .message_model import MsgTagInfo, MessageTagEnum
-from .message_tab import get_message_log_tab
+from .message_tab import get_message_log_tab, get_system_tag_tabs
 from xutils.text_parser import TokenType
 from xutils import netutil
 from xutils.functions import safe_list
@@ -228,6 +228,7 @@ class SystemTagHandler:
         kw.message_left_class = "hide"
         kw.message_right_class = "row"
         kw.message_tab_component = get_message_log_tab(user_name, "log.tags")
+        kw.system_tag_tabs = get_system_tag_tabs(tag_code)
 
         return xtemplate.render("message/page/message_list_view.html", **kw)
     

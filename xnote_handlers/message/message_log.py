@@ -33,9 +33,7 @@ class LogPageHandler:
         kw.tag=input_tag
         kw.message_tag=input_tag
         kw.search_type="message"
-        kw.show_system_tag=False
         kw.show_side_system_tags=True
-        kw.show_sub_link=False
         kw.html_title=T("随手记")
         kw.default_content=default_content
         kw.show_back_btn=False

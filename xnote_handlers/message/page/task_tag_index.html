@@ -5,16 +5,7 @@
 {% block body_left %}
 
     {% include message/component/message_title.html %}
-
-    {% include message/page/task_tab.html %}
-
-    {% include message/component/message_sub_link.html %}
-
-    {% if message_tag == "calendar" %}
-        <!-- 月份选择器 -->
-        {% include common/date/month_picker.html %}
-    {% end %}
-
+    {% render task_tab_component %}
     {% include message/component/message_tag_list.html %}
 
 {% end %}

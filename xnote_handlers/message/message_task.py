@@ -16,6 +16,7 @@ from xnote_handlers.message.message_model import MessageTag, MessageTagEnum
 from xnote_handlers.message.message_utils import MAX_LIST_LIMIT
 from xnote_handlers.message.message_utils import filter_msg_list_by_key, mark_filter_text
 from xnote_handlers.message.message_template_service import handle_template_tab
+from .message_tab import get_task_tab
 
 class TaskListHandler:
 
@@ -51,11 +52,11 @@ class TaskListHandler:
         user_id = xauth.current_user_id()
         filter_content = UserConfig.task_filter.get_str(user_id)
         filter_config_key = UserConfig.task_filter.key
+        user_name = xauth.current_name_str()
 
         show_side_tags = xutils.get_argument_bool("show_side_tags")
         kw = cls.get_task_kw()
         kw.show_input_box = True
-        kw.show_system_tag = False
         side_tags = list_task_tags(xauth.current_name_str())
         cls.fix_side_tags(side_tags)
         kw.side_tag_tab_key = "filterKey"
@@ -72,6 +73,7 @@ class TaskListHandler:
             cls.hide_side_tags(kw)
             
         handle_template_tab(kw, "", template_type="task")
+        kw.task_tab_component = get_task_tab(user_name, "task")
         
         return xtemplate.render("message/page/task_index.html", **kw)
 
@@ -81,7 +83,7 @@ class TaskListHandler:
 
     @classmethod
     def get_task_taglist_page(cls):
-        user_name = xauth.current_name()
+        user_name = xauth.current_name_str()
         msg_list, amount = msg_dao.list_task(user_name, 0, 1000)
 
         tag_list = get_tags_from_message_list(
@@ -98,22 +100,22 @@ class TaskListHandler:
         kw.tag_list = tag_list
         kw.html_title = T("待办任务")
         kw.message_placeholder = T("添加待办任务")
-
-        kw.show_sub_link = False
         kw.show_task_create_entry = True
         kw.show_task_done_entry = True
         kw.search_type = "task"
         kw.search_ext_dict = dict(tag="task.search")
+        kw.task_tab_component = get_task_tab(user_name, "taglist")
 
         return xtemplate.render("message/page/task_tag_index.html", **kw)
 
     @classmethod
     def get_task_done_page(cls):
+        user_name = xauth.current_name_str()
         kw = cls.get_task_kw()
-        kw.show_system_tag = False
         kw.show_input_box = False
         kw.message_tag = "done"
         kw.default_tab = "done"
+        kw.task_tab_component = get_task_tab(user_name, "done")
         cls.hide_side_tags(kw)
         return xtemplate.render("message/page/task_done_index.html", **kw)
 

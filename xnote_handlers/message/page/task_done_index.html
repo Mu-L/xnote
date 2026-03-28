@@ -20,7 +20,6 @@
     {% init default_content = "" %}
     {% init show_tab = True %}
     {% init show_input_box = True %}
-    {% init show_system_tag = True %}
     {% init show_keyword_info = False %}
     {% init message_left_class = "message-left" %}
     {% init message_right_class = "message-right" %}
@@ -28,16 +27,13 @@
     {% include message/component/message_title.html %}
 
     <!-- Tab页 -->
-    {% include message/page/task_tab.html %}
+    {% render task_tab_component %}
 
     <div class="{{message_left_class}}">
         {% include message/component/right/tags.html %}
     </div>
 
     <div class="{{message_right_class}}">
-        <!-- 二级目录 -->
-        {% include message/component/message_sub_link.html %}
-    
         <!-- 标签信息 -->
         {% if show_keyword_info %}
             {% include message/component/message_keyword_info.html %}
