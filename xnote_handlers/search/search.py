@@ -52,7 +52,7 @@ def get_search_handler(search_type) -> Storage:
     if handler != None:
         return handler
 
-    return SEARCH_TYPE_DICT.get("default")
+    return SEARCH_TYPE_DICT.get("default") # type: ignore
 
 # 注册到xtemplate的实现
 xnote_hooks.get_search_handler = get_search_handler
@@ -94,9 +94,8 @@ def list_search_history(user_name, limit = -1):
             history_list.append(item.search_key)
     return history_list
 
-def build_search_context(user_name, category, key):
+def init_search_context(ctx: SearchContext, user_name:str, category:str, key:str):
     words                   = textutil.split_words(key)
-    ctx                     = SearchContext()
     ctx.key                 = key
     ctx.input_text          = key
     ctx.words               = words
@@ -141,18 +140,16 @@ def build_search_context(user_name, category, key):
 
 class SearchHandler:
 
-    def do_search(self, page_ctx: SearchContext, key, offset, limit):
+    def do_search(self, ctx: SearchContext, key, offset, limit):
         category    = xutils.get_argument_str("category", "")
         search_type = xutils.get_argument_str("search_type", "")
-        user_name  = xauth.get_current_name()
-        ctx = build_search_context(user_name, category, key)
+        user_name  = xauth.current_name_str()
+        init_search_context(ctx, user_name, category, key)
         ctx.offset = offset
         ctx.limit = limit
 
         # 优先使用 search_type
         if search_type != None and search_type != "" and search_type != "default":
-            ctx.offset = page_ctx.offset
-            ctx.limit  = page_ctx.limit
             return self.do_search_by_type(ctx, key, search_type)
         
         return self.do_search_default(ctx)
@@ -366,7 +363,7 @@ class SearchHandler:
         kw.page_url = page_url
         kw.relevant_words = relevant_words
         kw.relevant_tab = relevant_tab
-
+        kw.init_html = ctx.init_html
         return xtemplate.render("search/page/search_result.html", **kw)
 
 

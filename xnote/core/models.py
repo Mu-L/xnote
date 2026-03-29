@@ -45,6 +45,9 @@ class SearchContext:
         # 分页信息
         self.offset = 1
         self.limit = 20
+        
+        # 初始化的html文件
+        self.init_html = ""
 
     def join_as_files(self):
         return self.commands + self.tools + self.dicts + self.messages + self.notes + self.files

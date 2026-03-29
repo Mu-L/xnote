@@ -178,7 +178,6 @@ SEARCH_SUMMARY_LEN = 100
 RECENT_SEARCH_LIMIT = 10
 RECENT_SIZE = 6
 
-IP_BLACK_LIST = ["192.168.56.1"]  # this is vbox ip
 # max file size to sync or backup
 MAX_FILE_SIZE = 10 * 1024 ** 2
 # 文本编辑器的最大文件限制

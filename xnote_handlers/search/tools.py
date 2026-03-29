@@ -15,6 +15,7 @@ from xnote.core import xconfig
 from xnote.core import xauth
 from xnote.core.models import SearchContext
 from xutils import text_contains, Storage, u
+from xnote.plugin import TabBox
 
 SearchResult = xutils.SearchResult
 url_pattern = re.compile(r"(http|https)://[^ ]+")
@@ -68,21 +69,25 @@ def get_ip_list(blacklist = []):
     return ip_list
 
 def get_server_ip():
-    blacklist = xconfig.get("IP_BLACK_LIST")
-    ip_list = get_ip_list(blacklist)
+    ip_list = get_ip_list()
     return ip_list[0]
 
 @xmanager.searchable('addr')
 def show_addr_qrcode(ctx: SearchContext):
-    r = SearchResult()
-    r.show_move = False
-    r.icon = "icon-barcode"
-    addr = "http://" + get_server_ip() + ":" + str(xconfig.PORT)
-    r.url = addr
-    r.name = '[地址] %s' % addr
-    r.html = f"""<script type="text/javascript" src="/static/lib/jquery.qrcode/jquery.qrcode.min.js"></script>
-    <div id='qrcode'></div>
-    <script>$("#qrcode").qrcode('{addr}');</script>
-    <div class="top-offset-1">相关工具: <a href="{xconfig.WebConfig.server_home}/tools/qrcode">二维码生成器</a></div>"""
-    ctx.commands.append(r)
+    index = 0
+    ctx.init_html += """<script type="text/javascript" src="/static/lib/jquery.qrcode/jquery.qrcode.min.js"></script>"""
+    
+    for server_ip in get_ip_list():
+        index += 1
+        r = SearchResult()
+        r.show_move = False
+        r.icon = "icon-barcode"
+        addr = "http://" + server_ip + ":" + str(xconfig.PORT)
+        r.url = addr
+        r.name = f'[地址] {addr}'
+        r.html = f"""<div id='qrcode-{index}'></div>
+        <script>$("#qrcode-{index}").qrcode('{addr}');</script>
+        <div class="top-offset-1">相关工具: <a href="{xconfig.WebConfig.server_home}/tools/qrcode">二维码生成器</a></div>"""
+        ctx.commands.append(r)
 
+    
