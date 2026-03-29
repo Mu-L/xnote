@@ -31,17 +31,18 @@ class BaseTablePlugin(BasePlugin):
 
     # 表格html
     TABLE_HTML = """
-<div class="card">
-    {% include common/table/table.html %}
-</div>
-
 {% init page_max = 0 %}
 {% init page_total = 0 %}
-{% if page_max > 0 or page_total > 0 %}
-    <div class="card">
-        {% include common/pagination.html %}
-    </div>
-{% end %}
+
+<div class="card">
+    {% include common/table/table.html %}
+
+    {% if page_max > 0 or page_total > 0 %}
+        <div class="top-offset-2 bottom-offset-1">
+            {% include common/pagination.html %}
+        </div>
+    {% end %}
+</div>
 """
 
     # 编辑表单的html
