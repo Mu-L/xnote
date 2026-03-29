@@ -31,8 +31,8 @@ class ActionBar(BaseContainer):
         btn = EditFormButton(text = text, url = url, css_class=css_class)
         self._add(btn, float_right)
 
-    def add_confirm_button(self, text="", url="", message="", css_class="", method="GET", reload_url="", float_right=False):
-        btn = ConfirmButton(text=text, url=url, message=message, method=method, reload_url=reload_url, css_class=css_class)
+    def add_confirm_button(self, text="", url="", message="", css_class="", method="GET", reload_url="", float_right=False, is_alert=False):
+        btn = ConfirmButton(text=text, url=url, message=message, method=method, reload_url=reload_url, css_class=css_class, is_alert=is_alert)
         self._add(btn, float_right)
 
     def add_link(self, text = "", href="", css_class="", float_right=False):

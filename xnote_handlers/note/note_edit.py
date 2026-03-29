@@ -243,9 +243,9 @@ class CreateHandler:
             message = u"笔记【%s】已存在" % name
             raise Exception(message)
         
-        if note.type != "group":
-            if note.parent_id in ("", "0"):
-                message = u"请选择归属的笔记本"
+        if not note.is_group:
+            if note.parent_id == 0:
+                message = u"请选择笔记本"
                 raise Exception(message)
 
     def after_create(self, created_note: note_dao.NoteDO):

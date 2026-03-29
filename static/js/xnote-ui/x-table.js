@@ -13,6 +13,8 @@ xnote.table.handleConfirmAction = function (target, event) {
     var url = $(target).attr("data-url");
     var msg = $(target).attr("data-msg");
     var reloadUrl = $(target).attr("data-reload-url");
+    var isAlert = $(target).attr("data-is-alert");
+
     if (method == "") {
         method = "GET";
     }
@@ -21,16 +23,25 @@ xnote.table.handleConfirmAction = function (target, event) {
             console.log(resp);
             if (resp.success) {
                 var msg = resp.message || "操作成功";
-                xnote.toast(msg);
-                setTimeout(function() {
-                    if (reloadUrl) {
-                        window.location.href = reloadUrl;
-                    } else {
-                        window.location.reload();
-                    }
-                }, 1000);
+                if (isAlert) {
+                    // alert 场景用于获取msg信息，不能刷新页面
+                    xnote.alert(msg);
+                } else {
+                    xnote.toast(msg);
+                    setTimeout(function() {
+                        if (reloadUrl) {
+                            window.location.href = reloadUrl;
+                        } else {
+                            window.location.reload();
+                        }
+                    }, 1000);
+                }
             } else {
-                xnote.toast(resp.message);
+                if (isAlert) {
+                    xnote.alert(resp.message);
+                } else {
+                    xnote.toast(resp.message);
+                }
             }
         }); 
     });

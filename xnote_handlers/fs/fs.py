@@ -21,6 +21,7 @@ import xutils
 import logging
 import zipfile
 
+from io import BufferedReader
 from typing import List, Optional
 from xnote.core import xauth
 from xnote.core import xconfig
@@ -48,8 +49,10 @@ from xnote.plugin import ActionBar
 # 强制使用Range请求的文件大小阈值（超过此大小的文件首次请求时只返回部分内容）
 FORCE_RANGE_THRESHOLD = 10 * 1024 * 1024   # 10MB
 # 强制Range请求时返回的初始数据大小（必须足够大以包含moov盒子）
-# 4K视频moov盒子可能很大（包含大量样本表），建议设置2MB以上
-FORCE_RANGE_DATA_SIZE = 2 * 1024 * 1024  # 2MB
+# 4K视频moov盒子可能很大（包含大量样本表），建议设置3MB以上
+FORCE_RANGE_DATA_SIZE = 4 * 1024 * 1024  # 4MB
+
+READ_BUF_SIZE = 64 * 1024 # 64K
 
 def is_stared(path):
     return xconfig.has_config("STARED_DIRS", path)
@@ -256,11 +259,8 @@ class FileSystemHandler:
                 logging.debug("open file %s, range: %s-%s", path, range_start, range_end)
                 with open(path, "rb") as fp:
                     fp.seek(range_start)
-                    buf = fp.read(content_length)
-                    yield buf
-                    total_sent = len(buf)
-                    logging.debug("file %s sent %s bytes, expected %s bytes\n", 
-                                  path, fsutil.format_size(total_sent), fsutil.format_size(content_length))
+                    yield from self._read_block(fp, content_length)
+                    logging.debug("file %s sent %s bytes\n", path, fsutil.format_size(content_length))
             except ValueError as e:
                 # Range 解析错误（如非数字），返回 416 Range Not Satisfiable
                 logging.warning("Range parse error: %s, range: %s", e, http_range)
@@ -288,7 +288,7 @@ class FileSystemHandler:
                 yield block
                 block = fp.read(blocksize)
 
-    def read_range_initial(self, path: str, blocksize: int, total_size: int):
+    def read_range_initial(self, path: str, total_size: int):
         # 大文件首次请求时，返回初始数据并使用206状态码
         # 这样浏览器会继续使用Range请求分段加载，避免一次性传输大文件
         initial_size = min(FORCE_RANGE_DATA_SIZE, total_size)
@@ -298,12 +298,26 @@ class FileSystemHandler:
         web.ctx.status = "206 Partial Content"
         web.header("Content-Length", initial_size)
         web.header("Content-Range", content_range)
+        # 告诉浏览器支持断点续传（Range请求）
+        web.header("Accept-Ranges", "bytes")
+        
         logging.debug("read_range_initial: %s, range: %s", path, content_range)
 
         with open(path, "rb") as fp:
-            yield fp.read(initial_size)
-            logging.debug("file %s sent %s bytes, expected %s bytes\n", 
-                          path, fsutil.format_size(initial_size), fsutil.format_size(initial_size))
+            yield from self._read_block(fp, initial_size)
+            logging.debug("file %s sent %s bytes\n", path, fsutil.format_size(initial_size))
+            
+    def _read_block(self, fp: BufferedReader, read_size:int):
+        rest = read_size
+        while rest > 0:
+            min_buf_size = min(rest, READ_BUF_SIZE)
+            buf = fp.read(min_buf_size)
+            rest -= len(buf)
+            logging.debug("read buf %s, rest %s", len(buf), rest)
+            if not buf:
+                break
+            yield buf
+        logging.debug("_read_block end")
 
     def read_thumbnail(self, path, blocksize: int, version="v1"):
         # TODO 限制进程数量
@@ -348,11 +362,7 @@ class FileSystemHandler:
             web.ctx.status = "304 Not Modified"
             return b'' # 其实webpy已经通过yield空bytes来避免None
 
-        self.set_cache_control(mtime, etag)
         self.handle_content_type(path, content_type)
-
-        # 告诉浏览器支持断点续传（Range请求）
-        web.header("Accept-Ranges", "bytes")
 
         http_range = environ.get("HTTP_RANGE")
         blocksize = 64 * 1024 # 64K
@@ -370,7 +380,9 @@ class FileSystemHandler:
             # 如果moov盒子不完整，浏览器会发送新的Range请求继续获取
             total_size = os.stat(path).st_size
             if total_size > FORCE_RANGE_THRESHOLD:
-                return self.read_range_initial(path, blocksize, total_size)
+                return self.read_range_initial(path, total_size)
+            
+            self.set_cache_control(mtime, etag)
             return self.read_all(path, blocksize)            
 
     def handle_get(self, path: str, content_type=None):

@@ -178,7 +178,7 @@ class UserHandler:
                 message=f"确定删除用户[{user_name}]吗?", css_class="danger", reload_url="/user/list")
             info.bottom_action_bar.add_confirm_button(
                 "重置密码", url=f"/system/user/reset_password?user_id={user_id}&user_name={user_name}",
-                message=f"确定重置用户[{user_name}]的密码吗?", method="POST", css_class="danger")
+                message=f"确定重置用户[{user_name}]的密码吗?", method="POST", css_class="danger", is_alert=True)
         return info
 
     @xauth.login_required("admin")
@@ -321,7 +321,7 @@ class ResetPasswordHandler:
         new_password = xutils.random_number_str(8)
         xauth.update_user(user_name, Storage(password=new_password))
         create_op_log(user_name, dao.UserOpTypeEnum.reset_password.value, "重置密码")
-        return webutil.SuccessResult(data=new_password)
+        return webutil.SuccessResult(data=new_password, message=f"新密码: {new_password}")
 
 class UserOpLogHandler(BaseTablePlugin):
 

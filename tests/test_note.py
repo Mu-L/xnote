@@ -17,6 +17,7 @@ except ImportError:
     from tests import test_base
     from tests.test_base import login_test_user, logout_test_user, build_data_param
 
+from typing import Dict, Any
 from xnote.core import xauth
 from xnote.core.xtemplate import T
 from xnote.core.models import SearchContext
@@ -152,14 +153,21 @@ class TestMain(BaseTestCase):
         self.check_OK("/note/create")
         delete_note_for_test(name = "create-test")
 
-        create_data = {
+        create_data: Dict[str, Any] = {
             "name": "create-test",
-            "content": "create-test"
+            "content": "create-test",
+            "type": "md"
         }
         result = json_request_return_dict("/note/create", method="POST", data = create_data)
-        assert result.get("success") == True
-        assert result.get("code") == "success"
+        # md不能创建在根目录
+        assert result.get("success") == False
         
+        # 设置目录后重新创建
+        create_data["parent_id"] = get_default_group_id()
+        result = json_request_return_dict("/note/create", method="POST", data = create_data)
+        
+        assert result.get("code") == "success"
+        assert result.get("success") == True
         data = result.get("data")
         assert isinstance(data, dict)
         note_id = data.get("id")
