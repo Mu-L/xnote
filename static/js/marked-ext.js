@@ -11,8 +11,8 @@ var markedConfig = {
 
 (function (window) {
 
-    var LATEX_INLINE_START = '_latex_inline_start_';
-    var LATEX_INLINE_END = '_latex_inline_end_';
+    var LATEX_INLINE_START = 'latexInlineStart';
+    var LATEX_INLINE_END = 'latextInlineEnd';
     var gHeadingToLinkMap = {};
 
 
