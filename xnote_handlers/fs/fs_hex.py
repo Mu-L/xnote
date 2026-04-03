@@ -19,28 +19,116 @@ from xnote.core.xtemplate import BasePlugin
 HTML = """
 <!-- Html -->
 <style>
-    .hex-text {
-        font-family: monospace;
+    .hex-viewer {
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 20px;
+        display: flex;
+        flex-direction: row;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: auto;
+        max-height: 600px;
     }
 
-    .lineno-text {
-        width:10%;
-        float:left;
+    .hex-col-index {
+        width: 80px;
+        flex-shrink: 0;
+        background-color: #e8e8e8;
+        border-right: 1px solid #ccc;
+        padding: 8px 4px;
+        text-align: right;
+        color: #666;
+        user-select: none;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
-    .hex-text {
-        width:50%;
-        float:left;
+    .hex-col-hex {
+        width: 400px;
+        flex-shrink: 0;
+        padding: 8px 4px;
+        border-right: 1px solid #ccc;
+        cursor: text;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
-    .plain-text {
-        width:40%;
-        float:left;
+    .hex-col-ascii {
+        width: 160px;
+        flex-shrink: 0;
+        padding: 8px 4px;
+        color: #333;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
-</style>
 
-{% if embed == "true" %}
-<style>
+    /* 确保内容区域填充整个列 */
+    .hex-col-index > div,
+    .hex-col-hex > div,
+    .hex-col-ascii > div {
+        flex: 1;
+    }
+
+    .hex-row {
+        height: 20px;
+        white-space: nowrap;
+    }
+
+    .hex-char {
+        display: inline-block;
+        width: 18px;
+        text-align: center;
+        user-select: text;
+    }
+
+    .hex-char.selected {
+        background-color: #007acc;
+        color: white;
+    }
+
+    .hex-char.highlighted {
+        background-color: #007acc;
+        color: white;
+    }
+
+    .hex-char::selection {
+        background-color: #007acc;
+        color: white;
+    }
+
+    .hex-char-space {
+        display: inline-block;
+        width: 6px;
+    }
+
+    .ascii-char {
+        display: inline-block;
+        width: 10px;
+        text-align: center;
+        user-select: none;
+    }
+
+    .ascii-char.highlighted {
+        background-color: #007acc;
+        color: white;
+    }
+
+    .ascii-char::selection {
+        background-color: #007acc;
+        color: white;
+    }
+
+    .index-char {
+        display: inline-block;
+        user-select: none;
+    }
+
+    {% if embed == "true" %}
     body {
         background-color: transparent;
     }
@@ -50,8 +138,8 @@ HTML = """
     .x-body {
         margin-top: 0px;
     }
+    {% end %}
 </style>
-{% end %}
 
 {% init plain_text = "" %}
 {% if embed != "true"  %}
@@ -80,33 +168,181 @@ HTML = """
         <div class="error">{{error}}</div>
     {% end %}
 
-    <textarea class="lineno-text" rows=32>{{lineno_text}}</textarea>
-    <textarea class="hex-text" rows=32>{{hex_text}}</textarea>
-    <textarea class="plain-text" rows=32>{{plain_text}}</textarea>
+    <div class="hex-viewer" id="hexViewer">
+        <div class="hex-col-index" id="hexIndex">{% raw lineno_html %}</div>
+        <div class="hex-col-hex" id="hexContent">{% raw hex_html %}</div>
+        <div class="hex-col-ascii" id="hexAscii">{% raw ascii_html %}</div>
+    </div>
 </div>
 
+<script>
+(function() {
+    var hexViewer = document.getElementById('hexViewer');
+    var hexContent = document.getElementById('hexContent');
+    var hexAscii = document.getElementById('hexAscii');
+    
+    // 获取所有hex字符和ascii字符
+    var hexChars = hexContent.querySelectorAll('.hex-char');
+    var asciiChars = hexAscii.querySelectorAll('.ascii-char');
+    
+    // 清除所有高亮
+    function clearHighlight() {
+        // 清除高亮类
+        hexChars.forEach(function(char) {
+            char.classList.remove('highlighted');
+        });
+        asciiChars.forEach(function(char) {
+            char.classList.remove('highlighted');
+        });
+        
+        // 清除浏览器默认选择
+        if (window.getSelection) {
+            window.getSelection().removeAllRanges();
+        } else if (document.selection) {
+            document.selection.empty();
+        }
+    }
+    
+    // 高亮指定范围的字符
+    function highlightRange(startIndex, endIndex) {
+        clearHighlight();
+        for (var i = startIndex; i <= endIndex && i < hexChars.length; i++) {
+            if (hexChars[i]) {
+                hexChars[i].classList.add('highlighted');
+            }
+            if (asciiChars[i]) {
+                asciiChars[i].classList.add('highlighted');
+            }
+        }
+    }
+    
+    // 获取字符的索引
+    function getCharIndex(charElement) {
+        var index = charElement.getAttribute('data-index');
+        return index !== null ? parseInt(index, 10) : -1;
+    }
+    
+    // 监听鼠标选择事件
+    var isSelecting = false;
+    var startIndex = -1;
+    
+    hexContent.addEventListener('mousedown', function(e) {
+        if (e.target.classList.contains('hex-char')) {
+            isSelecting = true;
+            startIndex = getCharIndex(e.target);
+            clearHighlight();
+            e.target.classList.add('highlighted');
+            var asciiIndex = getCharIndex(e.target);
+            if (asciiIndex >= 0 && asciiChars[asciiIndex]) {
+                asciiChars[asciiIndex].classList.add('highlighted');
+            }
+        }
+    });
+    
+    // 监听ASCII列的鼠标选择事件
+    hexAscii.addEventListener('mousedown', function(e) {
+        if (e.target.classList.contains('ascii-char')) {
+            isSelecting = true;
+            startIndex = getCharIndex(e.target);
+            clearHighlight();
+            e.target.classList.add('highlighted');
+            var hexIndex = getCharIndex(e.target);
+            if (hexIndex >= 0 && hexChars[hexIndex]) {
+                hexChars[hexIndex].classList.add('highlighted');
+            }
+        }
+    });
+    
+    document.addEventListener('mousemove', function(e) {
+        if (!isSelecting) return;
+        
+        var target = e.target;
+        if (target.classList.contains('hex-char') || target.classList.contains('ascii-char')) {
+            var currentIndex = getCharIndex(target);
+            if (currentIndex >= 0 && startIndex >= 0) {
+                var minIndex = Math.min(startIndex, currentIndex);
+                var maxIndex = Math.max(startIndex, currentIndex);
+                highlightRange(minIndex, maxIndex);
+            }
+        }
+    });
+    
+    document.addEventListener('mouseup', function() {
+        isSelecting = false;
+    });
+    
+    // 监听选择变化（用于键盘选择等情况）
+    document.addEventListener('selectionchange', function() {
+        var selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            // 检查是否在hex列
+            if (hexContent.contains(selection.anchorNode)) {
+                var range = selection.getRangeAt(0);
+                var startContainer = range.startContainer;
+                var endContainer = range.endContainer;
+                
+                // 找到包含的hex-char元素
+                var startChar = startContainer.parentElement;
+                var endChar = endContainer.parentElement;
+                
+                if (startChar && startChar.classList.contains('hex-char') &&
+                    endChar && endChar.classList.contains('hex-char')) {
+                    var startIdx = getCharIndex(startChar);
+                    var endIdx = getCharIndex(endChar);
+                    if (startIdx >= 0 && endIdx >= 0) {
+                        highlightRange(Math.min(startIdx, endIdx), Math.max(startIdx, endIdx));
+                    }
+                }
+            } 
+            // 检查是否在ASCII列
+            else if (hexAscii.contains(selection.anchorNode)) {
+                var range = selection.getRangeAt(0);
+                var startContainer = range.startContainer;
+                var endContainer = range.endContainer;
+                
+                // 找到包含的ascii-char元素
+                var startChar = startContainer.parentElement;
+                var endChar = endContainer.parentElement;
+                
+                if (startChar && startChar.classList.contains('ascii-char') &&
+                    endChar && endChar.classList.contains('ascii-char')) {
+                    var startIdx = getCharIndex(startChar);
+                    var endIdx = getCharIndex(endChar);
+                    if (startIdx >= 0 && endIdx >= 0) {
+                        highlightRange(Math.min(startIdx, endIdx), Math.max(startIdx, endIdx));
+                    }
+                }
+            }
+        }
+    });
+})();
+</script>
 """
 
-HEX_DICT = {}
+from typing import List, Union, Optional, Dict
+
+HEX_DICT: Dict[int, str] = {}
 for i in range(256):
-    HEX_DICT[i] = '%02x ' % i
+    HEX_DICT[i] = '%02x' % i
 
 
-def bytes_hex(bytes):
-    out = ''
-    for b in bytes:
-        out += HEX_DICT[b]
+def bytes_hex(bytes_data: bytes) -> List[str]:
+    """将字节转换为hex字符串列表"""
+    out = []
+    for b in bytes_data:
+        out.append(HEX_DICT[b])
     return out
 
 
-def bytes_chars(bytes):
-    out = ''
-    for b in bytes:
+def bytes_chars(bytes_data: bytes) -> List[str]:
+    """将字节转换为可打印字符列表"""
+    out = []
+    for b in bytes_data:
         c = chr(b)
-        if c.isprintable():
-            out += '%c' % c
+        if c.isprintable() and b >= 32:
+            out.append(c)
         else:
-            out += '.'
+            out.append('.')
     return out
 
 
@@ -120,8 +356,94 @@ class Main(BasePlugin):
     category = 'dir'
     editable = False
 
-    def handle(self, input=""):
-        # 输入框的行数
+    def _generate_lineno_html(self, line_fmt: str, offset: int, row: int) -> str:
+        """生成行索引的HTML"""
+        return '<div class="hex-row"><span class="index-char">{}</span></div>'.format(
+            line_fmt % (offset + row * 16)
+        )
+
+    def _generate_hex_html(self, bytes_data: bytes, global_char_index: int) -> str:
+        """生成hex列的HTML"""
+        hex_row_html = '<div class="hex-row">'
+        hex_chars: List[str] = bytes_hex(bytes_data)
+        step = 16
+        
+        for i, hex_char in enumerate(hex_chars):
+            hex_row_html += '<span class="hex-char" data-index="{}">{}</span>'.format(
+                global_char_index + i, hex_char
+            )
+            if i < len(hex_chars) - 1:
+                hex_row_html += '<span class="hex-char-space"></span>'
+        
+        for i in range(len(hex_chars), step):
+            hex_row_html += '<span class="hex-char" data-index="{}">&nbsp;&nbsp;</span>'.format(
+                global_char_index + i
+            )
+            if i < step - 1:
+                hex_row_html += '<span class="hex-char-space"></span>'
+        
+        hex_row_html += '</div>'
+        return hex_row_html
+
+    def _generate_ascii_html(self, bytes_data: bytes, global_char_index: int) -> str:
+        """生成ASCII列的HTML"""
+        ascii_row_html = '<div class="hex-row">'
+        ascii_chars: List[str] = bytes_chars(bytes_data)
+        step = 16
+        
+        for i, ascii_char in enumerate(ascii_chars):
+            if ascii_char == '<':
+                ascii_char = '&lt;'
+            elif ascii_char == '>':
+                ascii_char = '&gt;'
+            elif ascii_char == '&':
+                ascii_char = '&amp;'
+            elif ascii_char == ' ':
+                ascii_char = '&nbsp;'
+            ascii_row_html += '<span class="ascii-char" data-index="{}">{}</span>'.format(
+                global_char_index + i, ascii_char
+            )
+        
+        for i in range(len(ascii_chars), step):
+            ascii_row_html += '<span class="ascii-char" data-index="{}">&nbsp;</span>'.format(
+                global_char_index + i
+            )
+        
+        ascii_row_html += '</div>'
+        return ascii_row_html
+
+    def _read_file_and_generate_html(self, path: str, offset: int, pagesize: int) -> tuple:
+        """读取文件并生成HTML"""
+        lineno_html: str = ""
+        hex_html: str = ""
+        ascii_html: str = ""
+        error: str = ""
+        global_char_index: int = 0
+        step = 16
+        
+        try:
+            with open(path, 'rb') as fp:
+                fp.seek(offset)
+                row: int = 0
+                while row * step < pagesize:
+                    bytes_data: bytes = fp.read(step)
+                    if len(bytes_data) == 0:
+                        break
+                    
+                    lineno_html += self._generate_lineno_html("%05x", offset, row)
+                    hex_html += self._generate_hex_html(bytes_data, global_char_index)
+                    ascii_html += self._generate_ascii_html(bytes_data, global_char_index)
+                    
+                    global_char_index += len(bytes_data)
+                    row += 1
+        except Exception as e:
+            xutils.print_exc()
+            error = str(e)
+        
+        return lineno_html, hex_html, ascii_html, error
+
+    def handle(self, input: str = "") -> Optional[str]:
+        """处理请求"""
         self.rows = 0
         self.show_pagenation = True
         self.page_max = 0
@@ -144,51 +466,33 @@ class Main(BasePlugin):
         if path == "":
             return
 
-        hex_text = ""
-        plain_text = ""
-        lineno_text = ""
-        error = ""
-
         if not os.path.isfile(path):
             return "`%s` IS NOT A FILE!" % path
-        else:
-            filesize = xutils.get_file_size(path, format=False)
-            assert isinstance(filesize, int)
-            line_fmt = "%05x"
-            step = 16
-            self.page_max = math.ceil(filesize / pagesize)
-            # padding = ' ' * 4
-            try:
-                with open(path, 'rb') as fp:
-                    fp.seek(offset)
-                    for i in range(0, pagesize, step):
-                        bytes = fp.read(step)
-                        if len(bytes) == 0:
-                            break
-                        lineno_text += line_fmt % (offset + i) + "\n"
-                        hex_text += bytes_hex(bytes).ljust(step * 3) + "\n"
-                        plain_text += bytes_chars(bytes) + "\n"
-            except Exception as e:
-                xutils.print_exc()
-                error = str(e)
-            kw = Storage()
-            kw.path = path
-            kw.hex_text = hex_text
-            kw.plain_text = plain_text
-            kw.lineno_text = lineno_text
-            kw.embed = embed
-            kw.error = error
 
-            if embed == "true":
-                self.show_nav = False
+        filesize = xutils.get_file_size(path, format=False)
+        assert isinstance(filesize, int)
+        self.page_max = math.ceil(filesize / pagesize)
 
-            self.writetemplate(HTML,**kw)
+        lineno_html, hex_html, ascii_html, error = self._read_file_and_generate_html(path, offset, pagesize)
 
-    def on_init(self, context=None):
+        kw = Storage()
+        kw.path = path
+        kw.lineno_html = lineno_html
+        kw.hex_html = hex_html
+        kw.ascii_html = ascii_html
+        kw.embed = embed
+        kw.error = error
+
+        if embed == "true":
+            self.show_nav = False
+
+        self.writetemplate(HTML, **kw)
+
+    def on_init(self, context: Optional[dict] = None) -> None:
         # 插件初始化操作
         pass
 
-    def command(self):
+    def command(self) -> None:
         pass
 
 
