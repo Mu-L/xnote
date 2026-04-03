@@ -13,7 +13,7 @@ from xutils import dbutil
 from xutils import textutil
 from xutils import dateutil
 from xutils.db.dbutil_helper import PageBuilder, batch_iter
-from xnote.service import CommentService, Comment, CommentIndexDO
+from xnote.service import CommentService, CommentIndexRecord
 from xutils.base import BaseDataRecord
 
 NOTE_DAO = xutils.DAO("note")
@@ -22,7 +22,7 @@ _comment_db = dbutil.get_table("comment")
 
 comment_service = CommentService()
 
-class CommentDO(BaseDataRecord):
+class CommentRecord(BaseDataRecord):
     def __init__(self, **kw):
         now = dateutil.format_datetime()
         self.id = 0
@@ -36,7 +36,7 @@ class CommentDO(BaseDataRecord):
         self.pin_level = 0
         self.update(kw)
 
-    def update_index(self, index: CommentIndexDO):
+    def update_index(self, index: CommentIndexRecord):
         self.id = index.id
         self.user_id = index.user_id
         self.pin_level = index.pin_level
@@ -45,14 +45,14 @@ class CommentDO(BaseDataRecord):
     def date(self):
         return dateutil.format_date(self.ctime)
 
-CommentRecord = CommentDO
+CommentDO = CommentRecord
 
 class CommentDao:
 
     valid_type_set = set(["", None, "list_item"])
     
     @classmethod
-    def check(cls, comment: CommentDO):
+    def check(cls, comment: CommentRecord):
         assert comment != None, "comment is None"
         assert comment.user != None, "comment.user is None"
         assert comment.type in cls.valid_type_set, "comment.type is invalid"
@@ -61,8 +61,8 @@ class CommentDao:
         assert comment.content != ""
     
     @classmethod
-    def create(cls, comment: CommentDO):
-        assert isinstance(comment, CommentDO)
+    def create(cls, comment: CommentRecord):
+        assert isinstance(comment, CommentRecord)
         cls.check(comment)
         comment.ctime = dateutil.format_datetime()
         index_id = comment_service.create(type=comment.type, user_id=comment.user_id, target_id=int(comment.note_id))
@@ -71,7 +71,7 @@ class CommentDao:
         return index_id
         
     @classmethod
-    def update(cls, comment: CommentDO, update_ctime = False):
+    def update(cls, comment: CommentRecord, update_ctime = False):
         assert comment != None
         assert comment.user != None
         assert comment.note_id != None
@@ -96,26 +96,26 @@ class CommentDao:
         return comment_service.get_by_id(comment_id=comment_id, user_id=user_id)
     
     @classmethod
-    def update_index(cls, index: CommentIndexDO):
+    def update_index(cls, index: CommentIndexRecord):
         return comment_service.update(index)
 
-def list_comments_by_idx_list(idx_list: typing.List[CommentIndexDO], user_name=""):
+def list_comments_by_idx_list(idx_list: typing.List[CommentIndexRecord], user_name=""):
     """通过索引查询评论
     :param {list} idx_list: 索引对象列表
     :param {str} user_name: 用于处理删除数据的user_name, 可以不传
     """
     id_list = [str(item.id) for item in idx_list]
     comment_dict = _comment_db.batch_get_by_id(id_list)
-    result = [] # type: list[CommentDO]
+    result = [] # type: list[CommentRecord]
     for index in idx_list:
         id_str = str(index.id)
         item = comment_dict.get(id_str)
         if item != None:
-            item_do = CommentDO.from_dict(item)
+            item_do = CommentRecord.from_dict(item)
             item_do.update_index(index)
             result.append(item_do)
         else:
-            item = CommentDO()
+            item = CommentRecord()
             item.content = "[数据被删除]"
             item.update_index(index)
             result.append(item)
@@ -150,10 +150,10 @@ def get_comment(comment_id = 0):
     value = _comment_db.get_by_id(str(comment_id))
     if value != None:
         value["id"] = comment_id
-        return CommentDO(**value)
+        return CommentRecord.from_dict(value)
     return None
 
-def create_comment(comment: CommentDO):
+def create_comment(comment: CommentRecord):
     return CommentDao.create(comment)
 
 def delete_comment(comment_id):
@@ -174,7 +174,7 @@ def count_comment_by_note(note_id):
         return 0
 
 def search_comment(user_name, *, keywords=[], offset=0, 
-                   limit=xconfig.PAGE_SIZE, note_id=None) -> typing.List[CommentDO]:
+                   limit=xconfig.PAGE_SIZE, note_id=None) -> typing.List[CommentRecord]:
     if user_name is None:
         return []
     user_id = xauth.UserDao.get_id_by_name(user_name)

@@ -21,7 +21,7 @@ from . import dao_comment
 from xutils import webutil
 from xutils import dateutil
 from xnote.core.models import SearchContext, SearchResult
-from .dao_comment import search_comment, CommentDO
+from .dao_comment import search_comment, CommentRecord
 from .dao_meta import NoteMetaDao
 from xutils.text_parser import TokenType
 from .models import NoteTypeInfo
@@ -62,7 +62,7 @@ def mark_text(content):
     text_tokens = parser.get_text_tokens(tokens)
     return "".join(text_tokens)
 
-def process_comments(comments: typing.List[CommentDO], show_note = False):
+def process_comments(comments: typing.List[CommentRecord], show_note = False):
     for comment in comments:
         if comment.content is None:
             continue
@@ -112,7 +112,7 @@ def on_search_comments(ctx: SearchContext):
         search_comment_detail(ctx)
 
 def render_to_html(
-    comments: List[CommentDO], show_note = False, page = 1, page_max = 1, show_edit = False, 
+    comments: List[CommentRecord], show_note = False, page = 1, page_max = 1, show_edit = False, 
     note_user_id=0):
     return xtemplate.render("note/page/comment/comment_list_ajax.html", 
         show_comment_edit = show_edit,
@@ -205,7 +205,7 @@ class SaveCommentAjaxHandler:
         if content == "":
             return webutil.FailedResult(code = "400", message = "content参数为空")
 
-        comment = dao_comment.CommentDO()
+        comment = dao_comment.CommentRecord()
         comment.user = user_info.name
         comment.user_id = user_info.id
         comment.type = type
@@ -215,7 +215,7 @@ class SaveCommentAjaxHandler:
         dao_comment.create_comment(comment)
         note_dao.touch_note(note_id)
         
-        return dict(code = "success", success = True)
+        return webutil.SuccessResult()
 
 class DeleteCommentAjaxHandler:
 

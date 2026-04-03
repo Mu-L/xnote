@@ -14,7 +14,7 @@ def do_upgrade():
     base.execute_upgrade("20230910_comment_index", migrate_comment_index)
 
 
-class CommentDO(Storage):
+class CommentRecord(Storage):
     def __init__(self):
         self._id = ""
         self.user = ""
@@ -26,10 +26,10 @@ class CommentDO(Storage):
 
     @staticmethod
     def from_dict(dict_value):
-        return new_from_dict(CommentDO, dict_value)
+        return new_from_dict(CommentRecord, dict_value)
 
 
-class CommentIndexDO(Storage):
+class CommentIndexRecord(Storage):
     def __init__(self):
         self.id = 0
         self.ctime = dateutil.format_datetime()
@@ -44,8 +44,8 @@ def migrate_comment_index():
     new_db = xtables.get_table_by_name("comment_index")
 
     for item in old_db.iter(limit=-1):
-        comment_info = CommentDO.from_dict(item)
-        comment_index = CommentIndexDO()
+        comment_info = CommentRecord.from_dict(item)
+        comment_index = CommentIndexRecord()
 
         idx_id = int(comment_info._id)
         user_id = comment_info.user_id
