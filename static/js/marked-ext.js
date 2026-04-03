@@ -486,7 +486,8 @@ var markedConfig = {
 
     // 单行的code
     myRenderer.codespan = function (text) {
-        var element = $("<code>").text(text).addClass("marked-codespan");
+        // text是escape之后的
+        var element = $("<code>").html(text).addClass("marked-codespan");
         return element.prop("outerHTML");
     }
 

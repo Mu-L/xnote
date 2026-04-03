@@ -108,7 +108,7 @@ def list_win_drives():
     except Exception as e:
         return ["C:"]
 
-def list_file_objects(fpath):
+def list_file_objects(fpath: str):
     if xutils.is_windows() and fpath == "/":
         filenames = list_win_drives()
     else:
@@ -120,7 +120,7 @@ def check_file_auth(path, user_name):
     path = os.path.abspath(path)
     return path.startswith(user_dir)
 
-def process_file_list(pathlist: List[str], parent = None):
+def process_file_list(pathlist: List[str], parent:Optional[str] = None):
     filelist = [FileItem(fpath, parent, merge = False) for fpath in pathlist]
     filelist.sort()
 
@@ -219,7 +219,6 @@ class FileSystemHandler:
         kw["parent_path"]   = get_parent_path(path)
         kw["search_action"] = "/fs_find"
         kw["show_aside"]    = False
-        kw["show_hidden_files"] = xutils.get_argument_bool("show_hidden_files")
 
         mode = xutils.get_argument_str("mode", xconfig.FS_VIEW_MODE)
         kw["fs_mode"] = mode

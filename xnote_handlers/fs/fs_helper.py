@@ -63,7 +63,7 @@ def handle_file_url(item: fsutil.FileItem):
     if item.type == "dir":
         item.url = server_home + "/fs/~%s" % item.encoded_path
     elif xutils.is_img_file(item.path):
-        item.url = "#"
+        item.url = "javascript:void(0)"
         item.css_class = "x-photo"
     elif xutils.is_audio_file(item.path):
         item.url = server_home + "/fs/~%s" % item.encoded_path

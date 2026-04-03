@@ -1,4 +1,5 @@
-
+from typing import Optional
+from xutils import escape_html
 
 class ParamDict:
 
@@ -38,3 +39,10 @@ class ParamDict:
         if value == None or value == "":
             raise Exception(f"{key} can not be empty")
 
+
+
+def _build_data_attr(dict_: Optional[dict]):
+    if dict_ is None:
+        return ""
+    items = [f'data-{key}="{escape_html(value)}"' for key, value in dict_.items()]
+    return " ".join(items)

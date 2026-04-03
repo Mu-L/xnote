@@ -17,8 +17,6 @@
         </div>
 
         <!-- 管理文件 -->
-        <input type="button" class="btn desktop-only-inline-block delete-btn" value="删除"/>
-        <input type="button" class="btn desktop-only-inline-block" value="重命名" id="renameBtn" message="重命名为">
         <input type="button" class="btn" value="移动" id="moveFilesBtn"/>
         
         <!-- 视图选项 -->
@@ -47,11 +45,10 @@
             <div class="dropdown-content">
                 <a class="dropdown-option" href="{{_server_home}}/code/search?path={{xutils.quote(path)}}&recursive=on">高级搜索</a>
                 <a class="dropdown-option" href="{{_server_home}}/code/lines?path={{xutils.quote(path)}}&recursive=on">代码统计</a>
-                <a class="dropdown-option" href="{{_server_home}}/fs/~{{path}}?show_hidden_files=true">显示隐藏文件</a>
                 <a class="dropdown-option" id="addToBookmarkBtn">收藏</a>
-
                 <!-- 移动端选项 -->
                 <a class="dropdown-option delete-btn mobile-only">删除</a>
+                <a class="dropdown-option" href="{{_server_home}}/system/settings?category=admin">设置</a>
             </div>
         </div>
     </div>
