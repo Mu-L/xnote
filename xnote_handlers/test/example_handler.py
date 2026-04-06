@@ -12,7 +12,7 @@ from xnote.core import xconfig
 from xnote.plugin.table_plugin import BaseTablePlugin, BasePlugin
 from xnote.plugin import DataTable, TableActionType, TabBox, QueryForm, TabTable
 from xnote.plugin.table import InfoTable, InfoItem, ActionBar
-from xnote.plugin.calendar import ContributionCalendar
+from xnote.webui.calendar import ContributionCalendar
 from xnote.plugin.list import ListView, ListItem, ConfirmButton, TextTag
 from xutils import textutil
 from xutils import webutil

@@ -1,7 +1,7 @@
 from .plugin import *
-from .table import *
-from .form import *
-from .component import TextLink, LinkConfig, TagSpan, BaseContainer, EditFormLink, EditFormButton
-from .component import RawHtml
-from .tab import TabBox, TabTable
-from .container import Card, CardRow
+from xnote.webui.table import *
+from xnote.webui.form import *
+from xnote.webui.component import TextLink, LinkConfig, TagSpan, BaseContainer, EditFormLink, EditFormButton
+from xnote.webui.component import RawHtml
+from xnote.webui.tab import TabBox, TabTable
+from xnote.webui.container import Card, CardRow
