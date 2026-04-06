@@ -66,6 +66,7 @@ class NoteMetaConfig:
 NoteMetaConfig.add_items([
     NoteMetaItem(meta_name="笔记类型", meta_key="_type", value_type=NoteMetaValueType.select, is_note_field=True),
     NoteMetaItem(meta_name="创建日期", meta_key="_create_date", value_type=NoteMetaValueType.date, is_note_field=True),
+    NoteMetaItem(meta_name="人工简介", meta_key="_manual_short_desc", value_type=NoteMetaValueType.text, is_note_field=True),
 ], meta_category=NoteMetaCategory.basic)
 
 NoteMetaConfig.add_items([

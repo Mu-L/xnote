@@ -374,6 +374,10 @@ class NoteIndexDao:
             cls.db.update(where=dict(id=meta_info.note_id, creator_id=meta_info.user_id), ctime = ctime)
             return
         
+        if meta_info.meta_key == "_manual_short_desc":
+            cls.db.update(where=dict(id=meta_info.note_id, creator_id=meta_info.user_id), manual_short_desc = meta_info.meta_value)
+            return
+        
         raise Exception(f"invalid meta_key:{meta_info.meta_key}")
 
 class ShareTypeEnum(enum.Enum):
@@ -763,19 +767,7 @@ def get_by_id(id: typing.Union[str, int], include_full=True, creator=None) -> ty
     note = get_full_by_id(id_int)
 
     if note != None and note_index != None:
-        note.name = note_index.name
-        note.ctime = note_index.ctime
-        note.mtime = note_index.mtime
-        note.atime = note_index.atime
-        note.size = note_index.size
-        note.parent_id = note_index.parent_id
-        note.visit_cnt = note_index.visit_cnt
-        note.children_count = note_index.children_count
-        note.level = note_index.level
-        note.creator_id = note_index.creator_id
-        note.tag_str = note_index.tag_str
-        note.tags = note_index.get_tags()
-        note.order_type = note_index.order_type
+        note.update_from_index(note_index)
 
     build_note_info(note)
     return note

@@ -57,6 +57,7 @@ class NoteIndexDO(BaseDataRecord):
         now = dateutil.format_datetime()
         self.id = 0
         self.name = ""
+        self.manual_short_desc = ""
         self.creator = ""
         self.creator_id = 0
         self.type = ""
@@ -153,6 +154,10 @@ class NoteIndexDO(BaseDataRecord):
     def is_list(self):
         return self.type == NoteTypeEnum.list.value
     
+    @property
+    def short_desc(self):
+        return self.manual_short_desc
+    
     def get_url(self):
         return f"{xconfig.WebConfig.server_home}/note/view/{self.id}"
     
@@ -167,10 +172,15 @@ class NoteIndexDO(BaseDataRecord):
         meta.meta_value = meta_value
         return meta
     
-    def to_meta_list(self):
+    def to_meta_list(self, view_tab = "meta"):
+        if view_tab == "all":
+            return [
+                self._new_meta("_manual_short_desc", self.manual_short_desc),
+            ]
         return [
             self._new_meta("_type", self.type),
-            self._new_meta("_create_date", dateutil.format_date(self.ctime))
+            self._new_meta("_create_date", dateutil.format_date(self.ctime)),
+            self._new_meta("_manual_short_desc", self.manual_short_desc),
         ]
     
 class NoteDO(NoteIndexDO):
@@ -220,6 +230,22 @@ class NoteDO(NoteIndexDO):
         for key in self._virtual_fields:
             self.pop(key, None)
         delete_None_values(self)
+        
+    def update_from_index(self, note_index: NoteIndexDO):
+        self.name = note_index.name
+        self.ctime = note_index.ctime
+        self.mtime = note_index.mtime
+        self.atime = note_index.atime
+        self.size = note_index.size
+        self.parent_id = note_index.parent_id
+        self.visit_cnt = note_index.visit_cnt
+        self.children_count = note_index.children_count
+        self.level = note_index.level
+        self.creator_id = note_index.creator_id
+        self.tag_str = note_index.tag_str
+        self.tags = note_index.get_tags()
+        self.order_type = note_index.order_type
+        self.manual_short_desc = note_index.manual_short_desc
 
 
 class NoteTokenType:

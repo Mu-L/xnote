@@ -372,3 +372,7 @@
     line-height: 29px;
     width: calc(100% - 80px);
 }
+
+.note-short-desc {
+    color: #888;
+}

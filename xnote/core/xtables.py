@@ -164,7 +164,10 @@ def init_test_table():
 def init_note_index_table():
     comment = "笔记索引"
     with create_default_table_manager("note_index", comment=comment) as manager:
+        # 笔记名称
         manager.add_column("name", "varchar(255)", "")
+        # 人工编辑的简短描述
+        manager.add_column("manual_short_desc", "varchar(255)", "")
         # 文本内容长度
         manager.add_column("size", "bigint", 0)
         # 子节点数量

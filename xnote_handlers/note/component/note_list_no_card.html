@@ -49,6 +49,8 @@
         
         {% include note/component/note_list_item_tags.html %}
 
+        <span class="note-short-desc">{{item.short_desc}}</span>
+
         <div class="float-right">
             {% if item.is_deleted %}
                 <span class="tag gray" href="{{_server_home}}/note/removed">删除</span>

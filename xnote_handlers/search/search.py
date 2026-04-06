@@ -238,6 +238,7 @@ class SearchHandler:
         notes = [SearchResult(**item) for item in notes]
         for note in notes:
             note.category = "note"
+            note.short_desc = note.manual_short_desc
 
         fill_note_info(notes, ctx.words)
 

@@ -16,7 +16,7 @@ class NoteMetaService:
     @classmethod
     def render_note_view_ctx(cls, ctx: NoteViewContext):
         if ctx.tab != "meta":
-            ctx.note_meta_list = cls.get_meta_list(note_id=ctx.note_id)
+            ctx.note_meta_list = cls.get_meta_list(note_id=ctx.note_id, note_info=ctx.file, view_tab="all")
             return
         
         ctx.hide_components()
@@ -116,10 +116,10 @@ class NoteMetaService:
         return None
     
     @classmethod
-    def get_meta_list(cls, note_id: int, note_info: Optional[NoteIndexDO] = None):
+    def get_meta_list(cls, note_id: int, note_info: Optional[NoteIndexDO] = None, view_tab = "meta"):
         records = NoteMetaDao.list_by_note_id(note_id=note_id)
         if note_info:
-            records += note_info.to_meta_list()
+            records += note_info.to_meta_list(view_tab = view_tab)
             
         for record in records:
             meta_config = NoteMetaConfig.get_by_meta_key(record.meta_key)
