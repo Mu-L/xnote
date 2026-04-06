@@ -10,9 +10,6 @@ var markedConfig = {
 };
 
 (function (window) {
-
-    var LATEX_INLINE_START = 'latexInlineStart';
-    var LATEX_INLINE_END = 'latextInlineEnd';
     var gHeadingToLinkMap = {};
 
 
@@ -471,7 +468,6 @@ var markedConfig = {
         }
 
         if (lang === 'latex') {
-            // 处理块级公式（用 $$ $$ 包裹）
             return katexRender(code);
         }
 
@@ -496,7 +492,11 @@ var markedConfig = {
         return '<strong class="marked-strong"><a href="/s/' + text + '">' + text + '</a></strong>';
     }
 
-    // 重写html标签
+    /**
+     * 重写html标签
+     * @param {string} html 
+     * @returns {string}
+     */
     myRenderer.html = function (html) {
         try {
             var cap = marked.Lexer.rules.html.exec(html);
@@ -505,6 +505,10 @@ var markedConfig = {
             if (htmlTag == "script" || htmlTag == "pre") {
                 // 过滤脚本
                 return "";
+            }
+            if (htmlTag == "latex") {
+                var content = $(html).text();
+                return katexRender(content);
             }
         } catch (e) {
             console.error(e);
@@ -590,20 +594,7 @@ var markedConfig = {
     // 处理行内公式（用 \( \) 包裹）
     myRenderer.text = function(text) {
         // text 已经被转义了
-        // console.log("text", text);
-        var regexp = new RegExp(LATEX_INLINE_START + "([\\s\\S]+?)" + LATEX_INLINE_END, 'g');
-        // var regexp = /\\\(([^\\]+?)\\\)/g
-        return text.replace(regexp, function(match, content) {
-            try {
-                content = atob(content);
-                content = decodeURIComponent(content);
-                console.debug("inline latex", content);
-                return katexRender(content);
-            } catch (e) {
-                console.error("process text failed, error:", e);
-                return text;
-            }
-        });
+        return text;
     };
 
     // 重写parse方法
@@ -630,26 +621,89 @@ var markedConfig = {
         $("#menuBox").html(menuHtml);
         return outtext;
     };
+
+    /**
+     * 解析 Markdown 文本，将其分割为代码块和普通文本的 token 列表
+     * @param {string} text - 输入的 Markdown 文本
+     * @returns {Array<{type: string, text: string}>} - 包含 code 和 text 类型 token 的列表
+     * @example
+     * // 输入:
+     * "普通文本\n\`\`\`js\n代码\n\`\`\`\n更多文本"
+     * // 输出:
+     * [
+     *   { type: "text", text: "普通文本\n" },
+     *   { type: "code", text: "\`\`\`js\n代码\n\`\`\`" },
+     *   { type: "text", text: "\n更多文本" }
+     * ]
+     */
+    function parseTextBlocks(text) {
+        const tokens = [];
+        const codeBlockRegex = /(`{3,})([a-zA-Z0-9_-]*?)\n([\s\S]*?)\1/g;
+        let lastIndex = 0;
+        let match;
+        
+        while ((match = codeBlockRegex.exec(text)) !== null) {
+            // 添加代码块前的普通文本
+            if (match.index > lastIndex) {
+                const textContent = text.substring(lastIndex, match.index);
+                if (textContent.trim() !== '') {
+                    tokens.push({ type: 'text', text: textContent });
+                }
+            }
+            
+            // 添加代码块
+            const codeContent = `${match[1]}${match[2]}\n${match[3]}${match[1]}`;
+            tokens.push({ type: 'code', text: codeContent });
+            
+            lastIndex = match.index + match[0].length;
+        }
+        
+        // 添加剩余的普通文本
+        if (lastIndex < text.length) {
+            const remainingText = text.substring(lastIndex);
+            if (remainingText.trim() !== '') {
+                tokens.push({ type: 'text', text: remainingText });
+            }
+        }
+        
+        return tokens;
+    }
+
+    function preHandleBlock(block) {
+        // 预处理：替换行内公式定界符
+        // '\(' {公式内容} '\)'
+        // '\[' {公式内容} '\]'
+        // '$$' {块级公式} '$$'
+        try {
+            var replace_func = function(match, content) {
+                return "<latex>" + content + "</latex>";
+            }
+            block = block.replace(/\\\(([\s\S]*?)\\\)/g, replace_func);
+            block = block.replace(/\\\[([\s\S]*?)\\\]/g, replace_func);
+            block = block.replace(/\$\$([\s\S]*?)\$\$/g, replace_func);  
+            return block;
+        } catch (e) {
+            console.error("preHandleBlock failed:", e);
+            return block;
+        }
+    }
     
     /**
      * @param {string} text 
      * @returns {string}
      */
     function preHandleText(text) {
-        // 预处理：替换行内公式定界符
-        // '\(' {公式内容} '\)'
-        // '\[' {公式内容} '\]'
-        try {
-            var replace_func = function(match, content) {
-                return LATEX_INLINE_START + btoa(encodeURIComponent(content)) + LATEX_INLINE_END;
+        var result = "";
+        var blocks = parseTextBlocks(text);
+        for (var i = 0; i < blocks.length; i++) {
+            var block = blocks[i];
+            if (block.type == 'code') {
+                result += block.text;
+            } else {
+                result += preHandleBlock(block.text);
             }
-            text = text.replace(/\\\(([\s\S]*?)\\\)/g, replace_func);
-            text = text.replace(/\\\[([\s\S]*?)\\\]/g, replace_func);
-            return text;
-        } catch (e) {
-            console.error("preHandleText failed:", e);
-            return text;
         }
+        return result;
     }
 
     marked.parseAndRender = function (text, target, options) {
