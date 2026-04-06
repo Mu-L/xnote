@@ -24,7 +24,12 @@
         <div class="row">
             <div class="note-meta-name">{{note_meta.meta_name}}</div>
             <div class="note-meta-value">
-                {{note_meta.meta_value}}
+                {{note_meta.meta_value}} 
+                <div class="float-right">
+                    [<a class="" onclick="xnote.table.handleEditForm(this)" href="javascript:void(0);"
+                        data-url="{{note_meta.edit_url}}" 
+                        data-title="编辑属性">编辑</a>]
+                </div>
             </div>
         </div>
     {% end %}

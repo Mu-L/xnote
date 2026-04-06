@@ -14,11 +14,10 @@
 
         <div class="float-right">
             {% if can_edit %}
-                <button class="btn btn-default tag-edit-btn"
-                    data-parent-id="{{file.parent_id}}"
+                [<a data-parent-id="{{file.parent_id}}"
                     data-id="{{file.id}}"
                     data-tags="{{file.tags_json}}"
-                    onclick="xnote.action.note.editNoteTag(this);">编辑标签</button>
+                    onclick="xnote.action.note.editNoteTag(this);">编辑标签</a>]
             {% end %}
         </div>
     </div>

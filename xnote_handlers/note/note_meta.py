@@ -128,6 +128,8 @@ class NoteMetaService:
                 record.meta_category = meta_config.meta_category
             else:
                 record.meta_name = record.meta_key
+            
+            cls._fill_links(record)
         return records
 
 class NoteMetaHandler(BaseTablePlugin):
