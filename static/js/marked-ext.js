@@ -638,32 +638,36 @@ var markedConfig = {
      */
     function parseTextBlocks(text) {
         const tokens = [];
-        const codeBlockRegex = /(`{3,})([a-zA-Z0-9_-]*?)\n([\s\S]*?)\1/g;
-        let lastIndex = 0;
-        let match;
+        let src = text.replace(/^ +$/gm, ''); // 参考 Lexer.prototype.token，移除行尾空格
+        const codeBlockRegex = /(`{3,})([a-zA-Z0-9_-]*?)\n([\s\S]*?)\1/;
         
-        while ((match = codeBlockRegex.exec(text)) !== null) {
-            // 添加代码块前的普通文本
-            if (match.index > lastIndex) {
-                const textContent = text.substring(lastIndex, match.index);
-                if (textContent.trim() !== '') {
-                    tokens.push({ type: 'text', text: textContent });
+        while (src) {
+            let cap;
+            
+            // 匹配代码块
+            if (cap = codeBlockRegex.exec(src)) {
+                // 添加代码块前的普通文本
+                if (cap.index > 0) {
+                    const textContent = src.substring(0, cap.index);
+                    if (textContent.trim() !== '') {
+                        tokens.push({ type: 'text', text: textContent });
+                    }
                 }
+                
+                // 添加代码块
+                const codeContent = `${cap[1]}${cap[2]}\n${cap[3]}${cap[1]}`;
+                tokens.push({ type: 'code', text: codeContent });
+                
+                // 从原文本中移除已匹配的代码块
+                src = src.substring(cap.index + cap[0].length);
+                continue;
             }
             
-            // 添加代码块
-            const codeContent = `${match[1]}${match[2]}\n${match[3]}${match[1]}`;
-            tokens.push({ type: 'code', text: codeContent });
-            
-            lastIndex = match.index + match[0].length;
-        }
-        
-        // 添加剩余的普通文本
-        if (lastIndex < text.length) {
-            const remainingText = text.substring(lastIndex);
-            if (remainingText.trim() !== '') {
-                tokens.push({ type: 'text', text: remainingText });
+            // 剩余的普通文本
+            if (src.trim() !== '') {
+                tokens.push({ type: 'text', text: src });
             }
+            break;
         }
         
         return tokens;
@@ -733,9 +737,19 @@ var markedConfig = {
         })
     }
 
+    // 更新latex公式
+    marked._updateLatex = function () {
+        $("latex").each(function (index, ele) {
+            var content = $(ele).text();
+            $(ele).html(katexRender(content));
+        })
+    }
+
+
     // 渲染后更新操作
     marked.afterRender = function () {
         this._updateHashLinks();
+        this._updateLatex();
         
         adjustTableWidth();
 
