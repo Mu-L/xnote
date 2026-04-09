@@ -77,3 +77,7 @@
 .info-table.col-6 .value {
     width: 13.3%;
 }
+
+.csv-table th {
+    min-width: 100px;
+}

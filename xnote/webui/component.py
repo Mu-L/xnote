@@ -12,6 +12,7 @@
 from xnote.webui.base import BaseComponent, BaseContainer
 from xnote.core import xtemplate
 from xutils import escape_html
+from .link import TextLink, EditFormLink
 
 class RawHtml(BaseComponent):
     def __init__(self, html: str) -> None:
@@ -128,37 +129,6 @@ class EditFormButton(BaseComponent):
         return f"""
 <button class="btn {self.css_class}" onclick="xnote.table.handleEditForm(this)"
     data-url="{self.url}" data-title="{text}">{text}</button>
-"""
-
-class TextLink(BaseComponent):
-    """文本链接"""
-    def __init__(self, text="", href="", css_class=""):
-        self.text = text
-        self.href = href
-        self.css_class = css_class
-
-    def render(self):
-        text = escape_html(self.text)
-        href = self.href
-        if self.css_class:
-            return f"""<a href="{href}" class="{self.css_class}">{text}</a>"""
-        else:
-            return f"""<a href="{href}">{text}</a>"""
-
-
-class EditFormLink(TextLink):
-    """编辑表单的链接"""
-    def __init__(self, text = "", url = "", css_class=""):
-        self.text = text
-        self.url = url
-        self.css_class = css_class
-        self.href = "#"
-
-    def render(self):
-        text = escape_html(self.text)
-        return f"""
-[<a class="btn {self.css_class}" onclick="xnote.table.handleEditForm(this)"
-    data-url="{self.url}" data-title="{text}">{text}</a>]
 """
 
 class TextSpan(BaseComponent):

@@ -1,7 +1,7 @@
 import xutils
 from xutils import Storage
 from xnote.core import xauth
-from xnote.plugin import TabBox, TextLink
+from xnote.webui import TabBox, ActionLink
 from .dao_template import MessageTemplateDao
 
 def handle_template_tab(kw: Storage, default_content: str, template_type="log"):
@@ -22,7 +22,7 @@ def handle_template_tab(kw: Storage, default_content: str, template_type="log"):
                 template_content = template.content
                 template_tab.tab_default = str(template_list[0].template_id)
     
-    edit_link = TextLink(text="[编辑模板]", href=f"/message/template?template_type={template_type}", css_class="bold")
+    edit_link = ActionLink(text="编辑模板", href=f"/message/template?template_type={template_type}", css_class="bold")
     template_tab.right_box.add(edit_link)
     
     kw.message_template_tab = template_tab

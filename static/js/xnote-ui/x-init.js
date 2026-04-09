@@ -1,5 +1,6 @@
 /**
  * xnote全局初始化
+ * xnote保持三级结构: xnote.{module}.{method/field}
  * @author xupingmao
  * @since 2022/01/09 16:17:02
  * @modified 2022/04/09 18:15:07
@@ -66,9 +67,9 @@ if (window.xnote === undefined) {
     // 临时的空间
     xnote.tmp = {};
 
-    // 自定义模块-后端接口API模块
+    // 自定义模块-后端接口API模块(废弃,API放在子模块里面)
     xnote.api = {};
-    // 自定义模块-操作动作接口
+    // 自定义模块-操作动作接口(废弃,action放在子模块里面)
     xnote.action = {};
     // 自定义模块-笔记
     xnote.note = {};

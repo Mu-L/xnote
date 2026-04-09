@@ -6,7 +6,11 @@
 var markedConfig = {
     showMenu: true,
     // 是否展示时间线、评论区之类的系统组件菜单
-    showSystemContents: true
+    showSystemContents: true,
+    // 是否展示CSV表格的序号列
+    showTableNo: true,
+    // CSV表格的序号列宽度
+    csvTableNoWidth: 50
 };
 
 (function (window) {
@@ -208,7 +212,7 @@ var markedConfig = {
         try {
             // var csv = new CSV(code);
             var rows = CSV.parse(code, {cast: false});
-            var table = $("<table>").attr("data-index", dupIndex).addClass("table");
+            var table = $("<table>").attr("data-index", dupIndex).addClass("table csv-table");
             var editAction = $("<a>").text("编辑表格");
             editAction.attr("onclick", extOptions.csvEditFunc + "(this)");
             editAction.attr("data-code", code).attr("data-index", dupIndex);
@@ -217,15 +221,27 @@ var markedConfig = {
             if (rows.length > 0) {
                 var headRow = rows[0];
                 var head = $("<tr>");
+
+                if (markedConfig.showTableNo) {
+                    var noTh = $("<th>").text("序号").css("min-width", markedConfig.csvTableNoWidth + "px");
+                    head.append(noTh);
+                }
+
                 for (var j = 0; j < headRow.length; j++) {
                     var th = $("<th>").text(getCsvRowText(headRow[j]));
                     head.append(th);
                 }
                 table.append(head);
-
+                
                 for (var i = 1; i < rows.length; i++) {
                     var row = rows[i];
                     var tr = $("<tr>");
+
+                    if (markedConfig.showTableNo) {
+                        var noTd = $("<td>").text(i);
+                        tr.append(noTd);
+                    }
+                    
                     for (var j = 0; j < row.length; j++) {
                         var td = $("<td>").text(getCsvRowText(row[j]));
                         tr.append(td);
