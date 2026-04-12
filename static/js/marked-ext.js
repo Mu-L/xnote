@@ -228,7 +228,12 @@ var markedConfig = {
                 }
 
                 for (var j = 0; j < headRow.length; j++) {
-                    var th = $("<th>").text(getCsvRowText(headRow[j]));
+                    var thText = getCsvRowText(headRow[j]);
+                    var th = $("<th>");
+                    var thContent = $("<span>").text(thText);
+                    var copyLink = $("<a>").text("[复制]").css("margin-left", "5px").css("font-size", "12px");
+                    copyLink.attr("onclick", "xnote.copyCsvColumn(this, " + j + ")");
+                    th.append(thContent).append(copyLink);
                     head.append(th);
                 }
                 table.append(head);
@@ -262,6 +267,41 @@ var markedConfig = {
             console.log(e);
             return escape(code);
         }
+    }
+
+    xnote.copyCsvColumn = function(element, columnIndex) {
+        var table = $(element).closest("table");
+        var rows = table.find("tr");
+        var columnData = [];
+        
+        // 收集表头
+        var headerRow = rows.first();
+        var headerCells = headerRow.find("th");
+        if (markedConfig.showTableNo) {
+            columnData.push(headerCells.eq(columnIndex + 1).find("span").text());
+        } else {
+            columnData.push(headerCells.eq(columnIndex).find("span").text());
+        }
+        
+        // 收集数据行
+        for (var i = 1; i < rows.length; i++) {
+            var row = rows.eq(i);
+            var cells = row.find("td");
+            if (markedConfig.showTableNo) {
+                columnData.push(cells.eq(columnIndex + 1).text());
+            } else {
+                columnData.push(cells.eq(columnIndex).text());
+            }
+        }
+        
+        // 复制到剪贴板
+        var textToCopy = columnData.join("\n");
+        navigator.clipboard.writeText(textToCopy).then(function() {
+            // 可以添加一个提示，告知用户复制成功
+            xnote.toast("列数据已复制到剪贴板");
+        }).catch(function(err) {
+            xnote.alert("复制失败:", err);
+        });
     }
 
     function replaceKeyword(html, regexp, target) {
