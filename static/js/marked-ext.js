@@ -316,13 +316,60 @@ var markedConfig = {
             return code
         }
         if (lang == undefined) {
-            return hljs.highlightAuto(code).value;
+            var highlighted = hljs.highlightAuto(code).value;
+        } else {
+            try {
+                var highlighted = hljs.highlight(code, { language: lang }).value;
+            } catch (e) {
+                var highlighted = hljs.highlightAuto(code).value;
+            }
         }
-        try {
-            return hljs.highlight(code, { language: lang }).value;
-        } catch (e) {
-            return hljs.highlightAuto(code).value;
+        
+        // 添加行号和白色背景
+        var lines = highlighted.split('\n');
+        var numberedCode = '';
+        for (var i = 0; i < lines.length; i++) {
+            numberedCode += '<div class="code-line">' +
+                '<span class="line-number">' + (i + 1) + '</span>' +
+                '<span class="line-content">' + lines[i] + '</span>' +
+                '</div>';
         }
+        
+        // 生成唯一ID用于复制功能
+        var codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+        
+        // 添加代码块头部，左侧显示语言类型，右侧显示复制按钮
+        var header = '<div class="code-header">' +
+            '<span class="code-language">' + (lang || 'plaintext') + '</span>' +
+            '<button class="copy-button" onclick="xnote.copyCodeToClipboard(\'' + codeId + '\')">复制代码</button>' +
+            '</div>';
+        
+        // 包裹代码内容
+        var codeContainer = '<div id="' + codeId + '" class="code-container">' +
+            header +
+            numberedCode +
+            '</div>';
+        
+        return codeContainer;
+    }
+
+    xnote.copyCodeToClipboard = function(codeId) {
+        var codeContainer = document.getElementById(codeId);
+        var codeLines = codeContainer.querySelectorAll('.line-content');
+        var codeContent = '';
+        
+        // 收集所有代码行内容
+        codeLines.forEach(function(line) {
+            codeContent += line.textContent + '\n';
+        });
+        
+        // 复制到剪贴板
+        navigator.clipboard.writeText(codeContent).then(function() {
+            // 可以添加一个提示，告知用户复制成功
+            xnote.toast("代码已复制到剪贴板");
+        }).catch(function(err) {
+            xnote.alert("复制失败:" + err);
+        });
     }
 
     function highlight(code, lang) {

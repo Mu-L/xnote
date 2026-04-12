@@ -6,6 +6,74 @@
  * @filename common-markdown.css
  */
 
+ 
+/** marked 样式 **/
+.marked-heading {
+    /* 避免顶部fixed菜单遮挡 */
+    width: 100%;
+    font-family: "Microsoft YaHei", "黑体";
+}
+
+h1.marked-heading {
+    font-size: 24px;
+}
+
+h2.marked-heading {
+    font-size: 20px;
+}
+
+h3.marked-heading {
+    font-size: 16px;
+}
+
+.marked-img {
+    text-align: center;
+}
+
+.marked-contents {
+    width: 100%;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+.marked-contents-title {
+    display: inline-block;
+    padding: 5px;
+}
+
+.marked-contents h1 {
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
+    font-size: 20px;
+}
+
+.marked-code {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.marked-codespan {
+    padding-left: 4px;
+    padding-right: 4px;
+    margin: 0;
+    /* background-color: rgba(27,31,35,.05); */
+    background-color: #eee;
+    border-radius: 4px;
+    padding: 1px;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    line-height: 23px;
+}
+
+.marked-strong {
+    color: red;
+}
+
+.marked-strong>a {
+    color: red;
+}
+
 .markdown-box img {
     width: 100%;
     text-align: center;
@@ -36,4 +104,70 @@ div.xnote-done {
 .xnote-todo.doing {
     color: black;
     background-color: #98FB98;
+}
+
+/* 代码行容器 */
+.code-line {
+    background-color: #eee;
+    padding: 0 10px;
+    overflow: hidden;
+}
+
+/* 行号 */
+.line-number {
+    display: inline-block;
+    width: 40px;
+    text-align: right;
+    color: #999;
+    user-select: none;
+    margin-right: 10px;
+}
+
+/* 代码内容 */
+.line-content {
+    display: inline-block;
+}
+
+/* 确保代码块整体有白色背景 */
+pre code.hljs {
+    background-color: white !important;
+}
+
+/* 代码容器 */
+.code-container {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* 代码头部 */
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f5f5f5;
+    padding: 8px 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* 代码语言 */
+.code-language {
+    font-size: 12px;
+    color: #666;
+    font-family: monospace;
+}
+
+/* 复制按钮 */
+.copy-button {
+    font-size: 12px;
+    padding: 2px 8px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.copy-button:hover {
+    background-color: #45a049;
 }
