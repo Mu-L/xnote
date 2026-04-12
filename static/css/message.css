@@ -140,6 +140,7 @@
 .msg-img-box {
     height: 120px;
     overflow: hidden;
+    width: 100%;
 }
 
 .msg-img-box.multi {
@@ -147,6 +148,22 @@
     padding-right: 10px;
     padding-top: 5px;
     padding-bottom: 5px;
+}
+
+.img-list {
+    overflow: hidden; /* 清除浮动 */
+}
+
+.img-list .msg-img-box {
+    float: left;
+    width: auto;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+/* 清除最后一个元素的右边距 */
+.img-list .msg-img-box:last-child {
+    margin-right: 0;
 }
 
 .msg-img {

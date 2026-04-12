@@ -10,12 +10,9 @@ from xutils.text_parser import ImageToken, HeadingToken
 class TestTextParser(unittest.TestCase):
 
     def print_head(self, message):
-        width  = 60
-        length = len(message)
-        left  = (width - length) // 2
-        right = width - length - left
-        print()
-        print("-" * left, message, "-" * right)
+        print("\n")
+        print(message)
+        print("=" * 60)
 
     def test_topic1(self, ):
         self.print_head("Topic Test 1")
@@ -142,13 +139,17 @@ link2:https://abc.com/test?name=1&age=2 text after link
         text = "file:///data/temp/1.png\nfile:///data/temp/2.png"
         parser = TextParser()
         tokens = parser.parse_to_tokens(text)
+        self.print_head("test_multi_head")
+        for item in tokens:
+            print(item)
+        
         assert len(tokens) == 1
         assert tokens[0].type == TokenType.img_list
         assert isinstance(tokens[0], ImageListToken)
         assert len(tokens[0].value) > 0
-        img_tokens = tokens[0].tokens
-        assert img_tokens[0] == ImageToken("file:///data/temp/1.png", "/data/temp/1.png")
-        assert img_tokens[1] == ImageToken("\nfile:///data/temp/2.png", "/data/temp/2.png")
+        img_tokens = tokens[0].children
+        assert img_tokens[0] == ImageToken("file:///data/temp/1.png\n", "/data/temp/1.png")
+        assert img_tokens[1] == ImageToken("file:///data/temp/2.png", "/data/temp/2.png")
         
     def test_heading(self):
         text = """# h1

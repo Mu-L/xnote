@@ -99,35 +99,33 @@ class BaseTextParser(object):
         self.str_token = ""
         self.tokens: typing.List[TextToken] = []
         # 当前读取的字符下标，默认初始化为第一个字符
-        self.i = 0
+        self.pos = 0
         self.length = len(text)
         self.max_index = self.length - 1
 
         # 循环分析
         self.profile_dict = dict()
 
-    @property
-    def pos(self):
-        return self.i
+
     
     def escape(self, text):
         return escape_html(text)
 
     def current(self):
         """当前的字符，如果越界了，返回空字符串"""
-        if self.i < self.length:
-            return self.text[self.i]
+        if self.pos < self.length:
+            return self.text[self.pos]
         return ""
     
     def has_next(self):
-        return self.i < self.length
+        return self.pos < self.length
     
     def read(self, count=1):
         """往后读取 {count} 个字符, 如果读取不到字符, 返回空字符串, 始终会修改当前位置索引"""
         assert count > 0
-        pos = self.i
-        newpos = self.i + count
-        self.i = newpos
+        pos = self.pos
+        newpos = self.pos + count
+        self.pos = newpos
         return self.text[pos+1:newpos+1]
 
     def read_next(self):
@@ -136,7 +134,7 @@ class BaseTextParser(object):
 
     def peek(self, pos=1):
         """读取后面的字符，如果没有返回空字符串，不改变当前索引下标"""
-        newpos = self.i + pos
+        newpos = self.pos + pos
         if 0 <= newpos <= self.max_index:
             return self.text[newpos]
         return ""
@@ -151,31 +149,31 @@ class BaseTextParser(object):
     def seek(self, index: int):
         if index < 0:
             raise Exception(f"invalid index={index}")
-        self.i = index
+        self.pos = index
 
     set_index = seek
 
     def startswith(self, target: str):
         """当前字符是否以{target}开头"""
         length = len(target)
-        return self.text[self.i:self.i+length] == target
+        return self.text[self.pos:self.pos+length] == target
 
     def find(self, target: str):
         """
-        以{self.i}作为开始下标，寻找目标字符串
+        以{self.pos}作为开始下标，寻找目标字符串
 
         :param target: 目标字符 
         :return: 目标字符串的索引下标，如果找不到返回-1
         """
-        return self.text.find(target, self.i)
+        return self.text.find(target, self.pos)
 
     def find_blank(self):
         """找到一个空白字符
         
         :return: 第一个空白字符的索引，如果找不到返回-1
         """
-        i = self.i
-        for i in range(self.i, self.length):
+        i = self.pos
+        for i in range(self.pos, self.length):
             c = self.text[i]
             if c in self.blank_chars:
                 return i
@@ -194,66 +192,66 @@ class BaseTextParser(object):
         self.str_token = ""
 
     def read_until_blank(self):
-        """从当前字符开始，找到空白字符为止，返回内容不包含空白字符,读取后{i}位于第一个空白字符
+        """从当前字符开始，找到空白字符为止，返回内容不包含空白字符,读取后{pos}位于第一个空白字符
         读取完成后 current() 返回空白字符或者空字符串
         """
         end = self.find_blank()
         if end < 0:
-            found = self.text[self.i:]
+            found = self.text[self.pos:]
             # 全部读完，当前索引处于有效范围外
-            self.i = self.length
+            self.pos = self.length
         else:
-            found = self.text[self.i:end]
+            found = self.text[self.pos:end]
             # 位于第一个空白字符
-            self.i = end
+            self.pos = end
         return found
 
     def read_until_index(self, index: int):
-        """包含目标索引，读取后{i}=index+1"""
-        start_index = self.i
-        self.i = min(self.length, index+1)
-        return self.text[start_index:self.i]
+        """包含目标索引，读取后{pos}=index+1"""
+        start_index = self.pos
+        self.pos = min(self.length, index+1)
+        return self.text[start_index:self.pos]
 
     def read_before_index(self, index: int):
-        """不包含目标索引，读取后{i}=index"""
-        start_index = self.i
-        self.i = min(self.length, index)
-        return self.text[start_index:self.i]
+        """不包含目标索引，读取后{pos}=index"""
+        start_index = self.pos
+        self.pos = min(self.length, index)
+        return self.text[start_index:self.pos]
 
     def read_number(self):
-        """读取后{i}位于第一个非数字位"""
+        """读取后{pos}位于第一个非数字位"""
         i = 0
-        for i in range(self.i, self.length):
+        for i in range(self.pos, self.length):
             c = self.text[i]
             if not c.isdigit():
-                token = self.text[self.i:i]
+                token = self.text[self.pos:i]
                 # 当前处于数字后的第一个字符
-                self.i = i
+                self.pos = i
                 return token
-        token = self.text[self.i:]
-        self.i = i + 1
+        token = self.text[self.pos:]
+        self.pos = i + 1
         return token
 
     def read_rest(self):
         return self.read_until_index(self.max_index)
 
     def read_until_target(self, target: str):
-        """返回值包含target，索引{i}移动到target之后"""
-        end = self.text.find(target, self.i+1)
+        """返回值包含target，索引{pos}移动到target之后"""
+        end = self.text.find(target, self.pos+1)
         if end < 0:
             return ""
         else:
-            key = self.text[self.i:end+len(target)]
+            key = self.text[self.pos:end+len(target)]
             # 包含 target
-            self.i = end + len(target)
+            self.pos = end + len(target)
         return key
     
     def read_until_any_target(self, target_list: typing.Sequence):
-        """返回值包含target，索引{i}移动到target之后"""
+        """返回值包含target，索引{pos}移动到target之后"""
         pos_list = []
         pos_target_map = {} # position -> target
         for target in target_list:
-            end = self.text.find(target, self.i+1)
+            end = self.text.find(target, self.pos+1)
             if end >= 0:
                 pos_list.append(end)
                 pos_target_map[end] = target
@@ -261,9 +259,9 @@ class BaseTextParser(object):
         if len(pos_list) > 0:
             end = min(pos_list) # type: int
             target = pos_target_map[end]
-            key = self.text[self.i:end+len(target)]
+            key = self.text[self.pos:end+len(target)]
             # 包含 target
-            self.i = end + len(target)
+            self.pos = end + len(target)
             return key
         # 无匹配项
         return ""
@@ -297,7 +295,7 @@ class BaseTextParser(object):
         return char in self.blank_chars
     
     def is_eof(self):
-        return self.i > self.max_index
+        return self.pos > self.max_index
     
     def skip_blank(self):
         while self.is_blank():
@@ -418,22 +416,18 @@ class LinkToken(TextToken):
         return f'<a target="_blank" href="{self.href}">{self.name}</a>'
 
 class ImageToken(TextToken):
-    def __init__(self, value="", href="", has_multi=False):
+    def __init__(self, value="", href=""):
         super().__init__(value=value)
         self.type = TokenType.img
         self.value = value
         self.href = href
-        self.has_multi = has_multi
 
     def get_html(self):
         if self.html != "":
             return self.html
         href = self.href
         thumb_href = f"{href}?mode=thumbnail_v2"
-        if self.has_multi:
-            box_class = "msg-img-box multi"
-        else:
-            box_class = "msg-img-box"
+        box_class = "msg-img-box"
         return f'<div class="{box_class}"><img class="msg-img x-photo" alt="{href}" src="{thumb_href}" data-src="{href}"></div>'
 
     def __eq__(self, value: "ImageToken") -> bool:
@@ -441,16 +435,15 @@ class ImageToken(TextToken):
 
 
 class ImageListToken(TextToken):
-    def __init__(self, tokens: typing.List[ImageToken]):
+    def __init__(self, children: typing.List[ImageToken]):
         self.type = TokenType.img_list
-        self.tokens = tokens
-        values = [x.value for x in tokens]
+        self.children = children
+        values = [x.value for x in children]
         self.value = "".join(values)
     
     def get_html(self):
-        html = '<div class="row">'
-        for item in self.tokens:
-            item.has_multi = True
+        html = '<div class="row img-list">'
+        for item in self.children:
             html += item.get_html()
         html += '</div>'
         return html
@@ -493,27 +486,27 @@ class TextParser(BaseTextParser):
     def mark_hashtag(self):
         """话题转为搜索关键字的时候去掉前后的#符号"""
         self.profile("mark_topic")
-        start_index = self.i
+        start_index = self.pos
         key0 = None
 
-        for i in range(self.i+1, self.length):
+        for i in range(self.pos+1, self.length):
             c = self.text[i]
             if self.is_blank_char(c):
                 # 话题终止
                 key0 = self.text[start_index:i]
-                self.i = i
+                self.pos = i
                 break
             
             if c == '#':
                 # '#'字符结束,包含尾部的'#'字符
                 key0 = self.text[start_index: i + 1]
-                self.i = i + 1
+                self.pos = i + 1
                 break
             
             if c == '\n':
                 # 换行终止
                 key0 = self.text[start_index: i]
-                self.i = i
+                self.pos = i
                 break
 
         if key0 is None:
@@ -529,7 +522,7 @@ class TextParser(BaseTextParser):
         if len(key0) > self.topic_len_limit:
             # 超过限制，不认为是话题
             self.str_token_append('#')
-            self.i = start_index + 1
+            self.pos = start_index + 1
             return
         # 记录关键字
         self.record_keyword(key0)
@@ -579,7 +572,7 @@ class TextParser(BaseTextParser):
     
     def mark_strong(self, tag="**"):
         # tag_len = len(tag)
-        self.i += len(tag)
+        self.pos += len(tag)
         
         key = self.read_until_any_target((tag,"\n"))
         if key == "":
@@ -610,9 +603,9 @@ class TextParser(BaseTextParser):
         self.profile("mark_tag_single")
         key = self.read_until_target(end_char)
         if key == "":
-            self.str_token_append(self.text[self.i])
-            # self.tokens.append(self.text[self.i])
-            self.i += 1
+            self.str_token_append(self.text[self.pos])
+            # self.tokens.append(self.text[self.pos])
+            self.pos += 1
             return
 
         if exclude_tag:
@@ -626,27 +619,30 @@ class TextParser(BaseTextParser):
             self.record_keyword(key)
     
     def handle_img_list(self, first_img_value="", href=""):
-        restore_index = self.i
-        tmp_tokens = [] # type: list[ImageToken]
+        restore_index = self.pos
+        tmp_tokens: List[ImageToken] = []
         tmp_tokens.append(ImageToken(value=first_img_value, href=href))
+        value = first_img_value
 
         while True:
-            restore_index = self.i
+            restore_index = self.pos
 
             self.skip_blank()
 
             if self.startswith("file://"):
                 href = self.read_until_blank()
-                href = href[7:]
+                href = href[7:].strip()
                 if not is_img_file(href):
-                    self.i = restore_index
+                    self.pos = restore_index
                     break
                 else:
+                    if self.current() == "\n":
+                        self.pos += 1
                     # img file
-                    value = self.text[restore_index:self.i]
+                    value = self.text[restore_index:self.pos]
                     tmp_tokens.append(ImageToken(value=value, href=href))
             else:
-                self.i = restore_index
+                self.pos = restore_index
                 break
                 
         if len(tmp_tokens) > 1:
@@ -658,7 +654,11 @@ class TextParser(BaseTextParser):
         from xutils import fsutil
         self.profile("mark_file")
         value = self.read_until_blank()
-        href = value[7:]
+        if self.current() == "\n":
+            self.pos += 1
+            value += "\n"
+            
+        href = value[7:].strip()
         if is_img_file(href):
             self.handle_img_list(value, href)
         else:
