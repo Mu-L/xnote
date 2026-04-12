@@ -35,6 +35,22 @@ MessageView.refreshList = function() {
         xnote.http.get(MessageView.listAjaxUrl, params, function (resp) {
             // console.log(resp);
             $(".message-list").html(resp);
+            
+            // 更新代码块，添加高亮处理
+            $(".message-list .code-block").each(function() {
+                var $codeBlock = $(this);
+                var $code = $codeBlock.find("code");
+                var code = $code.text();
+                
+                // 提取语言信息（如果有）
+                var lang = $codeBlock.data("lang");
+                
+                // 使用 xnote.editor.highlightCodeBlock 函数进行高亮处理
+                var highlightedCode = xnote.editor.highlightCodeBlock(code, lang);
+                
+                // 更新代码块内容
+                $codeBlock.html(highlightedCode);
+            });
         });
     }
 

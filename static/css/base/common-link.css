@@ -85,3 +85,7 @@
 .action-link {
     word-break: keep-all;
 }
+
+a.small {
+    font-size: 12px;
+}

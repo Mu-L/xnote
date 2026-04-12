@@ -116,16 +116,18 @@ div.xnote-done {
 /* 行号 */
 .line-number {
     display: inline-block;
-    width: 40px;
+    width: 50px;
     text-align: right;
     color: #999;
     user-select: none;
-    margin-right: 10px;
+    padding-right: 10px;
+    vertical-align: top;
 }
 
 /* 代码内容 */
 .line-content {
     display: inline-block;
+    width: calc(100% - 50px);
 }
 
 /* 确保代码块整体有白色背景 */
@@ -155,19 +157,4 @@ pre code.hljs {
     font-size: 12px;
     color: #666;
     font-family: monospace;
-}
-
-/* 复制按钮 */
-.copy-button {
-    font-size: 12px;
-    padding: 2px 8px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-.copy-button:hover {
-    background-color: #45a049;
 }

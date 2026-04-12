@@ -52,15 +52,16 @@ def is_img_file(filename):
 def set_img_file_ext(img_set):
     TextParserConfig.img_ext_set = img_set
 
-def escape_html(text: str):
+def escape_html(text: str, quote=True):
     # 必须先处理&
     text = text.replace("&", "&amp;")
     text = text.replace("<", "&lt;")
     text = text.replace(">", "&gt;")
-    text = text.replace('"', "&quot;")
-    text = text.replace("'", "&#39;")
-    text = text.replace(" ", "&nbsp;")
-    text = text.replace("\n", "<br/>")
+    if quote:
+        text = text.replace('"', "&quot;")
+        text = text.replace("'", "&#39;")
+        text = text.replace(" ", "&nbsp;")
+        text = text.replace("\n", "<br/>")
     return text
 
 
@@ -314,6 +315,7 @@ class TokenType:
     search = "search"
     img = "img"
     img_list = "img_list"
+    code_block = "code_block"
 
 class TextToken(Storage):
     def __init__(self, value=""):
@@ -385,6 +387,21 @@ class StrongToken(TextToken):
         value = escape_html(value)
         level = len(self.tag)
         return f'<span class="msg-strong level-{level}">{value}</span>'
+
+class CodeBlockToken(TextToken):
+    def __init__(self, value="", language="", code=""):
+        super().__init__(value=value)
+        self.type = TokenType.code_block
+        self.value = value
+        self.language = language
+        self.code = code
+        
+    def get_html(self):
+        if self.html != "":
+            return self.html
+        # 只转义HTML特殊字符，不转换换行符
+        code = escape_html(self.code, quote=False)
+        return f'<pre class="code-block" data-lang="{self.language}"><code>{code}</code></pre>'
 
 class LinkToken(TextToken):
     def __init__(self, value="", href="", name = ""):
@@ -663,6 +680,66 @@ class TextParser(BaseTextParser):
 
         return self.text[start: start + size]
 
+    def mark_code_block(self, code_block_start):
+        start_pos = self.pos
+        # 读取代码块开始标记
+        self.read(len(code_block_start))  # 跳过剩余的反引号
+        
+        # 读取语言标签（如果有）
+        language = ""
+        while self.current() not in ("\n", ""):
+            language += self.current()
+            self.read(1)
+        language = language.strip()
+        
+        if self.current() == "\n":
+            self.read(1)
+        
+        # 读取代码内容直到遇到与开始标记相同的结束标记
+        code_content = ""
+        while True:
+            # 检查是否到达文件末尾
+            if not self.has_next():
+                break
+            
+            # 检查是否是结束标记
+            if self.startswith(code_block_start):
+                if self.get(self.pos-1) == "\n":
+                    # 之前的空白行不在代码块里面
+                    code_content = code_content[:-1]
+                    
+                # 处理结束标记
+                self.read(len(code_block_start))  # 跳过结束标记
+                # 处理结束标记后面的换行符
+                if self.current() == "\n":
+                    self.read(1)
+                break
+            
+            # 读取一个字符
+            c = self.current()
+            code_content += c
+            self.read(1)
+        
+        end_pos = self.pos
+        raw_value = self.text[start_pos:end_pos]
+        # 创建代码块token
+        token = CodeBlockToken(value=raw_value, language=language, code=code_content)
+        self.tokens.append(token)
+
+    def _get_code_block_start(self):
+        """获取代码块的开始标记，返回连续的反引号字符串"""
+        start = self.pos
+        size = 0
+        for pos in range(start, self.length):
+            c = self.text[pos]
+            if c != '`':
+                break
+            size += 1
+
+        if size >= 3:
+            return self.text[start: start + size]
+        return ""
+
     def _next_token(self):
         c = self.current()
         if c == "":
@@ -689,6 +766,13 @@ class TextParser(BaseTextParser):
         if c == '@':
             self.save_str_token()
             self.mark_at()
+            return
+        
+        # 检查代码块
+        code_block_start = self._get_code_block_start()
+        if code_block_start:
+            self.save_str_token()
+            self.mark_code_block(code_block_start)
             return
         
         tag = self._get_strong_start()
