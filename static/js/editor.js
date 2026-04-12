@@ -20,6 +20,7 @@ var EditorView = {};
  * 初始化codeMirror编辑器
  * @param {string} selector 选择器
  * @param {object} options 可选项
+ * @param {string} options.filename 文件名
  */
 function initCodeMirror(selector, options) {
     var mode = "text/x-sh";

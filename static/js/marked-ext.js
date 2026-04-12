@@ -304,12 +304,7 @@ var markedConfig = {
         });
     }
 
-    function replaceKeyword(html, regexp, target) {
-        target = target || regexp;
-        return html.replace(new RegExp(regexp, 'g'), '<code class="keyword">' + target + "</code>");
-    }
-
-    function highlightKeywords(code, lang) {
+    function highlightCodeBlock(code, lang) {
         // 这个需要依赖 hightlight
         console.log("code language:", lang);
         if (window.hljs == undefined) {
@@ -349,7 +344,7 @@ var markedConfig = {
             header +
             numberedCode +
             '</div>';
-        
+
         return codeContainer;
     }
 
@@ -387,7 +382,7 @@ var markedConfig = {
             console.log(code);
             return highlightCsv(code, lang);
         } else {
-            return highlightKeywords(code, langUpper);
+            return highlightCodeBlock(code, langUpper);
         }
     }
 
