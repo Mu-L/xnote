@@ -62,7 +62,7 @@ class FragmentHandler(BaseTablePlugin):
         form.path = "/note/fragment"
         form.add_row("片段ID", "frag_id", css_class="hide", value=str(frag_id))
         form.add_row("笔记ID", "note_id", readonly=True, value=str(frag_record.note_id))
-        form.add_row("时间", "date_text", value=frag_record.date_text)
+        form.add_date_input("时间", "date_text", value=frag_record.date_text)
         form.add_textarea("内容", field="content", value=frag_record.content)
         
         kw = Storage()

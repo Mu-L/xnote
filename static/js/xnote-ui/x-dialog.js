@@ -132,8 +132,8 @@ xnote.showDialogEx = function () {
  * @param {object} options 创建选项
  * @param {string} options.title 标题
  * @param {string} options.html HTML内容
- * @param {list[string]} options.buttons 按钮文案
- * @param {list[function]} options.functions 回调函数(第一个是成功的回调函数)
+ * @param {string | Array<string>} options.buttons 按钮文案
+ * @param {Function | Array<Function>} options.functions 回调函数(第一个是成功的回调函数)
  * @param {boolean} options.closeForYes 成功后是否关闭对话框(默认关闭)
  * @returns index
  */
@@ -143,18 +143,14 @@ xnoteDialogModule.openDialogExInner = function (options) {
     var area = options.area;
     var title = options.title;
     var html  = options.html;
-    var buttons = options.buttons;
-    var functions = options.functions;
     var anim = options.anim;
     var closeBtn = options.closeBtn;
     var onOpenFn = options.onOpenFn;
     var shadeClose = xnote.getOrDefault(options.shadeClose, false);
-    var closeForYes = xnote.getOrDefault(options.closeForYes, true);
     var template = options.template;
-    var defaultValues = options.defaultValues; // 模板的默认值
-    var yesFunction = function(index, layero, dialogInfo) {};
-    var successFunction = function(layero, index, that/*原型链的this对象*/) {};
     var dialogId = options.dialogId;
+    var defaultValues = options.defaultValues; // 模板的默认值
+    var successFunction = function(layero, index, that/*原型链的this对象*/) {};
 
     // 详细文档 https://www.layui.com/doc/modules/layer.html
     // @param {int} anim 动画的参数
@@ -183,18 +179,6 @@ xnoteDialogModule.openDialogExInner = function (options) {
         }
     }
 
-    if (functions === undefined) {
-        functions = [];
-    }
-
-    if (!(functions instanceof Array)) {
-        functions = [functions];
-    }
-
-    if (functions.length>0) {
-        yesFunction = functions[0];
-    }
-
     if (area === undefined) {
         area = xnote.getDialogArea();
     }
@@ -220,28 +204,19 @@ xnoteDialogModule.openDialogExInner = function (options) {
         area: area,
         content: html,
         anim: anim,
+        // success 参数是渲染完成后执行的回调函数
         success: successFunction,
         // scrollbar是弹层本身的滚动条，不是整个页面的
         scrollbar: false
     }
 
-    if (buttons !== undefined) {
-        params.btn = buttons
-        params.yes = function (index, layero) {
-            console.log(index, layero);
-            var dialogInfo = {
-                id: dialogId
-            };
-            var yesResult = yesFunction(index, layero, dialogInfo);
-            if (yesResult === undefined && closeForYes) {
-                layer.close(index);
-            }
-            return yesResult;
-        }
-    }
+    var ctx = {};
+
+    xnoteDialogModule._renderButtons(ctx, options, params);
 
     var index = layer.open(params);
     options.layerIndex = index;
+    ctx.index = index;
 
     // id映射
     xnoteDialogModule.idToIndexMap[dialogId] = index;
@@ -254,12 +229,78 @@ xnoteDialogModule.openDialogExInner = function (options) {
     return index;
 }
 
+xnoteDialogModule._renderButtons = function (ctx, options, params) {
+    var buttons = options.buttons;
+    var functions = options.functions;
+    var dialogId = options.dialogId;
+    
+    var yesFunction = function(index, layero, dialogInfo) {};
+
+    if (functions === undefined) {
+        functions = [];
+    }
+
+    if (!(functions instanceof Array)) {
+        functions = [functions];
+    }
+
+    if (functions.length>0) {
+        yesFunction = functions[0];
+    }
+
+    var closeForYes = xnote.getOrDefault(options.closeForYes, true);
+
+    if (buttons !== undefined) {
+        // btn参数可以是一个string,也可以是Array<string>
+        // params.btn = buttons;
+        var yesCallback = function (index, layero) {
+            console.log(index, layero);
+            var dialogInfo = {
+                id: dialogId
+            };
+            var yesResult = yesFunction(index, layero, dialogInfo);
+            if (yesResult === undefined && closeForYes) {
+                layer.close(index);
+            }
+            return yesResult;
+        }
+
+        params.btn = buttons;
+        params.yes = yesCallback;
+
+        /*
+        TODO: 待优化
+        var body = $("<div>").addClass("dialog-body").html(params.content);
+        var footer = $("<div>").addClass("dialog-footer");
+        var floatRight = $("<div>").addClass("float-right");
+        footer.append(floatRight);
+
+        var okBtn = $("<button>").addClass("btn large btn-primary").text("确定");
+        okBtn.on("click", function(e) {
+            console.log("okBtn click", e);
+            yesCallback(ctx.index);
+        });
+
+        var closeBtn = $("<button>").addClass("btn large btn-default").text("关闭");
+        closeBtn.on("click", function() {
+            layer.close(ctx.index);
+        });
+
+        floatRight.append(okBtn);
+        floatRight.append("&nbsp;");
+        floatRight.append(cancelBtn);
+
+        params.content = body.prop("outerHTML") +(footer.prop("outerHTML"));
+        */
+    }
+}
+
 /**
  * 打开一个对话框
  * @param {string} title 标题
- * @param {string|DOM} html 文本或者Jquery-DOM对象 比如 $(".mybox")
- * @param {array} buttons 按钮列表
- * @param {array} functions 函数列表
+ * @param {string | DOM} html 文本或者Jquery-DOM对象 比如 $(".mybox")
+ * @param {string | Array<string>} buttons 按钮列表
+ * @param {Function | Array<Function> } functions 函数列表
  * @returns 弹层的索引
  */
 xnoteDialogModule.openDialog = function(title, html, buttons, functions) {

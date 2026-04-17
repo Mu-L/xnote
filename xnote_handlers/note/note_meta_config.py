@@ -62,11 +62,33 @@ class NoteMetaConfig:
             if meta_category != "":
                 item.meta_category = meta_category
             cls.add_item(item)
-            
+
+class NoteMetaOption:
+    def __init__(self, title="", value=""):
+        self.title = title
+        self.value = value
+
+class NoteMetaOptionConfig:
+    
+    _dict: Dict[str, List[NoteMetaOption]] = {}
+    
+    @classmethod
+    def add_option(cls, meta_key: str, title: str, value: str):
+        option = NoteMetaOption()
+        option.title = title
+        option.value = value
+        if meta_key not in cls._dict:
+            cls._dict[meta_key] = []
+        cls._dict[meta_key].append(option)
+    
+    @classmethod
+    def get_options(cls, meta_key: str):
+        return cls._dict.get(meta_key, [])
+
 NoteMetaConfig.add_items([
     NoteMetaItem(meta_name="笔记类型", meta_key="_type", value_type=NoteMetaValueType.select, is_note_field=True),
     NoteMetaItem(meta_name="创建日期", meta_key="_create_date", value_type=NoteMetaValueType.date, is_note_field=True),
-    NoteMetaItem(meta_name="人工简介", meta_key="_manual_short_desc", value_type=NoteMetaValueType.text, is_note_field=True),
+    NoteMetaItem(meta_name="简介", meta_key="_manual_short_desc", value_type=NoteMetaValueType.text, is_note_field=True),
 ], meta_category=NoteMetaCategory.basic)
 
 NoteMetaConfig.add_items([
@@ -80,3 +102,9 @@ NoteMetaConfig.add_items([
 NoteMetaConfig.add_items([
     NoteMetaItem(meta_name="新增自定义属性", meta_key="_new_custom"),
 ], meta_category=NoteMetaCategory.custom)
+
+NoteMetaOptionConfig.add_option("_type", "markdown", "md")
+NoteMetaOptionConfig.add_option("_type", "相册", "gallery")
+NoteMetaOptionConfig.add_option("_type", "清单", "list")
+NoteMetaOptionConfig.add_option("_type", "表格", "csv")
+

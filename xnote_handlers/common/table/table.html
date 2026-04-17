@@ -27,7 +27,7 @@
                     {{row.get(head.field)}}
                 {% end %}
                 {% if head.has_detail(row) %}
-                    <a data-detail="{{head.get_detail(row)}}" href="#" onclick="xnote.table.handleViewDetail(this);">查看详情</a>
+                    <a data-detail="{{head.get_detail(row)}}" onclick="xnote.table.handleViewDetail(this);">查看详情</a>
                 {% end %}
                 </td>
             {% end %} 

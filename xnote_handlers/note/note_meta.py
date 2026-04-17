@@ -9,7 +9,7 @@ from xutils import webutil
 from .models import NoteIndexDO
 from .dao import NoteIndexDao
 from .dao_meta import NoteMetaRecord, NoteMetaDao
-from .note_meta_config import NoteMetaConfig, NoteMetaValueType, NoteMetaCategory
+from .note_meta_config import NoteMetaConfig, NoteMetaValueType, NoteMetaCategory, NoteMetaOptionConfig
 
 class NoteMetaService:
     
@@ -176,6 +176,11 @@ class NoteMetaHandler(BaseTablePlugin):
             form.add_date_input(title="属性值", field="meta_value", value=meta_info.meta_value)
         elif value_type == NoteMetaValueType.number:
             form.add_row(title="属性值", field="meta_value", value=meta_info.meta_value)
+        elif value_type == NoteMetaValueType.select:
+            select_row = form.add_select(title="属性值", field="meta_value", value=meta_info.meta_value)
+            options = NoteMetaOptionConfig.get_options(meta_key)
+            for item in options:
+                select_row.add_option(item.title, item.value)
         else:
             form.add_textarea(title="属性值", field="meta_value", value=meta_info.meta_value)
         
