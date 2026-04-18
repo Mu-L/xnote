@@ -1,28 +1,30 @@
 import typing
+
+from typing import List
 from xutils.textutil import safe_str
 
 class BaseComponent:
     """UI组件的基类"""
-    def render(self):
+    def render(self) -> str:
         return ""
 
 class BaseContainer(BaseComponent):
     def __init__(self, css_class="", css_style=""):
         self.css_class = css_class
         self.css_style = css_style
-        self.children = [] # type: list[BaseComponent]
+        self.children: List[BaseComponent] = []
 
     def add(self, item: BaseComponent):
         self.children.append(item)
         return self
 
-    def set_children(self, children: typing.List[BaseComponent]):
+    def set_children(self, children: List[BaseComponent]):
         self.children = children
 
     def is_empty(self):
         return len(self.children) == 0
 
-    def render(self):
+    def render(self) -> str:
         if self.is_empty():
             return ""
         css_style_attr = ""

@@ -12,6 +12,9 @@ class BaseListPlugin(BasePlugin):
     rows = 0
 
     page_html = """
+{% include common/script/load_select2.html %}
+{% include common/script/load_laydate.html %}
+
 <div class="card">
     {% render list_view %}
 </div>

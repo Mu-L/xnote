@@ -7,11 +7,11 @@ class ActionBar(BaseContainer):
     """表格动作栏"""
     def __init__(self, css_class="", css_style=""):
         super().__init__(css_class=f"action-bar {css_class}", css_style=css_style)
-        self.right_box = BaseContainer("float-right")
-        self.add(self.right_box)
+        self.right_div = BaseContainer("float-right")
+        self.add(self.right_div)
 
     def is_empty(self):
-        return len(self.right_box.children) == 0 and len(self.children) == 1
+        return len(self.right_div.children) == 0 and len(self.children) == 1
     
     @property
     def visible(self):
@@ -19,12 +19,12 @@ class ActionBar(BaseContainer):
 
     def _add(self, item: BaseComponent, float_right=False):
         if float_right:
-            self.right_box.add(item)
+            self.right_div.add(item)
         else:
             self.add(item)
 
     def add_right(self, item: BaseComponent):
-        self.right_box.add(item)
+        self.right_div.add(item)
 
     def add_span(self, text="", css_class="", float_right=False, id=""):
         span = TextSpan(text=text, css_class=css_class, id=id)

@@ -8,6 +8,8 @@ from xnote.plugin.component import ConfirmButton, BaseContainer, ActionButton
 from xnote.plugin import TabBox
 from xnote_handlers.config import LinkConfig
 from .example_handler import get_example_tab
+from xnote.webui import TextLink, EditFormActionLink, ConfirmActionLink
+from xnote.webui import FormRowType
 
 class ListPluginHandler(BaseListPlugin):
     title = "ListPlugin示例"
@@ -41,15 +43,18 @@ class ListPluginHandler(BaseListPlugin):
         list_view = self.create_list_view()
 
         for i in range(1, 6):
-            action_html = """
-<a>编辑</a>
-<a class="link danger">删除</a>
-"""
-            list_view.add_item(ListViewItem(
-                text=f"row{i}", badge_info="test", 
+            text = f"row{i}"
+            list_item = ListViewItem(
+                text=text, badge_info="test",
                 icon_class="fa fa-file-text-o",
-                action_html=action_html,
-                show_chevron_right=True))
+                show_chevron_right=True)
+            list_item.add_span(" 说明XXX", css_class="gray")
+            list_item.add_link(text=" 详情", href="")
+            quote_text = xutils.quote(text)
+            list_item.right_div.add(EditFormActionLink(text="编辑", url=f"?action=edit&value={quote_text}"))
+            list_item.right_div.add(ConfirmActionLink(text="删除", url="?action=delete", msg=f"确认删除[{text}]吗?", css_class="danger"))
+            
+            list_view.add_item(list_item)
 
         kw = Storage()
         kw.list_view = list_view
@@ -63,6 +68,23 @@ class ListPluginHandler(BaseListPlugin):
             tab2 = tab2,
             example_tab = get_example_tab(tab_default="list_plugin"))
         return self.response_page(**kw)
+    
+    def handle_edit(self):
+        value = xutils.get_argument_str("value")
+        form = self.create_form()
+        form.add_row("id", "id", css_class="hide")
+        form.add_row("只读属性", "readonly_attr", value="test", readonly=True)
+        
+        row = form.add_select("类型", "type")
+        row.add_option("类型1", "1")
+        row.add_option("类型2", "2")
+
+        form.add_date_input("日期", "date")
+        form.add_row("内容", "content", type=FormRowType.textarea, value=value)
+
+        kw = Storage()
+        kw.form = form
+        return self.response_form(**kw)
     
 
 

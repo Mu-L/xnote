@@ -2,7 +2,7 @@ import typing
 
 from .base import BaseComponent, BaseContainer, Div
 from xnote.core import xtemplate
-from .component import ConfirmButton, ActionButton, TextTag, escape_html, TextSpan, TextLink, TextBr
+from .component import ConfirmButton, ActionButton, TextTag, escape_html, TextSpan, TextLink, TextBr, RawHtml
 from xnote.core import xconfig
 
 class ListViewItem(BaseContainer):
@@ -10,8 +10,6 @@ class ListViewItem(BaseContainer):
     show_chevron_right = False
     # 操作按钮
     action_btn : typing.Optional[ActionButton] = None
-    # 操作部分
-    action_html = ""
     # 标签列表
     tags: typing.List[TextTag]
     # 默认链接在外部
@@ -23,19 +21,10 @@ class ListViewItem(BaseContainer):
         {% if item.icon_class %}
             <i class="{{item.icon_class}}"></i>
         {% end %}
-        {% raw item.children_html %}
+        {% raw item._children_html %}
         {% for tag in item.tags %} {% render tag %} {% end %}
-        <div class="float-right">
-            <span class="badge-info">{{ item.badge_info }}</span>
-            {% if item.action_btn %}
-                {% render item.action_btn %}
-            {% end %}
-            {% raw item.action_html %}
-            {% render item.right_div %}
-            {% if item.show_chevron_right %}
-                <i class="fa fa-chevron-right"></i>
-            {% end %}
-        </div>
+        
+        {% raw item._right_html %}
     </a>
 </div>
 """
@@ -45,19 +34,10 @@ class ListViewItem(BaseContainer):
     {% if item.icon_class %}
         <i class="{{item.icon_class}}"></i>
     {% end %}
-    {% raw item.children_html %}
+    {% raw item._children_html %}
     {% for tag in item.tags %} {% render tag %} {% end %}
-    <div class="float-right">
-        <span class="badge-info">{{ item.badge_info }}</span>
-        {% if item.action_btn %}
-            {% render item.action_btn %}
-        {% end %}
-        {% raw item.action_html %}
-        {% render item.right_div %}
-        {% if item.show_chevron_right %}
-            <i class="fa fa-chevron-right"></i>
-        {% end %}
-    </div>
+    
+    {% raw item._right_html %}
 </div>
 """
 
@@ -77,7 +57,8 @@ class ListViewItem(BaseContainer):
         self.show_chevron_right = show_chevron_right
         self.tags = []
         self.action_html = action_html
-        self.right_div = Div()
+        self.right_div = Div(css_class="float-right")
+        self._right_html = ""
         
         if text:
             self.add_span(text=text)
@@ -86,11 +67,29 @@ class ListViewItem(BaseContainer):
             self.is_link_outside = False
 
     def render(self):
-        self.children_html = "".join([item.render() for item in self.children])
+        self._children_html = "".join([item.render() for item in self.children])
+        self._right_html = self._render_right_html()
+        
         if self.is_link_outside:
             return self._outside_code.generate(item = self)
         else:
             return self._intside_code.generate(item = self)
+        
+    def _render_right_html(self):
+        right_div = Div(css_class=self.right_div.css_class, css_style=self.right_div.css_style)
+        if self.badge_info:
+            right_div.add(TextSpan(text=self.badge_info, css_class="badge-info"))
+        if self.action_btn:
+            right_div.add(self.action_btn)
+        if self.action_html:
+            right_div.add(RawHtml(self.action_html))
+        
+        for child in self.right_div.children:
+            right_div.add(child)
+        
+        if self.show_chevron_right:
+            right_div.add(RawHtml('<i class="fa fa-chevron-right"></i>'))
+        return right_div.render()
         
     def add_span(self, text="", css_class=""):
         self.children.append(TextSpan(text=text, css_class=css_class))

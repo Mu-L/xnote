@@ -6,4 +6,4 @@ from .component import RawHtml
 from .tab import TabBox, TabTable
 from .container import Card, CardRow
 from .link import TextLink, ActionLink, EditFormActionLink, ConfirmActionLink
-from .list import ListView, ListViewItem
+from ._list import ListView, ListViewItem

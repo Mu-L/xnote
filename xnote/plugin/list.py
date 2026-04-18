@@ -1,1 +1,1 @@
-from xnote.webui.list import *
+from xnote.webui._list import *

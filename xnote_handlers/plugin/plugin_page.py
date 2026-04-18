@@ -384,8 +384,9 @@ def create_item_list(plugins: typing.List[PluginContext]):
     result = ItemList()
 
     for plugin in plugins:
-        item_info = ListItem(text = T(plugin.title), href= plugin.url + plugin.url_query, 
-                                icon_class=plugin.icon_class, badge_info=plugin.badge_info)
+        item_info = ListItem(
+            text = T(plugin.title), href= plugin.url + plugin.url_query, 
+            icon_class=plugin.icon_class, badge_info=str(plugin.badge_info))
         item_info.show_chevron_right = True
         if plugin.is_external:
             item_info.tags.append(TextTag("外部", css_class="lightblue"))

@@ -33,7 +33,7 @@ def render_note_fragment(ctx: NoteViewContext):
     card = Card()
     add_event_link = EditFormActionLink(text="新增事件", url=f"/note/fragment?action=edit&note_id={note_id}", css_class="btn-line-height")
     action_bar = ActionBar(css_class="border-bottom")
-    action_bar.right_box.css_class = "float-right padding-right-small"
+    action_bar.right_div.css_class = "float-right padding-right-small"
     action_bar.add_span("事件时间线", css_class="bold card-title-span btn-line-height", id="events-timeline")
     action_bar.add_right(add_event_link)
     
