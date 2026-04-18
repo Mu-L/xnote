@@ -89,7 +89,7 @@
                     <a href="{{file.url}}">{{file.name}}</a>
                 {% end %}
                 {% if file.short_desc %}
-                    <span class="search-short-desc">{{file.short_desc}}</span>
+                    <span class="search-short-desc">{% raw file.short_desc %}</span>
                 {% end %}
             </div>
             

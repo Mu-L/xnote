@@ -25,6 +25,7 @@ from xnote.core.models import SearchContext, SearchResult
 from xnote.service.search_service import SearchHistoryDO
 from xnote.plugin.tab import TabBox
 from xnote.plugin import TagSpan
+from xnote_handlers.note.models import NoteIndexDO
 
 SEARCH_TYPE_DICT = dict() # type: dict[str, Storage]
 
@@ -69,6 +70,7 @@ def fill_note_info(files: typing.List[SearchResult], words:List[str]=[]):
     ids = []
     for file in files:
         file.name_html = htmlutil.highlight(file.name, words)
+        file.short_desc = htmlutil.highlight(file.short_desc, words)
         if file.category == "note":
             ids.append(file.parent_id)
     
@@ -233,13 +235,18 @@ class SearchHandler:
         else:
             group_result = note_dao.search_group(words, user_id, parent_id = parent_id)
             notes = note_dao.search_name(words, user_name, parent_id = parent_id, exclude_types=["group"])
+            notes_by_short_desc = note_dao.search_short_desc(words, creator_id=user_id, parent_id=parent_id, exclude_types=["group"])
+            notes = note_dao.merge_notes(notes, notes_by_short_desc)
+            
 
+        def note_to_search_result(note: NoteIndexDO):
+            result = SearchResult(**note)
+            result.category = "note"
+            result.short_desc = note.manual_short_desc
+            return result
         
-        notes = [SearchResult(**item) for item in notes]
-        for note in notes:
-            note.category = "note"
-            note.short_desc = note.manual_short_desc
-
+        notes = [note_to_search_result(item) for item in notes]
+        
         fill_note_info(notes, ctx.words)
 
         if parent_id != "" and parent_id != None:
