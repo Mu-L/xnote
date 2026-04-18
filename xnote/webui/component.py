@@ -222,3 +222,8 @@ class BlockTitle(BaseComponent):
         if self.text == "":
             return ""
         return self._template.generate(item = self)
+
+class TextBr(BaseComponent):
+    def render(self):
+        return "<br>"
+

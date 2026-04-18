@@ -2,7 +2,7 @@ import typing
 
 from .base import BaseComponent, BaseContainer, Div
 from xnote.core import xtemplate
-from .component import ConfirmButton, ActionButton, TextTag, escape_html, TextSpan, TextLink
+from .component import ConfirmButton, ActionButton, TextTag, escape_html, TextSpan, TextLink, TextBr
 from xnote.core import xconfig
 
 class ListViewItem(BaseContainer):
@@ -97,6 +97,9 @@ class ListViewItem(BaseContainer):
     
     def add_link(self, text="", href="", css_class=""):
         self.children.append(TextLink(text=text, href=href, css_class=css_class))
+        
+    def add_br(self):
+        self.children.append(TextBr())
 
 class _ListViewOption:
 
