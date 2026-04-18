@@ -25,10 +25,9 @@ def render_note_fragment(ctx: NoteViewContext):
         content_short = textutil.get_short_text(item.content, 50)
         delete_msg = f"确认删除事件【{content_short}】吗"
         
-        list_item_action = Div()
-        list_item_action.add(EditFormActionLink(text="编辑", url=edit_url))
-        list_item_action.add(ConfirmActionLink(text="删除", url=delete_url, msg=delete_msg, css_class="danger"))
-        list_item = ListViewItem(text = f"[{item.date_text}] {item.content}", action_html=list_item_action.render())
+        list_item = ListViewItem(text = f"[{item.date_text}] {item.content}")
+        list_item.right_div.add(EditFormActionLink(text="编辑", url=edit_url))
+        list_item.right_div.add(ConfirmActionLink(text="删除", url=delete_url, msg=delete_msg, css_class="danger"))
         list_view.add_item(list_item)
     
     card = Card()

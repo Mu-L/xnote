@@ -1,11 +1,11 @@
 import typing
 
-from .base import BaseComponent, BaseContainer
+from .base import BaseComponent, BaseContainer, Div
 from xnote.core import xtemplate
-from .component import ConfirmButton, ActionButton, TextTag, escape_html
+from .component import ConfirmButton, ActionButton, TextTag, escape_html, TextSpan, TextLink
 from xnote.core import xconfig
 
-class ListViewItem(BaseComponent):
+class ListViewItem(BaseContainer):
     # 是否展示右箭头
     show_chevron_right = False
     # 操作按钮
@@ -23,7 +23,7 @@ class ListViewItem(BaseComponent):
         {% if item.icon_class %}
             <i class="{{item.icon_class}}"></i>
         {% end %}
-        <span>{{ item.text }}</span>
+        {% raw item.children_html %}
         {% for tag in item.tags %} {% render tag %} {% end %}
         <div class="float-right">
             <span class="badge-info">{{ item.badge_info }}</span>
@@ -31,6 +31,7 @@ class ListViewItem(BaseComponent):
                 {% render item.action_btn %}
             {% end %}
             {% raw item.action_html %}
+            {% render item.right_div %}
             {% if item.show_chevron_right %}
                 <i class="fa fa-chevron-right"></i>
             {% end %}
@@ -44,7 +45,7 @@ class ListViewItem(BaseComponent):
     {% if item.icon_class %}
         <i class="{{item.icon_class}}"></i>
     {% end %}
-    <span>{{item.text}}</span>
+    {% raw item.children_html %}
     {% for tag in item.tags %} {% render tag %} {% end %}
     <div class="float-right">
         <span class="badge-info">{{ item.badge_info }}</span>
@@ -52,6 +53,7 @@ class ListViewItem(BaseComponent):
             {% render item.action_btn %}
         {% end %}
         {% raw item.action_html %}
+        {% render item.right_div %}
         {% if item.show_chevron_right %}
             <i class="fa fa-chevron-right"></i>
         {% end %}
@@ -66,6 +68,7 @@ class ListViewItem(BaseComponent):
             self, text="", href="", icon_class="", badge_info="", 
             show_chevron_right = False, action_html = "",
             css_class="") -> None:
+        super().__init__()
         self.text = text
         self.css_class = css_class
         self.icon_class = icon_class
@@ -74,15 +77,26 @@ class ListViewItem(BaseComponent):
         self.show_chevron_right = show_chevron_right
         self.tags = []
         self.action_html = action_html
+        self.right_div = Div()
+        
+        if text:
+            self.add_span(text=text)
 
         if href == "":
             self.is_link_outside = False
 
     def render(self):
+        self.children_html = "".join([item.render() for item in self.children])
         if self.is_link_outside:
             return self._outside_code.generate(item = self)
         else:
             return self._intside_code.generate(item = self)
+        
+    def add_span(self, text="", css_class=""):
+        self.children.append(TextSpan(text=text, css_class=css_class))
+    
+    def add_link(self, text="", href="", css_class=""):
+        self.children.append(TextLink(text=text, href=href, css_class=css_class))
 
 class _ListViewOption:
 
