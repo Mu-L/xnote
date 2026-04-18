@@ -26,7 +26,7 @@ class ListViewItem(BaseComponent):
         <span>{{ item.text }}</span>
         {% for tag in item.tags %} {% render tag %} {% end %}
         <div class="float-right">
-            <span class="book-size-span">{{ item.badge_info }}</span>
+            <span class="badge-info">{{ item.badge_info }}</span>
             {% if item.action_btn %}
                 {% render item.action_btn %}
             {% end %}
@@ -44,10 +44,10 @@ class ListViewItem(BaseComponent):
     {% if item.icon_class %}
         <i class="{{item.icon_class}}"></i>
     {% end %}
-    <a href="{{item.href}}">{{ item.text }}</a>
+    <span>{{item.text}}</span>
     {% for tag in item.tags %} {% render tag %} {% end %}
     <div class="float-right">
-        <span class="book-size-span">{{ item.badge_info }}</span>
+        <span class="badge-info">{{ item.badge_info }}</span>
         {% if item.action_btn %}
             {% render item.action_btn %}
         {% end %}

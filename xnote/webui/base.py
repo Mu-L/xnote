@@ -7,8 +7,9 @@ class BaseComponent:
         return ""
 
 class BaseContainer(BaseComponent):
-    def __init__(self, css_class=""):
+    def __init__(self, css_class="", css_style=""):
         self.css_class = css_class
+        self.css_style = css_style
         self.children = [] # type: list[BaseComponent]
 
     def add(self, item: BaseComponent):
@@ -24,10 +25,15 @@ class BaseContainer(BaseComponent):
     def render(self):
         if self.is_empty():
             return ""
+        css_style_attr = ""
+        if self.css_style:
+            css_style_attr = f'style="{self.css_style}"'
         out = []
-        out.append(f"""<div class="{self.css_class}">""")
+        out.append(f"""<div class="{self.css_class}" {css_style_attr}>""")
         for item in self.children:
             item_html = safe_str(item.render())
             out.append(item_html)
         out.append("""</div>""")
         return "".join(out)
+
+Div = BaseContainer

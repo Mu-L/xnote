@@ -1,0 +1,11 @@
+.border-bottom {
+    border-bottom: 1px solid #ccc;
+}
+
+.padding-right-small {
+    padding-right: 5px;
+}
+
+.badge-info, .book-size-span {
+    color: #888;
+}

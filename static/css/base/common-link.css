@@ -48,7 +48,7 @@
     color: #08c;
 }
 
-.danger-link {
+.danger-link, a.danger {
     color: red;
 }
 

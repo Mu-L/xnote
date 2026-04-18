@@ -106,6 +106,7 @@ def build_app_css():
         builder.append("./static/css/base/common-table.css")
         builder.append("./static/css/base/common-select.css")
         builder.append("./static/css/base/common-grid.css")
+        builder.append("./static/css/base/common-misc.css")
 
         # 场景化的css
         builder.append("./static/css/common-react.css")

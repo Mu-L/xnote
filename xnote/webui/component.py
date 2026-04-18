@@ -12,7 +12,7 @@
 from xnote.webui.base import BaseComponent, BaseContainer
 from xnote.core import xtemplate
 from xutils import escape_html
-from .link import TextLink, EditFormLink
+from .link import TextLink, EditFormActionLink
 
 class RawHtml(BaseComponent):
     def __init__(self, html: str) -> None:

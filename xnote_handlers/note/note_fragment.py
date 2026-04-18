@@ -1,12 +1,14 @@
+from xnote.webui.link import ActionLink, EditFormActionLink, ConfirmActionLink
 import xutils
 from xnote.core import xauth
-from xnote.plugin import DataTable, TableActionType, Card, ActionBar, EditFormButton
+from xnote.webui import DataTable, TableActionType, Card, ActionBar, EditFormButton
+from xnote.webui import ListView, ListViewItem, BaseContainer, Div
 from .models import NoteViewContext
 from .dao_fragment import NoteFragmentDao, NoteFragmentRecord
 from .dao import NoteIndexDao
 from xnote.plugin.table_plugin import BaseTablePlugin
 from xutils.base import Storage
-from xutils import webutil, dateutil
+from xutils import webutil, dateutil, textutil
 
 def render_note_fragment(ctx: NoteViewContext):
     if ctx.tab != "" and ctx.tab != "all":
@@ -14,28 +16,30 @@ def render_note_fragment(ctx: NoteViewContext):
     
     note_id = ctx.note_id
     
-    table = DataTable()
-    table.add_head("时间", "date_text")
-    table.add_head("描述", "content")
-    table.add_action(title="编辑", type=TableActionType.edit_form, link_field="edit_url")
-    table.add_action(title="删除", type=TableActionType.confirm, link_field="delete_url", 
-                        msg_field="delete_msg", css_class="btn danger")
-
+    list_view = ListView()
 
     fragments = NoteFragmentDao.list_by_note_id(note_id=note_id)
     for item in fragments:
-        item["edit_url"] = f"/note/fragment?action=edit&note_id={note_id}&frag_id={item.frag_id}"
-        item["delete_url"] = f"/note/fragment?action=delete&frag_id={item.frag_id}"
-        item["delete_msg"] = f"确认删除事件【{item.content}】吗"
-        table.add_row(item)
+        edit_url = f"/note/fragment?action=edit&note_id={note_id}&frag_id={item.frag_id}"
+        delete_url = f"/note/fragment?action=delete&frag_id={item.frag_id}"
+        content_short = textutil.get_short_text(item.content, 50)
+        delete_msg = f"确认删除事件【{content_short}】吗"
+        
+        list_item_action = Div()
+        list_item_action.add(EditFormActionLink(text="编辑", url=edit_url))
+        list_item_action.add(ConfirmActionLink(text="删除", url=delete_url, msg=delete_msg, css_class="danger"))
+        list_item = ListViewItem(text = f"[{item.date_text}] {item.content}", action_html=list_item_action.render())
+        list_view.add_item(list_item)
     
     card = Card()
-    action_bar = ActionBar()
+    add_event_link = EditFormActionLink(text="新增事件", url=f"/note/fragment?action=edit&note_id={note_id}", css_class="btn-line-height")
+    action_bar = ActionBar(css_class="border-bottom")
+    action_bar.right_box.css_class = "float-right padding-right-small"
     action_bar.add_span("事件时间线", css_class="bold card-title-span btn-line-height", id="events-timeline")
-    action_bar.add_edit_button(text="新增事件", url=f"/note/fragment?action=edit&note_id={note_id}", float_right=True, css_class="btn-default")
+    action_bar.add_right(add_event_link)
     
     card.add(action_bar)
-    card.add(table)
+    card.add(list_view)
     ctx.note_fragment = card
 
 
