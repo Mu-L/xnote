@@ -91,8 +91,8 @@ class ListViewItem(BaseContainer):
             right_div.add(RawHtml('<i class="fa fa-chevron-right"></i>'))
         return right_div.render()
         
-    def add_span(self, text="", css_class=""):
-        self.children.append(TextSpan(text=text, css_class=css_class))
+    def add_span(self, text="", css_class="", css_style=""):
+        self.children.append(TextSpan(text=text, css_class=css_class, css_style=css_style))
     
     def add_link(self, text="", href="", css_class=""):
         self.children.append(TextLink(text=text, href=href, css_class=css_class))

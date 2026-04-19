@@ -133,16 +133,23 @@ class EditFormButton(BaseComponent):
 
 class TextSpan(BaseComponent):
     """行内文本"""
-    def __init__(self, text="", css_class="", id=""):
+    def __init__(self, text="", css_class="", css_style="", id=""):
         self.text = text
         self.css_class = css_class
+        self.css_style = css_style
         self.id = id
 
     def render(self):
         text = escape_html(self.text)
+        
+        id_attr = ""
         if self.id:
-            return f"""<span id="{self.id}" class="{self.css_class}">{text}</span>"""
-        return f"""<span class="{self.css_class}">{text}</span>"""
+            id_attr = f'id="{self.id}"'
+        style_attr = ""
+        if self.css_style:
+            style_attr = f'style="{self.css_style}"'
+                   
+        return f"""<span {id_attr} class="{self.css_class}" {style_attr}>{text}</span>"""
 
 class TagSpan(BaseComponent):
     def __init__(self, text="", href="", css_class="", badge_info="", icon_class="", text_html=""):

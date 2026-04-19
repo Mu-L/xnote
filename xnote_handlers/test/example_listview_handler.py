@@ -2,6 +2,7 @@ import xutils
 import copy
 
 from xutils import webutil, Storage
+from xutils import dateutil
 from xnote.plugin.list_plugin import BaseListPlugin, BasePlugin
 from xnote.plugin.list import ListView, ListViewItem, ListItem, TextTag
 from xnote.plugin.component import ConfirmButton, BaseContainer, ActionButton
@@ -41,15 +42,20 @@ class ListPluginHandler(BaseListPlugin):
         tab2.title_width = title_width
     
         list_view = self.create_list_view()
-
+        now = dateutil.format_date()
+        
         for i in range(1, 6):
-            text = f"row{i}"
+            text = f"标题 - row{i}"
             list_item = ListViewItem(
-                text=text, badge_info="test",
+                badge_info="角标信息",
                 icon_class="fa fa-file-text-o",
                 show_chevron_right=True)
-            list_item.add_span(" 说明XXX", css_class="gray")
+            list_item.add_span(text=text, css_class="bold")
+            list_item.add_br()
+            list_item.add_span("说明XXX", css_class="gray")
             list_item.add_link(text=" 详情", href="")
+            list_item.add_br()
+            list_item.add_span(f"更新于 {now}", css_style="color:#999;")
             quote_text = xutils.quote(text)
             list_item.right_div.add(EditFormActionLink(text="编辑", url=f"?action=edit&value={quote_text}"))
             list_item.right_div.add(ConfirmActionLink(text="删除", url="?action=delete", msg=f"确认删除[{text}]吗?", css_class="danger"))
