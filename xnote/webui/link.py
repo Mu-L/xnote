@@ -5,18 +5,25 @@ from .utils import build_data_attrs
 
 class TextLink(BaseComponent):
     """文本链接"""
-    def __init__(self, text="", href="", css_class=""):
+    def __init__(self, text="", href="", css_class="", is_bracketed=False):
         self.text = text
         self.href = href
         self.css_class = css_class
-
-    def render(self):
+        self.is_bracketed = is_bracketed
+        
+    def _render(self):
         text = escape_html(self.text)
         href = self.href
         if self.css_class:
             return f"""<a href="{href}" class="{self.css_class}">{text}</a>"""
         else:
             return f"""<a href="{href}">{text}</a>"""
+
+    def render(self):
+        html = self._render()
+        if self.is_bracketed:
+            return f"[{html}]"
+        return html
 
 class ActionLink(TextLink):
     """操作链接"""

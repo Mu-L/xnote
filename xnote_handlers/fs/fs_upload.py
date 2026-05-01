@@ -9,6 +9,7 @@ import time
 import math
 import xutils
 
+from typing import List
 from xnote.core import xauth
 from xnote.core import xconfig
 from xnote.core import xtemplate
@@ -18,11 +19,15 @@ from xutils import webutil
 from xutils.base import XnoteException
 from xnote.core.xtemplate import T
 from xnote.core.xnote_event import FileUploadEvent
-from .fs_helper import FileInfoDao
+from .fs_helper import FileInfoDao, get_file_thumbnail, get_file_download_link, FileInfo
 from xnote_handlers.fs import fs_checker
 from xutils.fsutil import get_safe_file_name
 from xnote_handlers.note.models import NoteTypeInfo
 from xnote.plugin.table_plugin import BaseTablePlugin, FormRowType
+from xnote.webui import ListView, ListViewItem, RowDiv, EditFormActionLink, ConfirmActionLink, Card
+from xnote.webui import Image as HtmlImage
+from xutils import quote
+
 
 try:
     from PIL import Image
@@ -279,6 +284,34 @@ class UploadHandler:
         result.link = get_link(file.filename, webpath)
         return result
 
+def create_list_card_from_files(files: List[FileInfo]):
+    list_view = ListView()
+    
+    for item in files:
+        thumbnail_url = get_file_thumbnail(item.realpath)
+        fsize = xutils.get_file_size(item.realpath, format=True)
+        download_url = get_file_download_link(item.realpath)
+        view_url = f"/fs_upload/file_info?action=edit&file_id={item.id}"
+        delete_url = f"/fs_api/remove?path={quote(item.realpath)}"
+        delete_msg = f"确认删除文件[{item.display_name}]吗"
+        
+        data_dict = dict(src=get_file_download_link(item.realpath))
+        list_item = ListViewItem()
+        list_item.add(HtmlImage(src=thumbnail_url, width="100", css_class="fs-thumbnail x-photo", data_dict=data_dict))
+        list_item.right_div.css_style = "float:right; width: calc(100% - 100px); padding:5px"
+        list_item.right_div.add_span(item.display_name)
+        list_item.right_div.add_br()
+        list_item.right_div.add_span(f"文件大小: {fsize}", css_class="gray")
+        list_item.right_div.add_br()
+        list_item.right_div.add_link(text="下载", href=download_url, is_bracketed=True)
+        list_item.right_div.add(EditFormActionLink(text="详细信息", url=view_url))
+        list_item.right_div.add(ConfirmActionLink(text="删除", url=delete_url, msg=delete_msg, css_class="red"))
+        
+        list_view.add(list_item)
+    
+    list_card = Card()
+    list_card.add(list_view)
+    return list_card
 
 class UploadManageHandler:
     @xauth.login_required()
@@ -301,11 +334,12 @@ class UploadManageHandler:
         start_time = date_info.format_date()
         end_time = date_info.next_month().format_date()
         files, total = FileInfoDao.query_page(user_id=user_id, offset=offset, limit=page_size, start_time_inclusive=start_time, end_time_exclusive=end_time)
-        pathlist = []
+        pathlist = []        
         for item in files:
             pathlist.append(item.realpath)
         
         kw = Storage()
+        kw.list_card = create_list_card_from_files(files)
         kw.title = T("上传管理")
         kw.html_title = T("文件")
         kw.files = files
@@ -489,18 +523,20 @@ class UploadSearchHandler:
         kw.note_type = "file"
         kw.dirname = "_empty"
         kw.files = files
+        kw.list_card = create_list_card_from_files(files)
 
         pathlist = []
         for item in files:
             pathlist.append(item.realpath)
 
-        return xtemplate.render("fs/page/fs_upload_manage.html",
-                                show_aside=False,
-                                html_title=T("文件"),
-                                pathlist=pathlist,
-                                get_webpath=get_webpath,
-                                upload_link_by_month=upload_link_by_month,
-                                get_display_name=get_display_name, **kw)
+        return xtemplate.render(
+            "fs/page/fs_upload_manage.html",
+            show_aside=False,
+            html_title=T("文件"),
+            pathlist=pathlist,
+            get_webpath=get_webpath,
+            upload_link_by_month=upload_link_by_month,
+            get_display_name=get_display_name, **kw)
 
 
 class CheckHandler:

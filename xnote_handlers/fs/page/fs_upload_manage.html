@@ -36,7 +36,9 @@
 {% init show_rename_file_link = False %}
 {% init is_upload_page = True %}
 
+{% include common/script/load_select2.html %}
 {% include fs/component/css/fs_css.html %}
+{% include fs/component/script/file_op_script.html %}
 
 {% end %}
 
@@ -90,9 +92,7 @@
         {% end %}
     </div>
 
-    <div class="card row">
-        {% include fs/component/filelist_gallery.html %}
-    </div>
+    {% render list_card %}
 
     <div class="card">
         {% include common/base/pagination.html %}

@@ -1,4 +1,4 @@
-from xnote.webui.base import BaseComponent, BaseContainer
+from xnote.webui.base import BaseComponent, BaseContainer, Div
 from xnote.webui.component import TextSpan, EditFormButton, ConfirmButton, TextLink
 from xnote.core import xtemplate
 from typing import Optional
@@ -49,7 +49,11 @@ class Card(BaseContainer):
         super().__init__(css_class="card " + css_class)
 
 
-class CardRow(BaseContainer):
+class RowDiv(BaseContainer):
     """行容器"""
     def __init__(self, css_class="") -> None:
         super().__init__(css_class="row " + css_class)
+        self.right_div = Div()
+        self.add(self.right_div)
+
+CardRow = RowDiv

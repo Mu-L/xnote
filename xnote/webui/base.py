@@ -25,6 +25,7 @@ class BaseContainer(BaseComponent):
         return len(self.children) == 0
 
     def render(self) -> str:
+        # TODO: 防止递归
         if self.is_empty():
             return ""
         css_style_attr = ""

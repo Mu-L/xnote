@@ -487,6 +487,11 @@ class BasePlugin:
             return self.html
         
         return self.writetemplate(html, **kw)
+    
+    def write_plain_html(self, html: Union[str, bytes]):
+        """添加纯html, 无模板渲染"""
+        self.html += safe_str(html)
+        return self.html
 
     def writetemplate(self, template_text, **kw):
         html = render_text(template_text, template_name=self.title, **kw)

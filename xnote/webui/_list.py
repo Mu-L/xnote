@@ -5,6 +5,17 @@ from xnote.core import xtemplate
 from .component import ConfirmButton, ActionButton, TextTag, escape_html, TextSpan, TextLink, TextBr, RawHtml
 from xnote.core import xconfig
 
+
+class RightDiv(Div):
+    def add_span(self, text="", css_class="", css_style=""):
+        self.children.append(TextSpan(text=text, css_class=css_class, css_style=css_style))
+    
+    def add_link(self, text="", href="", css_class="", is_bracketed=False):
+        self.children.append(TextLink(text=text, href=href, css_class=css_class, is_bracketed=is_bracketed))
+    
+    def add_br(self):
+        self.children.append(TextBr())
+        
 class ListViewItem(BaseContainer):
     # 是否展示右箭头
     show_chevron_right = False
@@ -57,7 +68,7 @@ class ListViewItem(BaseContainer):
         self.show_chevron_right = show_chevron_right
         self.tags = []
         self.action_html = action_html
-        self.right_div = Div(css_class="float-right")
+        self.right_div = RightDiv(css_class="float-right")
         self._right_html = ""
         
         if text:
