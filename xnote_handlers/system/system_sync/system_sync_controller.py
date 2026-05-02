@@ -24,7 +24,7 @@ import typing
 
 from xnote.core import xauth, xconfig, xtemplate, xmanager
 from xnote.plugin import TabBox
-from xnote.plugin.list import ListView, ListViewItem
+from xnote.webui import ListView, ListViewItem
 from xnote.service.system_meta_service import SystemMetaEnum
 
 from xutils import webutil

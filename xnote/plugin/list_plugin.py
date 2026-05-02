@@ -4,7 +4,7 @@ from xnote.plugin.utils import ParamDict
 from xutils import jsonutil
 from xutils import webutil
 from xutils import Storage
-from xnote.plugin.list import ListView, ListViewItem
+from xnote.webui import ListView, ListViewItem
 from xnote.plugin import DataForm, FormRowType, FormRowDateType
 
 

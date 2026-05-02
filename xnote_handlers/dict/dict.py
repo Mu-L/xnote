@@ -21,9 +21,10 @@ from xnote_handlers.note.models import NoteTypeInfo
 from .models import DictTypeEnum, DictTypeItem
 from xnote.plugin.table import DataTable
 from xnote.plugin.table_plugin import BaseTablePlugin, TableActionType, FormRowType
+from xnote.plugin.list_plugin import BaseListPlugin
 from xnote.plugin.form import DataForm, QueryForm, PageEditForm
 from xnote_handlers.config import LinkConfig
-
+from xnote.webui import ListViewItem, EditFormActionLink
 
 PAGE_SIZE = xconfig.PAGE_SIZE
 
@@ -68,7 +69,7 @@ class BaseDictHandler:
         kw.can_edit = can_edit
         return kw
 
-class DictHandler(BaseTablePlugin):
+class DictHandler(BaseListPlugin):
 
     title = "词典"
     show_aside = True
@@ -81,7 +82,7 @@ class DictHandler(BaseTablePlugin):
     PAGE_HTML = """
 {% include note/component/filter/type_filter.html %}
 {% include dict/page/dict_type_tab.html %}
-""" + BaseTablePlugin.TABLE_HTML
+""" + BaseListPlugin.page_html
     
     page_edit_html = """
 <div class="card">
@@ -148,18 +149,19 @@ class DictHandler(BaseTablePlugin):
         user_name = xauth.current_name_str()
         xmanager.add_visit_log(user_name, f"/note/dict?dict_type={dict_type}")
 
-        table = DataTable()
-        table.add_head("关键字", field="key", width="20%", link_field="view_url")
-        table.add_head("解释", field="value", width="60%")
-
-        if self.show_edit_action():
-            table.add_action(title="编辑", type=TableActionType.edit_form, link_field="edit_url", css_class="btn btn-default")
+        list_view = self.create_list_view()
 
         for item in items:
-            item.view_url = item.url
-            item.edit_url = f"?action=edit&dict_type={item.dict_type}&dict_id={item.dict_id}"
-            item.value = textutil.get_short_text(item.value, 100)
-            table.add_row(item)
+            list_item = ListViewItem()
+            list_item.add_link(text=item.key, href=item.url, css_class="bold")
+            list_item.add_br()
+            list_item.add_span(textutil.get_short_text(item.value, 100), css_class="gray")
+            edit_url = f"?action=edit&dict_type={item.dict_type}&dict_id={item.dict_id}"
+            
+            if self.show_edit_action():
+                list_item.right_div.add(EditFormActionLink(text="编辑", url=edit_url))
+            
+            list_view.add(list_item)
 
         kw = Storage()
         kw.type_list = NoteTypeInfo.get_type_list()
@@ -169,7 +171,7 @@ class DictHandler(BaseTablePlugin):
         kw.page_max   = page_max
         kw.page       = page
         kw.file_type  = "group"
-        kw.table = table
+        kw.list_view = list_view
 
         self.search_action = f"/note/dict?dict_type={dict_type}"
 

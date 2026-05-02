@@ -26,7 +26,7 @@ from xutils import logutil, webutil
 from xnote.service.system_meta_service import SystemMetaEnum, SystemMetaEnumItem
 from xnote_handlers.config import LinkConfig
 from xnote.plugin import TextLink
-from xnote.plugin.list import ListView, ListViewItem
+from xnote.webui import ListView, ListViewItem
 from xnote.core import xnote_user_config
 
 try:

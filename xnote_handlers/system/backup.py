@@ -27,7 +27,7 @@ from xnote.core import xtables
 from xnote.service import JobService, SysJob, JobStatusEnum, DatabaseLockService
 from xnote.plugin import LinkConfig
 from xnote.service.system_meta_service import SystemMetaEnum
-from xnote.plugin.list import ListView, ListViewItem, ActionButton
+from xnote.webui import ListView, ListViewItem, ActionButton
 from xutils.db.binlog import BinLog
 from xutils import jsonutil
 from xutils.sqldb.table_config import TableConfig
