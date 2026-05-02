@@ -41,8 +41,9 @@
         </div>
 
         <div class="row">
-            <button id="createCanvasBtn">创建画布</button>
-            <button id="toggleResult">预览</button>
+            <button onclick="onCreateCanvasBtnClick()">创建画布</button>
+            <button onclick="onPreviewClick(this)">预览</button>
+            <button onclick="onDownloadFile()">下载</button>
         </div>
     </div>
 
@@ -50,11 +51,11 @@
     </div>
 
     <div id="canvasContainer" class="row top-offset-1">
-        <canvas id="canvas"></canvas>
-        <canvas id="realCanvas" class="hide"></canvas>
+        <canvas id="canvas" style="max-width: 100%;"></canvas>
+        <canvas id="realCanvas" class="hide" style="max-width: 100%;"></canvas>
     </div>
 
-    <img id="targetImage" class="hide">
+    <img id="targetImage" class="hide" style="max-width: 100%;">
 </div>
 
 <script type="text/javascript">
@@ -140,7 +141,7 @@ function alignFloor(value, alignment) {
     return parseInt(value / alignment) * alignment;
 }
 
-$("#createCanvasBtn").on("click", function() {
+function onCreateCanvasBtnClick() {
     var cols = parseInt($("#cols").val());
     var rows = parseInt($("#rows").val());
     var width = parseInt($("#width").val());
@@ -176,30 +177,28 @@ $("#createCanvasBtn").on("click", function() {
     window.realCtx = realCanvas.getContext("2d");
     window.canvasClickEvents = [];
     window.imgMap = {};
-})
+};
 
 $("#canvas").on("click", function (event) {
     console.log(event);
     var x = event.offsetX;
     var y = event.offsetY;
     var canvas = $('#canvas')[0];
+    var ratio = canvas.width / canvas.clientWidth;
 
-    x = alignFloor(x, getFrameWidth());
-    y = alignFloor(y, getFrameHeight());
-
-    globals.clickCol = x;
-    globals.clickRow = y;
+    globals.clickCol = alignFloor(x * ratio, getFrameWidth());
+    globals.clickRow = alignFloor(y * ratio, getFrameHeight());
     $("#file").click();
 })
 
-$("#toggleResult").on("click", function (event) {
+function onPreviewClick(target) {
     var canvas = $("#realCanvas")[0];
     if ($("#targetImage").hasClass('hide')) {
         // 编辑 -> 预览
         // $("#realCanvas").removeClass("hide");
         $("#targetImage").removeClass('hide');
         $("#canvas").addClass('hide');
-        $("#toggleResult").text("编辑");
+        $(target).text("编辑");
         // 生成图片
         $("#targetImage").attr("src", canvas.toDataURL());
     } else {
@@ -207,18 +206,18 @@ $("#toggleResult").on("click", function (event) {
         // $("#realCanvas").addClass('hide');
         $("#targetImage").addClass('hide');
         $("#canvas").removeClass("hide");
-        $("#toggleResult").text("预览");
+        $(target).text("预览");
     }
-});
+};
 
-$("#downloadFile").click(function (event) {
+function onDownloadFile() {
     var canvas = $('#canvas')[0];
     downloadFile("image.png", canvas.toDataURL("image/png"));
-})
+};
 
 $(function() {
     window.canvasClickEvents = [];
-    $("#createCanvasBtn").click();
+    onCreateCanvasBtnClick();
 });
 
 function base64Img2Blob(code){
