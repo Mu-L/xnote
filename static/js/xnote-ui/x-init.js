@@ -73,6 +73,8 @@ if (window.xnote === undefined) {
     xnote.action = {};
     // 自定义模块-笔记
     xnote.note = {};
+    // 自定义模块-评论
+    xnote.comment = {};
     // 自定义模块-随手记
     xnote.message = {}
     // 自定义模块-管理后台

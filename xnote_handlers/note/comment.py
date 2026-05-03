@@ -195,14 +195,15 @@ class SaveCommentAjaxHandler:
         content = xutils.get_argument_str("content")
         type = xutils.get_argument_str("type")
         user_info = xauth.current_user()
-
+        files = xutils.get_list_argument("files[]")
+    
         if user_info == None:
             return webutil.FailedResult(code="403", message="请登录进行操作~")
 
         if note_id == 0:
             return webutil.FailedResult(message="note_id参数为空")
         
-        if content == "":
+        if content == "" and len(files) == 0:
             return webutil.FailedResult(code = "400", message = "content参数为空")
 
         comment = dao_comment.CommentRecord()
@@ -211,6 +212,7 @@ class SaveCommentAjaxHandler:
         comment.type = type
         comment.content = content
         comment.note_id = note_id
+        comment.files = files
 
         dao_comment.create_comment(comment)
         note_dao.touch_note(note_id)
@@ -284,6 +286,7 @@ class CommentAjaxHandler:
                 comment.ctime = f"{date} {old_date.time}"
                 update_ctime = True
             comment.content = content
+            comment.files = xutils.get_list_argument("files[]")
             dao_comment.CommentDao.update(comment, update_ctime=update_ctime)
             return webutil.SuccessResult()
         return "未知的操作"

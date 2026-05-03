@@ -36,11 +36,14 @@
         <textarea id="commentText" class="col-md-12 no-outline auto-height"
             placeholder="{{comment_placeholder}}"></textarea>
 
+        <div id="commentImgRow" class="comment-img-row row">
+        </div>
+
         <div class="row margin-top-sm">
             <div id="commentFileUploader" class="hide"></div>
             <input type="file" id="commentFilePicker" class="hide" multiple />
             <input type="button" id="commentFilePickerBtn" class="btn btn-default" value="添加附件" />
-            <button class="btn" id="saveCommentBtn">{{comment_btn_text}}</button>
+            <button class="btn" id="saveCommentBtn" onclick="xnote.saveComment();">{{comment_btn_text}}</button>
         </div>
     </div>
 </div>
@@ -81,33 +84,35 @@
             });
         }
 
-        function appendToInputText(line) {
-            // body...
-            var oldTextValue = $("#commentText").val();
-            if (oldTextValue != "") {
-                oldTextValue += "\n";
-            }
-            $("#commentText").val(oldTextValue + line);
-        }
-
         refreshComments();
 
-        $("#saveCommentBtn").click(function () {
+        function buildFiles() {
+            var result = [];
+            $(".upload-img").each(function (index, ele) {
+                var src = $(ele).attr("data-src");
+                result.push(src);
+            });
+            return result;
+        }
+
+        xnote.saveComment = function () {
             var request = {};
             request.note_id = "{{file.id}}";
             request.content = $("#commentText").val();
             request.type = "{{comment_create_type}}";
+            request.files = buildFiles();
 
             xnote.http.post("/note/comment/save", request, function (resp) {
                 console.log(resp);
-                if (resp.code == "success") {
+                if (resp.success) {
                     $("#commentText").val("");
+                    $("#commentImgRow").empty();
                     refreshComments();
                 } else {
                     xnote.toast(resp.message);
                 }
             });
-        });
+        };
 
         $("#comments").on("click", ".delete-comment-btn", function () {
             var id = $(this).attr("data-id");
@@ -134,7 +139,6 @@
             $("#commentFilePicker").click();
         });
 
-
         // 上传文件
         xnote.createUploaderEx({
             fileSelector: "#commentFilePicker",
@@ -142,7 +146,8 @@
             successFn: function (resp) {
                 console.log("文件上传成功", resp);
                 var link = "file://" + resp.webpath;
-                appendToInputText(link);
+                // appendToInputText(link);
+                xnote.comment.renderUploadedImg(resp.webpath, "#commentImgRow");
             },
             fixOrientation: true,
             fileName: "auto"
@@ -153,7 +158,8 @@
             xnote.requestUploadByClip(e, "msg", function (respJson) {
                 console.log(respJson);
                 var link = "file://" + respJson.webpath;
-                appendToInputText(link);
+                // appendToInputText(link);
+                xnote.comment.renderUploadedImg(respJson.webpath, "#commentImgRow");
             });
         });
 

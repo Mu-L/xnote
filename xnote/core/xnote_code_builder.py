@@ -113,6 +113,7 @@ def build_app_css():
         builder.append("./static/css/app.css")
         builder.append("./static/css/message.css")
         builder.append("./static/css/note.css")
+        builder.append("./static/css/note-comment.css")
         builder.append("./static/css/plugins.css")
         builder.append("./static/css/search.css")
         builder.append("./static/css/todo.css")
@@ -156,6 +157,7 @@ def build_app_js():
         # app.js
         builder.append("./static/js/app.js")
         builder.append("./static/js/note.js")
+        builder.append("./static/js/note-comment.js")
         builder.append("./static/js/editor.js")
         builder.append("./static/js/fs/fs.js")
 

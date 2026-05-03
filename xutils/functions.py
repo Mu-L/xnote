@@ -417,6 +417,8 @@ def pipe(ctx, *functions):
         ctx = func(ctx)
     return ctx
 
+def is_empty(a):
+    return a is None or len(a) == 0
 
 if __name__ == '__main__':
     import doctest

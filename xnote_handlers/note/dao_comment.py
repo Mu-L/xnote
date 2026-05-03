@@ -15,6 +15,7 @@ from xutils import dateutil
 from xutils.db.dbutil_helper import PageBuilder, batch_iter
 from xnote.service import CommentService, CommentIndexRecord
 from xutils.base import BaseDataRecord
+from xutils.functions import is_empty
 
 NOTE_DAO = xutils.DAO("note")
 
@@ -34,6 +35,7 @@ class CommentRecord(BaseDataRecord):
         self.ctime = now
         self.mtime = now
         self.pin_level = 0
+        self.files = []
         self.update(kw)
 
     def update_index(self, index: CommentIndexRecord):
@@ -57,8 +59,8 @@ class CommentDao:
         assert comment.user != None, "comment.user is None"
         assert comment.type in cls.valid_type_set, "comment.type is invalid"
         assert comment.note_id != None
-        assert comment.content != None
-        assert comment.content != ""
+        if comment.content == "" and is_empty(comment.files):
+            raise Exception("content or files is empty")
     
     @classmethod
     def create(cls, comment: CommentRecord):
