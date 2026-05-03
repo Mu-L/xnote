@@ -24,7 +24,7 @@
         {% if comment.files %}
             <div class="comment-img-row">
             {% for _img_src in comment.files %}
-                <img class="comment-img x-photo" src="{{_img_src}}?mode=thumbnail" data-src="{{_img_src}}">
+                <img class="comment-img x-photo" alt="{{_img_src}}" src="{{_img_src}}?mode=thumbnail" data-src="{{_img_src}}">
             {% end %}
             </div>
         {% end %}
