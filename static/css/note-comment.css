@@ -17,6 +17,7 @@
 .comment-foot {
     float: left;
     width: 100%;
+    margin-top: 5px;
 }
 
 .comment-foot>.comment-foot-link {

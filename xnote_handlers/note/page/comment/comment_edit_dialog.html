@@ -6,17 +6,15 @@
         </div>
         <textarea class="no-outline comment-edit-textarea" id="commentUpdateContent">{{comment.content}}</textarea>
 
-        {% if comment.files %}
-            <div id="commentEditImgRow" class="comment-edit-img-row">
-            {% for _img_src in comment.files %}
-                {% set _img_id = xutils.create_uuid() %}
-                <div id="upload_{{_img_id}}" class="upload-img-div">
-                    <img class="upload-img x-photo" src="{{_img_src}}?mode=thumbnail" data-src="{{_img_src}}">
-                    <a onclick="xnote.comment.removeUploadedImg(this)" data-id="upload_{{_img_id}}">删除</a>
-                </div>
-            {% end %}
+        <div id="commentEditImgRow" class="comment-edit-img-row">
+        {% for _img_src in comment.files %}
+            {% set _img_id = xutils.create_uuid() %}
+            <div id="upload_{{_img_id}}" class="upload-img-div">
+                <img class="upload-img x-photo" src="{{_img_src}}?mode=thumbnail" data-src="{{_img_src}}">
+                <a onclick="xnote.comment.removeUploadedImg(this)" data-id="upload_{{_img_id}}">删除</a>
             </div>
         {% end %}
+        </div>
 
         <div class="comment-edit-bottom">
             <input type="file" id="commentFilePicker2" class="hide" multiple />
