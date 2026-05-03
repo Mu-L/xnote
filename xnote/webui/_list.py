@@ -2,21 +2,26 @@ import typing
 
 from .base import BaseComponent, BaseContainer, Div
 from xnote.core import xtemplate
-from .component import ConfirmButton, ActionButton, TextTag, escape_html, TextSpan, TextLink, TextBr, RawHtml
+from .component import ConfirmButton, ActionButton, TextTag, escape_html, TextSpan, TextLink, TextBr, RawHtml, TextNbsp
 from xnote.core import xconfig
 
+class ListViewBaseDiv(Div):
 
-class RightDiv(Div):
     def add_span(self, text="", css_class="", css_style=""):
         self.children.append(TextSpan(text=text, css_class=css_class, css_style=css_style))
     
     def add_link(self, text="", href="", css_class="", is_bracketed=False):
         self.children.append(TextLink(text=text, href=href, css_class=css_class, is_bracketed=is_bracketed))
     
-    def add_br(self):
-        self.children.append(TextBr())
+    def add_br(self, count=1):
+        for _ in range(count):
+            self.children.append(TextBr())
         
-class ListViewItem(BaseContainer):
+    def add_nsbp(self, count=1):
+        for _ in range(count):
+            self.children.append(TextNbsp())
+        
+class ListViewItem(ListViewBaseDiv):
     # 是否展示右箭头
     show_chevron_right = False
     # 操作按钮
@@ -68,7 +73,7 @@ class ListViewItem(BaseContainer):
         self.show_chevron_right = show_chevron_right
         self.tags = []
         self.action_html = action_html
-        self.right_div = RightDiv(css_class="float-right")
+        self.right_div = ListViewBaseDiv(css_class="float-right")
         self._right_html = ""
         
         if text:
@@ -101,15 +106,6 @@ class ListViewItem(BaseContainer):
         if self.show_chevron_right:
             right_div.add(RawHtml('<i class="fa fa-chevron-right"></i>'))
         return right_div.render()
-        
-    def add_span(self, text="", css_class="", css_style=""):
-        self.children.append(TextSpan(text=text, css_class=css_class, css_style=css_style))
-    
-    def add_link(self, text="", href="", css_class=""):
-        self.children.append(TextLink(text=text, href=href, css_class=css_class))
-        
-    def add_br(self):
-        self.children.append(TextBr())
 
 class _ListViewOption:
 

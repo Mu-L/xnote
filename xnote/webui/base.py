@@ -3,8 +3,12 @@ import typing
 from typing import List
 from xutils.textutil import safe_str
 
+MAX_DEPTH = 50
+
 class BaseComponent:
     """UI组件的基类"""
+    _depth = 0
+    
     def render(self) -> str:
         return ""
 
@@ -25,7 +29,6 @@ class BaseContainer(BaseComponent):
         return len(self.children) == 0
 
     def render(self) -> str:
-        # TODO: 防止递归
         if self.is_empty():
             return ""
         css_style_attr = ""
@@ -34,6 +37,10 @@ class BaseContainer(BaseComponent):
         out = []
         out.append(f"""<div class="{self.css_class}" {css_style_attr}>""")
         for item in self.children:
+            item._depth += 1
+            if item._depth > MAX_DEPTH:
+                raise Exception(f"render: too deep depth {item._depth}")
+            
             item_html = safe_str(item.render())
             out.append(item_html)
         out.append("""</div>""")
