@@ -61,7 +61,7 @@ xnote.execute(function() {
         if note_index is None:
             return "笔记不存在"
         table = NoteRelationService.get_table(note_id=note_id, user_id=user_id)
-        table.action_bar.add_edit_button("创建关系", url=f"/note/relation?action=edit&note_id={note_id}")
+        table.action_bar.add_edit_button("创建关联", url=f"/note/relation?action=edit&note_id={note_id}")
         kw = Storage()
         kw.file = note_index
         kw.pathlist = list_path(file=note_index)

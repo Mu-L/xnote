@@ -163,7 +163,7 @@ class _NoteRelationServiceImpl:
         if ctx.tab == "relation":
             ctx.hide_components()
             ctx.show_relation = True
-            ctx.create_btn_text = "创建关系"
+            ctx.create_btn_text = "创建关联"
             ctx.relation_table = NoteRelationService.get_table(note_id=ctx.note_id, user_id=ctx.user_id)
             ctx.rev_relation_table = NoteRelationService.get_rev_table(target_id=ctx.note_id, user_id=ctx.user_id)
         

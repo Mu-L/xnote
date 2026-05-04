@@ -1,13 +1,33 @@
 from xnote.webui.base import BaseComponent, BaseContainer, Div
 from xnote.webui.component import TextSpan, EditFormButton, ConfirmButton, TextLink
+from xnote.webui.component import TextItemSep, TextNbsp, TextBr
 from xnote.core import xtemplate
 from typing import Optional
 
-class ActionBar(BaseContainer):
+class TextContainer(BaseContainer):
+    
+    def add_span(self, text="", css_class="", css_style="", id=""):
+        self.children.append(TextSpan(text=text, css_class=css_class, css_style=css_style, id=id))
+    
+    def add_link(self, text="", href="", css_class="", is_bracketed=False):
+        self.children.append(TextLink(text=text, href=href, css_class=css_class, is_bracketed=is_bracketed))
+    
+    def add_br(self, count=1):
+        for _ in range(count):
+            self.children.append(TextBr())
+        
+    def add_nsbp(self, count=1):
+        for _ in range(count):
+            self.children.append(TextNbsp())
+    
+    def add_item_sep(self):
+        self.children.append(TextItemSep())
+
+class ActionBar(TextContainer):
     """表格动作栏"""
     def __init__(self, css_class="", css_style=""):
         super().__init__(css_class=f"action-bar {css_class}", css_style=css_style)
-        self.right_div = BaseContainer("float-right")
+        self.right_div = TextContainer("float-right")
         self.add(self.right_div)
 
     def is_empty(self):
@@ -41,6 +61,13 @@ class ActionBar(BaseContainer):
     def add_link(self, text = "", href="", css_class="", float_right=False):
         link = TextLink(text=text, href=href, css_class=css_class)
         self._add(link, float_right)
+    
+    def add_nbsp(self, count=1):
+        for _ in range(count):
+            self.children.append(TextNbsp())
+            
+    def add_item_sep(self):
+        self.children.append(TextItemSep())
         
 
 class Card(BaseContainer):

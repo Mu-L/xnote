@@ -237,3 +237,7 @@ class TextBr(BaseComponent):
 class TextNbsp(BaseComponent):
     def render(self) -> str:
         return "&nbsp;"
+
+class TextItemSep(BaseComponent):
+    def render(self) -> str:
+        return " · "
